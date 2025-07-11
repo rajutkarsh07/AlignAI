@@ -8,6 +8,7 @@ import Feedback from './pages/Feedback';
 import Tasks from './pages/Tasks';
 import Chat from './pages/Chat';
 import Roadmap from './pages/Roadmap';
+import Help from './pages/Help';
 import './App.css';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/help" element={<Help />} />
           </Routes>
         </Layout>
         <Toaster
@@ -53,4 +55,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
