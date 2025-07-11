@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  FolderOpen, 
-  MessageSquare, 
-  CheckSquare, 
-  MessageCircle, 
+import {
+  Home,
+  FolderOpen,
+  MessageSquare,
+  CheckSquare,
+  MessageCircle,
   BarChart3,
   Menu,
   X,
   Settings,
-  HelpCircle
+  HelpCircle,
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -34,19 +34,24 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 lg:flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`${
+          // Sidebar is fixed on mobile, static on large screens
+          'lg:static lg:inset-0 lg:translate-x-0 lg:relative'
+        } fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0`}
+      >
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
@@ -79,9 +84,13 @@ const Layout = ({ children }) => {
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className={`mr-3 h-5 w-5 ${
-                    isActive(item.href) ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500'
-                  }`} />
+                  <Icon
+                    className={`mr-3 h-5 w-5 ${
+                      isActive(item.href)
+                        ? 'text-primary-600'
+                        : 'text-gray-400 group-hover:text-gray-500'
+                    }`}
+                  />
                   {item.name}
                 </Link>
               );
@@ -110,7 +119,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="flex-1 lg:pl-0">
         {/* Top bar */}
         <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -145,4 +154,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout; 
+export default Layout;
