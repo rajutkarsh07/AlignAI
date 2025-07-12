@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import {
   PlusIcon,
@@ -20,7 +19,14 @@ interface Task {
   description: string;
   status: 'todo' | 'in-progress' | 'done' | 'blocked';
   priority: 'critical' | 'high' | 'medium' | 'low';
-  category: 'feature' | 'bug-fix' | 'improvement' | 'research' | 'maintenance' | 'design' | 'testing';
+  category:
+    | 'feature'
+    | 'bug-fix'
+    | 'improvement'
+    | 'research'
+    | 'maintenance'
+    | 'design'
+    | 'testing';
   assignee?: string;
   dueDate?: string;
   estimatedEffort?: {
@@ -52,8 +58,9 @@ interface Project {
 
 const TaskManagement: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const queryClient = useQueryClient();
-  const [selectedProject, setSelectedProject] = useState<string>(projectId || '');
+  const [selectedProject, setSelectedProject] = useState<string>(
+    projectId || ''
+  );
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -68,73 +75,61 @@ const TaskManagement: React.FC = () => {
     acceptanceCriteria: [''],
   });
 
+  // State for data fetching
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskSummary, setTaskSummary] = useState<any>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
+  const [isEnhancingTask, setIsEnhancingTask] = useState(false);
+
   // Fetch projects
-  const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const response: any = await api.get('/projects');
-      return response.success ? response.data : [];
-    },
-  });
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setIsLoadingProjects(true);
+      try {
+        const response: any = await api.get('/projects');
+        setProjects(response.success ? response.data : []);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setIsLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   // Fetch tasks
-  const { 
-    data: tasksData, 
-    isLoading,
-    refetch 
-  } = useQuery({
-    queryKey: ['tasks', selectedProject],
-    queryFn: async () => {
-      const endpoint = selectedProject 
-        ? `/tasks/project/${selectedProject}` 
-        : '/tasks';
-      const response: any = await api.get(endpoint);
-      return response.success ? response.data : { tasks: [], summary: {} };
-    },
-    enabled: !!selectedProject,
-  });
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!selectedProject) {
+        setTasks([]);
+        setTaskSummary({});
+        return;
+      }
 
-  const tasks: Task[] = tasksData?.tasks || [];
-  const taskSummary = tasksData?.summary || {};
+      setIsLoading(true);
+      try {
+        const endpoint = selectedProject
+          ? `/tasks/project/${selectedProject}`
+          : '/tasks';
+        const response: any = await api.get(endpoint);
+        if (response.success) {
+          setTasks(response.data.tasks || []);
+          setTaskSummary(response.data.summary || {});
+        }
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Create task mutation
-  const createTaskMutation = useMutation({
-    mutationFn: async (taskData: any) => {
-      const response: any = await api.post('/tasks', {
-        ...taskData,
-        projectId: selectedProject,
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      setShowAddForm(false);
-      resetNewTask();
-    },
-  });
-
-  // Update task mutation
-  const updateTaskMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
-      const response: any = await api.put(`/tasks/${id}`, updates);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
-  });
-
-  // Enhance task with AI mutation
-  const enhanceTaskMutation = useMutation({
-    mutationFn: async ({ title, description }: { title: string; description: string }) => {
-      const response: any = await api.post('/tasks/enhance', {
-        title,
-        description,
-        projectId: selectedProject,
-      });
-      return response.data;
-    },
-  });
+    fetchTasks();
+  }, [selectedProject]);
 
   const resetNewTask = () => {
     setNewTask({
@@ -149,70 +144,119 @@ const TaskManagement: React.FC = () => {
   };
 
   const addAcceptanceCriteria = () => {
-    setNewTask(prev => ({
+    setNewTask((prev) => ({
       ...prev,
-      acceptanceCriteria: [...prev.acceptanceCriteria, '']
+      acceptanceCriteria: [...prev.acceptanceCriteria, ''],
     }));
   };
 
   const updateAcceptanceCriteria = (index: number, value: string) => {
-    setNewTask(prev => ({
+    setNewTask((prev) => ({
       ...prev,
-      acceptanceCriteria: prev.acceptanceCriteria.map((criteria, i) => 
+      acceptanceCriteria: prev.acceptanceCriteria.map((criteria, i) =>
         i === index ? value : criteria
-      )
+      ),
     }));
   };
 
   const removeAcceptanceCriteria = (index: number) => {
-    setNewTask(prev => ({
+    setNewTask((prev) => ({
       ...prev,
-      acceptanceCriteria: prev.acceptanceCriteria.filter((_, i) => i !== index)
+      acceptanceCriteria: prev.acceptanceCriteria.filter((_, i) => i !== index),
     }));
   };
 
   const handleCreateTask = async () => {
     if (!newTask.title.trim() || !newTask.description.trim()) return;
 
-    const taskData = {
-      ...newTask,
-      acceptanceCriteria: newTask.acceptanceCriteria.filter(criteria => criteria.trim()),
-      tags: []
-    };
+    setIsCreatingTask(true);
+    try {
+      const taskData = {
+        ...newTask,
+        acceptanceCriteria: newTask.acceptanceCriteria.filter((criteria) =>
+          criteria.trim()
+        ),
+        tags: [],
+      };
 
-    createTaskMutation.mutate(taskData);
+      const response: any = await api.post('/tasks', {
+        ...taskData,
+        projectId: selectedProject,
+      });
+
+      if (response.success) {
+        // Refresh tasks
+        const tasksResponse: any = await api.get(
+          `/tasks/project/${selectedProject}`
+        );
+        if (tasksResponse.success) {
+          setTasks(tasksResponse.data.tasks || []);
+          setTaskSummary(tasksResponse.data.summary || {});
+        }
+        setShowAddForm(false);
+        resetNewTask();
+      }
+    } catch (error) {
+      console.error('Error creating task:', error);
+    } finally {
+      setIsCreatingTask(false);
+    }
   };
 
   const handleEnhanceTask = async () => {
     if (!newTask.title.trim() || !newTask.description.trim()) return;
 
+    setIsEnhancingTask(true);
     try {
-      const enhancedTask = await enhanceTaskMutation.mutateAsync({
+      const response: any = await api.post('/tasks/enhance', {
         title: newTask.title,
         description: newTask.description,
+        projectId: selectedProject,
       });
 
-      if (enhancedTask) {
-        setNewTask(prev => ({
+      if (response.success && response.data) {
+        const enhancedTask = response.data;
+        setNewTask((prev) => ({
           ...prev,
           description: enhancedTask.enhancedDescription || prev.description,
           priority: enhancedTask.priority || prev.priority,
           category: enhancedTask.category || prev.category,
-          acceptanceCriteria: enhancedTask.acceptanceCriteria || prev.acceptanceCriteria,
+          acceptanceCriteria:
+            enhancedTask.acceptanceCriteria || prev.acceptanceCriteria,
         }));
       }
     } catch (error) {
       console.error('Error enhancing task:', error);
+    } finally {
+      setIsEnhancingTask(false);
     }
   };
 
-  const updateTaskStatus = (taskId: string, status: Task['status']) => {
-    updateTaskMutation.mutate({ id: taskId, updates: { status } });
+  const updateTaskStatus = async (taskId: string, status: Task['status']) => {
+    setIsUpdatingTask(true);
+    try {
+      const response: any = await api.put(`/tasks/${taskId}`, { status });
+      if (response.success) {
+        // Refresh tasks
+        const tasksResponse: any = await api.get(
+          `/tasks/project/${selectedProject}`
+        );
+        if (tasksResponse.success) {
+          setTasks(tasksResponse.data.tasks || []);
+          setTaskSummary(tasksResponse.data.summary || {});
+        }
+      }
+    } catch (error) {
+      console.error('Error updating task:', error);
+    } finally {
+      setIsUpdatingTask(false);
+    }
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = tasks.filter((task) => {
     if (filterStatus !== 'all' && task.status !== filterStatus) return false;
-    if (filterPriority !== 'all' && task.priority !== filterPriority) return false;
+    if (filterPriority !== 'all' && task.priority !== filterPriority)
+      return false;
     return true;
   });
 
@@ -261,10 +305,10 @@ const TaskManagement: React.FC = () => {
 
   const taskStats = {
     total: tasks.length,
-    todo: tasks.filter(t => t.status === 'todo').length,
-    inProgress: tasks.filter(t => t.status === 'in-progress').length,
-    done: tasks.filter(t => t.status === 'done').length,
-    blocked: tasks.filter(t => t.status === 'blocked').length,
+    todo: tasks.filter((t) => t.status === 'todo').length,
+    inProgress: tasks.filter((t) => t.status === 'in-progress').length,
+    done: tasks.filter((t) => t.status === 'done').length,
+    blocked: tasks.filter((t) => t.status === 'blocked').length,
   };
 
   return (
@@ -308,7 +352,9 @@ const TaskManagement: React.FC = () => {
       {!selectedProject && (
         <div className="text-center py-12">
           <UserIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No project selected</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No project selected
+          </h3>
           <p className="mt-1 text-sm text-gray-500">
             Select a project to view and manage tasks.
           </p>
@@ -327,8 +373,12 @@ const TaskManagement: React.FC = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Total Tasks</dt>
-                      <dd className="text-lg font-medium text-gray-900">{taskStats.total}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Total Tasks
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {taskStats.total}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -343,8 +393,12 @@ const TaskManagement: React.FC = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">In Progress</dt>
-                      <dd className="text-lg font-medium text-gray-900">{taskStats.inProgress}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        In Progress
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {taskStats.inProgress}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -359,8 +413,12 @@ const TaskManagement: React.FC = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Completed</dt>
-                      <dd className="text-lg font-medium text-gray-900">{taskStats.done}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Completed
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {taskStats.done}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -375,8 +433,12 @@ const TaskManagement: React.FC = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Blocked</dt>
-                      <dd className="text-lg font-medium text-gray-900">{taskStats.blocked}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        Blocked
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {taskStats.blocked}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -391,8 +453,12 @@ const TaskManagement: React.FC = () => {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">To Do</dt>
-                      <dd className="text-lg font-medium text-gray-900">{taskStats.todo}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate">
+                        To Do
+                      </dt>
+                      <dd className="text-lg font-medium text-gray-900">
+                        {taskStats.todo}
+                      </dd>
                     </dl>
                   </div>
                 </div>
@@ -404,7 +470,9 @@ const TaskManagement: React.FC = () => {
           <div className="bg-white p-4 rounded-lg shadow">
             <div className="flex flex-wrap gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Status
+                </label>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
@@ -418,7 +486,9 @@ const TaskManagement: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Priority</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Priority
+                </label>
                 <select
                   value={filterPriority}
                   onChange={(e) => setFilterPriority(e.target.value)}
@@ -437,24 +507,40 @@ const TaskManagement: React.FC = () => {
           {/* Add Task Form */}
           {showAddForm && (
             <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Task</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Add New Task
+              </h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Title</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Title
+                    </label>
                     <input
                       type="text"
                       value={newTask.title}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Task title..."
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Category</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Category
+                    </label>
                     <select
                       value={newTask.category}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, category: e.target.value as any }))}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          category: e.target.value as any,
+                        }))
+                      }
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="feature">Feature</option>
@@ -469,10 +555,17 @@ const TaskManagement: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
                   <textarea
                     value={newTask.description}
-                    onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setNewTask((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     rows={3}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Task description..."
@@ -480,21 +573,32 @@ const TaskManagement: React.FC = () => {
                   <div className="mt-2">
                     <button
                       onClick={handleEnhanceTask}
-                      disabled={!newTask.title.trim() || !newTask.description.trim() || enhanceTaskMutation.isPending}
+                      disabled={
+                        !newTask.title.trim() ||
+                        !newTask.description.trim() ||
+                        isEnhancingTask
+                      }
                       className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <SparklesIcon className="h-4 w-4 mr-1" />
-                      {enhanceTaskMutation.isPending ? 'Enhancing...' : 'Enhance with AI'}
+                      {isEnhancingTask ? 'Enhancing...' : 'Enhance with AI'}
                     </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Priority</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Priority
+                    </label>
                     <select
                       value={newTask.priority}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value as any }))}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          priority: e.target.value as any,
+                        }))
+                      }
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="low">Low</option>
@@ -504,34 +608,52 @@ const TaskManagement: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Assignee</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Assignee
+                    </label>
                     <input
                       type="text"
                       value={newTask.assignee}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, assignee: e.target.value }))}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          assignee: e.target.value,
+                        }))
+                      }
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Assignee email..."
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Due Date
+                    </label>
                     <input
                       type="date"
                       value={newTask.dueDate}
-                      onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
+                      onChange={(e) =>
+                        setNewTask((prev) => ({
+                          ...prev,
+                          dueDate: e.target.value,
+                        }))
+                      }
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Acceptance Criteria</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Acceptance Criteria
+                  </label>
                   {newTask.acceptanceCriteria.map((criteria, index) => (
                     <div key={index} className="flex gap-2 mb-2">
                       <input
                         type="text"
                         value={criteria}
-                        onChange={(e) => updateAcceptanceCriteria(index, e.target.value)}
+                        onChange={(e) =>
+                          updateAcceptanceCriteria(index, e.target.value)
+                        }
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Acceptance criteria..."
                       />
@@ -565,10 +687,14 @@ const TaskManagement: React.FC = () => {
                   </button>
                   <button
                     onClick={handleCreateTask}
-                    disabled={!newTask.title.trim() || !newTask.description.trim() || createTaskMutation.isPending}
+                    disabled={
+                      !newTask.title.trim() ||
+                      !newTask.description.trim() ||
+                      isCreatingTask
+                    }
                     className="px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {createTaskMutation.isPending ? 'Creating...' : 'Create Task'}
+                    {isCreatingTask ? 'Creating...' : 'Create Task'}
                   </button>
                 </div>
               </div>
@@ -578,12 +704,14 @@ const TaskManagement: React.FC = () => {
           {/* Tasks List */}
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Tasks</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Tasks
+              </h3>
               <p className="mt-1 max-w-2xl text-sm text-gray-500">
                 {filteredTasks.length} of {tasks.length} tasks
               </p>
             </div>
-            
+
             {isLoading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
@@ -592,7 +720,9 @@ const TaskManagement: React.FC = () => {
             ) : filteredTasks.length === 0 ? (
               <div className="text-center py-12">
                 <CheckIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  No tasks
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
                   Get started by creating your first task.
                 </p>
@@ -608,21 +738,37 @@ const TaskManagement: React.FC = () => {
                             {getStatusIcon(task.status)}
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-sm font-medium text-gray-900">{task.title}</h4>
-                            <p className="text-sm text-gray-500 mt-1">{task.description}</p>
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {task.title}
+                            </h4>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {task.description}
+                            </p>
                           </div>
                         </div>
-                        
+
                         <div className="mt-3 flex items-center space-x-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                              task.status
+                            )}`}
+                          >
                             {task.status.replace('-', ' ')}
                           </span>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                              task.priority
+                            )}`}
+                          >
                             {task.priority}
                           </span>
-                          <span className="text-xs text-gray-500">{task.category}</span>
+                          <span className="text-xs text-gray-500">
+                            {task.category}
+                          </span>
                           {task.assignee && (
-                            <span className="text-xs text-gray-500">@{task.assignee}</span>
+                            <span className="text-xs text-gray-500">
+                              @{task.assignee}
+                            </span>
                           )}
                           {task.dueDate && (
                             <span className="text-xs text-gray-500">
@@ -635,33 +781,46 @@ const TaskManagement: React.FC = () => {
                           <div className="mt-4 space-y-3">
                             {task.acceptanceCriteria.length > 0 && (
                               <div>
-                                <h5 className="text-sm font-medium text-gray-900">Acceptance Criteria:</h5>
+                                <h5 className="text-sm font-medium text-gray-900">
+                                  Acceptance Criteria:
+                                </h5>
                                 <ul className="mt-1 text-sm text-gray-600 list-disc list-inside">
-                                  {task.acceptanceCriteria.map((criteria, index) => (
-                                    <li key={index}>{criteria}</li>
-                                  ))}
+                                  {task.acceptanceCriteria.map(
+                                    (criteria, index) => (
+                                      <li key={index}>{criteria}</li>
+                                    )
+                                  )}
                                 </ul>
                               </div>
                             )}
-                            
+
                             {task.aiSuggestions && (
                               <div>
-                                <h5 className="text-sm font-medium text-gray-900">AI Suggestions:</h5>
+                                <h5 className="text-sm font-medium text-gray-900">
+                                  AI Suggestions:
+                                </h5>
                                 <div className="mt-1 text-sm text-gray-600 space-y-1">
-                                  {task.aiSuggestions.enhancementRecommendations.map((rec, index) => (
-                                    <p key={index}>• {rec}</p>
-                                  ))}
+                                  {task.aiSuggestions.enhancementRecommendations.map(
+                                    (rec, index) => (
+                                      <p key={index}>• {rec}</p>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             )}
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         <select
                           value={task.status}
-                          onChange={(e) => updateTaskStatus(task._id, e.target.value as Task['status'])}
+                          onChange={(e) =>
+                            updateTaskStatus(
+                              task._id,
+                              e.target.value as Task['status']
+                            )
+                          }
                           className="text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="todo">To Do</option>
@@ -669,9 +828,13 @@ const TaskManagement: React.FC = () => {
                           <option value="done">Done</option>
                           <option value="blocked">Blocked</option>
                         </select>
-                        
+
                         <button
-                          onClick={() => setExpandedTask(expandedTask === task._id ? null : task._id)}
+                          onClick={() =>
+                            setExpandedTask(
+                              expandedTask === task._id ? null : task._id
+                            )
+                          }
                           className="text-gray-400 hover:text-gray-500"
                         >
                           {expandedTask === task._id ? (

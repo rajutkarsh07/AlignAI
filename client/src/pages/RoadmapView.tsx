@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import {
   PlusIcon,
@@ -75,12 +74,20 @@ interface Project {
 }
 
 const RoadmapView: React.FC = () => {
-  const { projectId, roadmapId } = useParams<{ projectId: string; roadmapId: string }>();
-  const queryClient = useQueryClient();
-  const [selectedProject, setSelectedProject] = useState<string>(projectId || '');
+  const { projectId, roadmapId } = useParams<{
+    projectId: string;
+    roadmapId: string;
+  }>();
+  const [selectedProject, setSelectedProject] = useState<string>(
+    projectId || ''
+  );
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedRoadmap, setSelectedRoadmap] = useState<string>(roadmapId || '');
-  const [viewMode, setViewMode] = useState<'timeline' | 'kanban' | 'list'>('timeline');
+  const [selectedRoadmap, setSelectedRoadmap] = useState<string>(
+    roadmapId || ''
+  );
+  const [viewMode, setViewMode] = useState<'timeline' | 'kanban' | 'list'>(
+    'timeline'
+  );
   const [newRoadmap, setNewRoadmap] = useState<{
     name: string;
     description: string;
@@ -103,62 +110,78 @@ const RoadmapView: React.FC = () => {
     },
   });
 
+  // State for data fetching
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
+  const [roadmapDetails, setRoadmapDetails] = useState<Roadmap | null>(null);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+  const [isLoadingRoadmaps, setIsLoadingRoadmaps] = useState(false);
+  const [isLoadingRoadmap, setIsLoadingRoadmap] = useState(false);
+  const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
+  const [isUpdatingItem, setIsUpdatingItem] = useState(false);
+
   // Fetch projects
-  const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ['projects'],
-    queryFn: async () => {
-      const response: any = await api.get('/projects');
-      return response.success ? response.data : [];
-    },
-  });
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setIsLoadingProjects(true);
+      try {
+        const response: any = await api.get('/projects');
+        setProjects(response.success ? response.data : []);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setIsLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   // Fetch roadmaps for selected project
-  const { data: roadmaps = [], isLoading: roadmapsLoading } = useQuery<Roadmap[]>({
-    queryKey: ['roadmaps', selectedProject],
-    queryFn: async () => {
-      if (!selectedProject) return [];
-      const response: any = await api.get(`/roadmap/project/${selectedProject}`);
-      return response.success ? response.data : [];
-    },
-    enabled: !!selectedProject,
-  });
+  useEffect(() => {
+    const fetchRoadmaps = async () => {
+      if (!selectedProject) {
+        setRoadmaps([]);
+        return;
+      }
+
+      setIsLoadingRoadmaps(true);
+      try {
+        const response: any = await api.get(
+          `/roadmap/project/${selectedProject}`
+        );
+        setRoadmaps(response.success ? response.data : []);
+      } catch (error) {
+        console.error('Error fetching roadmaps:', error);
+      } finally {
+        setIsLoadingRoadmaps(false);
+      }
+    };
+
+    fetchRoadmaps();
+  }, [selectedProject]);
 
   // Fetch specific roadmap details
-  const { data: roadmapDetails, isLoading: roadmapLoading } = useQuery<Roadmap>({
-    queryKey: ['roadmap', selectedRoadmap],
-    queryFn: async () => {
-      const response: any = await api.get(`/roadmap/${selectedRoadmap}`);
-      return response.success ? response.data : null;
-    },
-    enabled: !!selectedRoadmap,
-  });
+  useEffect(() => {
+    const fetchRoadmapDetails = async () => {
+      if (!selectedRoadmap) {
+        setRoadmapDetails(null);
+        return;
+      }
 
-  // Generate roadmap mutation
-  const generateRoadmapMutation = useMutation({
-    mutationFn: async (roadmapData: any) => {
-      const response: any = await api.post('/roadmap/generate', {
-        ...roadmapData,
-        projectId: selectedProject,
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roadmaps'] });
-      setShowCreateForm(false);
-      resetNewRoadmap();
-    },
-  });
+      setIsLoadingRoadmap(true);
+      try {
+        const response: any = await api.get(`/roadmap/${selectedRoadmap}`);
+        setRoadmapDetails(response.success ? response.data : null);
+      } catch (error) {
+        console.error('Error fetching roadmap details:', error);
+      } finally {
+        setIsLoadingRoadmap(false);
+      }
+    };
 
-  // Update roadmap item status mutation
-  const updateItemMutation = useMutation({
-    mutationFn: async ({ roadmapId, itemId, updates }: { roadmapId: string; itemId: string; updates: any }) => {
-      const response: any = await api.put(`/roadmap/${roadmapId}/items/${itemId}`, updates);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roadmap'] });
-    },
-  });
+    fetchRoadmapDetails();
+  }, [selectedRoadmap]);
 
   const resetNewRoadmap = () => {
     setNewRoadmap({
@@ -177,22 +200,65 @@ const RoadmapView: React.FC = () => {
   const handleGenerateRoadmap = async () => {
     if (!newRoadmap.name.trim() || !selectedProject) return;
 
-    const roadmapData = {
-      ...newRoadmap,
-      allocationType: newRoadmap.type,
-      ...(newRoadmap.type === 'custom' && { customAllocation: newRoadmap.customAllocation }),
-    };
+    setIsGeneratingRoadmap(true);
+    try {
+      const roadmapData = {
+        ...newRoadmap,
+        allocationType: newRoadmap.type,
+        ...(newRoadmap.type === 'custom' && {
+          customAllocation: newRoadmap.customAllocation,
+        }),
+      };
 
-    generateRoadmapMutation.mutate(roadmapData);
+      const response: any = await api.post('/roadmap/generate', {
+        ...roadmapData,
+        projectId: selectedProject,
+      });
+
+      if (response.success) {
+        // Refresh roadmaps
+        const roadmapsResponse: any = await api.get(
+          `/roadmap/project/${selectedProject}`
+        );
+        if (roadmapsResponse.success) {
+          setRoadmaps(roadmapsResponse.data);
+        }
+        setShowCreateForm(false);
+        resetNewRoadmap();
+      }
+    } catch (error) {
+      console.error('Error generating roadmap:', error);
+    } finally {
+      setIsGeneratingRoadmap(false);
+    }
   };
 
-  const updateItemStatus = (itemId: string, status: RoadmapItem['status']) => {
+  const updateItemStatus = async (
+    itemId: string,
+    status: RoadmapItem['status']
+  ) => {
     if (!selectedRoadmap) return;
-    updateItemMutation.mutate({ 
-      roadmapId: selectedRoadmap, 
-      itemId, 
-      updates: { status } 
-    });
+
+    setIsUpdatingItem(true);
+    try {
+      const response: any = await api.put(
+        `/roadmap/${selectedRoadmap}/items/${itemId}`,
+        { status }
+      );
+      if (response.success) {
+        // Refresh roadmap details
+        const roadmapResponse: any = await api.get(
+          `/roadmap/${selectedRoadmap}`
+        );
+        if (roadmapResponse.success) {
+          setRoadmapDetails(roadmapResponse.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating roadmap item:', error);
+    } finally {
+      setIsUpdatingItem(false);
+    }
   };
 
   const getCategoryColor = (category: string) => {
@@ -244,7 +310,9 @@ const RoadmapView: React.FC = () => {
 
   const getQuarterItems = (quarter: string) => {
     if (!roadmapDetails) return [];
-    return roadmapDetails.items.filter(item => item.timeframe.quarter === quarter);
+    return roadmapDetails.items.filter(
+      (item) => item.timeframe.quarter === quarter
+    );
   };
 
   const quarters = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'];
@@ -252,8 +320,8 @@ const RoadmapView: React.FC = () => {
   const allocationStrategies = {
     'strategic-only': { strategic: 70, customerDriven: 20, maintenance: 10 },
     'customer-only': { strategic: 20, customerDriven: 70, maintenance: 10 },
-    'balanced': { strategic: 60, customerDriven: 30, maintenance: 10 },
-    'custom': newRoadmap.customAllocation,
+    balanced: { strategic: 60, customerDriven: 30, maintenance: 10 },
+    custom: newRoadmap.customAllocation,
   };
 
   return (
@@ -311,7 +379,9 @@ const RoadmapView: React.FC = () => {
       {!selectedProject && (
         <div className="text-center py-12">
           <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No project selected</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No project selected
+          </h3>
           <p className="mt-1 text-sm text-gray-500">
             Select a project to view and manage roadmaps.
           </p>
@@ -323,24 +393,40 @@ const RoadmapView: React.FC = () => {
           {/* Generate Roadmap Form */}
           {showCreateForm && (
             <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Generate New Roadmap</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Generate New Roadmap
+              </h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Name
+                    </label>
                     <input
                       type="text"
                       value={newRoadmap.name}
-                      onChange={(e) => setNewRoadmap(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) =>
+                        setNewRoadmap((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Roadmap name..."
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Time Horizon</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Time Horizon
+                    </label>
                     <select
                       value={newRoadmap.timeHorizon}
-                      onChange={(e) => setNewRoadmap(prev => ({ ...prev, timeHorizon: e.target.value as any }))}
+                      onChange={(e) =>
+                        setNewRoadmap((prev) => ({
+                          ...prev,
+                          timeHorizon: e.target.value as any,
+                        }))
+                      }
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="quarter">Quarter</option>
@@ -351,10 +437,17 @@ const RoadmapView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
                   <textarea
                     value={newRoadmap.description}
-                    onChange={(e) => setNewRoadmap(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setNewRoadmap((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     rows={2}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Roadmap description..."
@@ -362,13 +455,18 @@ const RoadmapView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Allocation Strategy</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Allocation Strategy
+                  </label>
                   <div className="space-y-3">
                     {Object.entries({
-                      'balanced': 'Balanced (60% Strategic, 30% Customer, 10% Maintenance)',
-                      'strategic-only': 'Strategic Focus (70% Strategic, 20% Customer, 10% Maintenance)',
-                      'customer-only': 'Customer-Driven (20% Strategic, 70% Customer, 10% Maintenance)',
-                      'custom': 'Custom Allocation'
+                      balanced:
+                        'Balanced (60% Strategic, 30% Customer, 10% Maintenance)',
+                      'strategic-only':
+                        'Strategic Focus (70% Strategic, 20% Customer, 10% Maintenance)',
+                      'customer-only':
+                        'Customer-Driven (20% Strategic, 70% Customer, 10% Maintenance)',
+                      custom: 'Custom Allocation',
                     }).map(([key, label]) => (
                       <div key={key} className="flex items-center">
                         <input
@@ -377,10 +475,18 @@ const RoadmapView: React.FC = () => {
                           type="radio"
                           value={key}
                           checked={newRoadmap.type === key}
-                          onChange={(e) => setNewRoadmap(prev => ({ ...prev, type: e.target.value as any }))}
+                          onChange={(e) =>
+                            setNewRoadmap((prev) => ({
+                              ...prev,
+                              type: e.target.value as any,
+                            }))
+                          }
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                         />
-                        <label htmlFor={key} className="ml-3 text-sm text-gray-900">
+                        <label
+                          htmlFor={key}
+                          className="ml-3 text-sm text-gray-900"
+                        >
                           {label}
                         </label>
                       </div>
@@ -390,53 +496,65 @@ const RoadmapView: React.FC = () => {
                   {newRoadmap.type === 'custom' && (
                     <div className="mt-4 grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Strategic %</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Strategic %
+                        </label>
                         <input
                           type="number"
                           min="0"
                           max="100"
                           value={newRoadmap.customAllocation.strategic}
-                          onChange={(e) => setNewRoadmap(prev => ({
-                            ...prev,
-                            customAllocation: {
-                              ...prev.customAllocation,
-                              strategic: parseInt(e.target.value) || 0
-                            }
-                          }))}
+                          onChange={(e) =>
+                            setNewRoadmap((prev) => ({
+                              ...prev,
+                              customAllocation: {
+                                ...prev.customAllocation,
+                                strategic: parseInt(e.target.value) || 0,
+                              },
+                            }))
+                          }
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Customer %</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Customer %
+                        </label>
                         <input
                           type="number"
                           min="0"
                           max="100"
                           value={newRoadmap.customAllocation.customerDriven}
-                          onChange={(e) => setNewRoadmap(prev => ({
-                            ...prev,
-                            customAllocation: {
-                              ...prev.customAllocation,
-                              customerDriven: parseInt(e.target.value) || 0
-                            }
-                          }))}
+                          onChange={(e) =>
+                            setNewRoadmap((prev) => ({
+                              ...prev,
+                              customAllocation: {
+                                ...prev.customAllocation,
+                                customerDriven: parseInt(e.target.value) || 0,
+                              },
+                            }))
+                          }
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Maintenance %</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Maintenance %
+                        </label>
                         <input
                           type="number"
                           min="0"
                           max="100"
                           value={newRoadmap.customAllocation.maintenance}
-                          onChange={(e) => setNewRoadmap(prev => ({
-                            ...prev,
-                            customAllocation: {
-                              ...prev.customAllocation,
-                              maintenance: parseInt(e.target.value) || 0
-                            }
-                          }))}
+                          onChange={(e) =>
+                            setNewRoadmap((prev) => ({
+                              ...prev,
+                              customAllocation: {
+                                ...prev.customAllocation,
+                                maintenance: parseInt(e.target.value) || 0,
+                              },
+                            }))
+                          }
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
@@ -456,10 +574,10 @@ const RoadmapView: React.FC = () => {
                   </button>
                   <button
                     onClick={handleGenerateRoadmap}
-                    disabled={!newRoadmap.name.trim() || generateRoadmapMutation.isPending}
+                    disabled={!newRoadmap.name.trim() || isGeneratingRoadmap}
                     className="px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {generateRoadmapMutation.isPending ? 'Generating...' : 'Generate Roadmap'}
+                    {isGeneratingRoadmap ? 'Generating...' : 'Generate Roadmap'}
                   </button>
                 </div>
               </div>
@@ -470,7 +588,9 @@ const RoadmapView: React.FC = () => {
           {!selectedRoadmap && roadmaps.length > 0 && (
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
               <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Available Roadmaps</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Available Roadmaps
+                </h3>
                 <p className="mt-1 max-w-2xl text-sm text-gray-500">
                   Select a roadmap to view details
                 </p>
@@ -480,14 +600,26 @@ const RoadmapView: React.FC = () => {
                   <li key={roadmap._id} className="px-4 py-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-900">{roadmap.name}</h4>
-                        <p className="text-sm text-gray-500 mt-1">{roadmap.description}</p>
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {roadmap.name}
+                        </h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {roadmap.description}
+                        </p>
                         <div className="mt-2 flex items-center space-x-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(roadmap.type)}`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                              roadmap.type
+                            )}`}
+                          >
                             {roadmap.type.replace('-', ' ')}
                           </span>
-                          <span className="text-xs text-gray-500">{roadmap.timeHorizon}</span>
-                          <span className="text-xs text-gray-500">{roadmap.items.length} items</span>
+                          <span className="text-xs text-gray-500">
+                            {roadmap.timeHorizon}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {roadmap.items.length} items
+                          </span>
                         </div>
                       </div>
                       <button
@@ -511,13 +643,21 @@ const RoadmapView: React.FC = () => {
               <div className="bg-white shadow rounded-lg p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{roadmapDetails.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{roadmapDetails.description}</p>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {roadmapDetails.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {roadmapDetails.description}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900">{roadmapDetails.items.length} Items</div>
-                      <div className="text-sm text-gray-500">{roadmapDetails.timeHorizon}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {roadmapDetails.items.length} Items
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {roadmapDetails.timeHorizon}
+                      </div>
                     </div>
                     <button
                       onClick={() => setSelectedRoadmap('')}
@@ -531,15 +671,23 @@ const RoadmapView: React.FC = () => {
                 {/* Allocation Strategy */}
                 <div className="mt-4 grid grid-cols-3 gap-4">
                   <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-lg font-semibold text-blue-900">{roadmapDetails.allocationStrategy.strategic}%</div>
+                    <div className="text-lg font-semibold text-blue-900">
+                      {roadmapDetails.allocationStrategy.strategic}%
+                    </div>
                     <div className="text-sm text-blue-700">Strategic</div>
                   </div>
                   <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-lg font-semibold text-green-900">{roadmapDetails.allocationStrategy.customerDriven}%</div>
-                    <div className="text-sm text-green-700">Customer-Driven</div>
+                    <div className="text-lg font-semibold text-green-900">
+                      {roadmapDetails.allocationStrategy.customerDriven}%
+                    </div>
+                    <div className="text-sm text-green-700">
+                      Customer-Driven
+                    </div>
                   </div>
                   <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <div className="text-lg font-semibold text-yellow-900">{roadmapDetails.allocationStrategy.maintenance}%</div>
+                    <div className="text-lg font-semibold text-yellow-900">
+                      {roadmapDetails.allocationStrategy.maintenance}%
+                    </div>
                     <div className="text-sm text-yellow-700">Maintenance</div>
                   </div>
                 </div>
@@ -579,50 +727,84 @@ const RoadmapView: React.FC = () => {
                     return (
                       <div key={quarter} className="bg-white shadow rounded-lg">
                         <div className="px-6 py-4 border-b border-gray-200">
-                          <h4 className="text-lg font-medium text-gray-900">{quarter}</h4>
-                          <p className="text-sm text-gray-500">{items.length} items planned</p>
+                          <h4 className="text-lg font-medium text-gray-900">
+                            {quarter}
+                          </h4>
+                          <p className="text-sm text-gray-500">
+                            {items.length} items planned
+                          </p>
                         </div>
                         <div className="p-6">
                           <div className="grid gap-4">
                             {items.map((item) => (
-                              <div key={item._id} className="border text-left border-gray-200 rounded-lg p-4">
+                              <div
+                                key={item._id}
+                                className="border text-left border-gray-200 rounded-lg p-4"
+                              >
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
-                                    <h5 className="text-sm font-medium text-gray-900">{item.title}</h5>
-                                    <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                                    <h5 className="text-sm font-medium text-gray-900">
+                                      {item.title}
+                                    </h5>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                      {item.description}
+                                    </p>
                                     <div className="mt-2 flex items-center space-x-2">
-                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                                      <span
+                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                                          item.category
+                                        )}`}
+                                      >
                                         {item.category.replace('-', ' ')}
                                       </span>
-                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                                      <span
+                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                                          item.priority
+                                        )}`}
+                                      >
                                         {item.priority}
                                       </span>
                                       <span className="text-xs text-gray-500">
-                                        {item.timeframe.estimatedDuration.value} {item.timeframe.estimatedDuration.unit}
+                                        {item.timeframe.estimatedDuration.value}{' '}
+                                        {item.timeframe.estimatedDuration.unit}
                                       </span>
                                       <span className="text-xs text-gray-500">
-                                        {item.resourceAllocation.teamMembers} team members
+                                        {item.resourceAllocation.teamMembers}{' '}
+                                        team members
                                       </span>
                                     </div>
                                     {item.successMetrics.length > 0 && (
                                       <div className="mt-2">
-                                        <div className="text-xs font-medium text-gray-700">Success Metrics:</div>
+                                        <div className="text-xs font-medium text-gray-700">
+                                          Success Metrics:
+                                        </div>
                                         <ul className="text-xs text-gray-600 list-disc list-inside">
-                                          {item.successMetrics.slice(0, 2).map((metric, index) => (
-                                            <li key={index}>{metric}</li>
-                                          ))}
+                                          {item.successMetrics
+                                            .slice(0, 2)
+                                            .map((metric, index) => (
+                                              <li key={index}>{metric}</li>
+                                            ))}
                                         </ul>
                                       </div>
                                     )}
                                   </div>
                                   <select
                                     value={item.status}
-                                    onChange={(e) => updateItemStatus(item._id, e.target.value as RoadmapItem['status'])}
-                                    className={`text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(item.status)}`}
+                                    onChange={(e) =>
+                                      updateItemStatus(
+                                        item._id,
+                                        e.target.value as RoadmapItem['status']
+                                      )
+                                    }
+                                    className={`text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                                      item.status
+                                    )}`}
                                   >
                                     <option value="proposed">Proposed</option>
                                     <option value="approved">Approved</option>
-                                    <option value="in-progress">In Progress</option>
+                                    <option value="in-progress">
+                                      In Progress
+                                    </option>
                                     <option value="completed">Completed</option>
                                     <option value="cancelled">Cancelled</option>
                                   </select>
@@ -640,8 +822,16 @@ const RoadmapView: React.FC = () => {
               {/* Kanban View */}
               {viewMode === 'kanban' && (
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                  {['proposed', 'approved', 'in-progress', 'completed', 'cancelled'].map((status) => {
-                    const items = roadmapDetails.items.filter(item => item.status === status);
+                  {[
+                    'proposed',
+                    'approved',
+                    'in-progress',
+                    'completed',
+                    'cancelled',
+                  ].map((status) => {
+                    const items = roadmapDetails.items.filter(
+                      (item) => item.status === status
+                    );
                     return (
                       <div key={status} className="bg-white shadow rounded-lg">
                         <div className="px-4 py-3 border-b border-gray-200">
@@ -651,17 +841,32 @@ const RoadmapView: React.FC = () => {
                         </div>
                         <div className="p-4 space-y-3">
                           {items.map((item) => (
-                            <div key={item._id} className="border border-gray-200 rounded-lg p-3">
-                              <h5 className="text-sm font-medium text-gray-900">{item.title}</h5>
+                            <div
+                              key={item._id}
+                              className="border border-gray-200 rounded-lg p-3"
+                            >
+                              <h5 className="text-sm font-medium text-gray-900">
+                                {item.title}
+                              </h5>
                               <div className="mt-2 flex items-center space-x-2">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                                <span
+                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                                    item.category
+                                  )}`}
+                                >
                                   {item.category.replace('-', ' ')}
                                 </span>
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                                <span
+                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                                    item.priority
+                                  )}`}
+                                >
                                   {item.priority}
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-500 mt-1">{item.timeframe.quarter}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {item.timeframe.quarter}
+                              </p>
                             </div>
                           ))}
                         </div>
@@ -679,25 +884,47 @@ const RoadmapView: React.FC = () => {
                       <li key={item._id} className="px-6 py-4">
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-gray-900">{item.title}</h4>
-                            <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {item.title}
+                            </h4>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {item.description}
+                            </p>
                             <div className="mt-2 flex items-center space-x-4">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                                  item.category
+                                )}`}
+                              >
                                 {item.category.replace('-', ' ')}
                               </span>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                                  item.priority
+                                )}`}
+                              >
                                 {item.priority}
                               </span>
-                              <span className="text-xs text-gray-500">{item.timeframe.quarter}</span>
                               <span className="text-xs text-gray-500">
-                                {item.timeframe.estimatedDuration.value} {item.timeframe.estimatedDuration.unit}
+                                {item.timeframe.quarter}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {item.timeframe.estimatedDuration.value}{' '}
+                                {item.timeframe.estimatedDuration.unit}
                               </span>
                             </div>
                           </div>
                           <select
                             value={item.status}
-                            onChange={(e) => updateItemStatus(item._id, e.target.value as RoadmapItem['status'])}
-                            className={`text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(item.status)}`}
+                            onChange={(e) =>
+                              updateItemStatus(
+                                item._id,
+                                e.target.value as RoadmapItem['status']
+                              )
+                            }
+                            className={`text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                              item.status
+                            )}`}
                           >
                             <option value="proposed">Proposed</option>
                             <option value="approved">Approved</option>
@@ -715,15 +942,20 @@ const RoadmapView: React.FC = () => {
           )}
 
           {/* Empty state for no roadmaps */}
-          {selectedProject && !selectedRoadmap && roadmaps.length === 0 && !roadmapsLoading && (
-            <div className="text-center py-12">
-              <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No roadmaps yet</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Generate your first AI-powered roadmap to get started.
-              </p>
-            </div>
-          )}
+          {selectedProject &&
+            !selectedRoadmap &&
+            roadmaps.length === 0 &&
+            !isLoadingRoadmaps && (
+              <div className="text-center py-12">
+                <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  No roadmaps yet
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Generate your first AI-powered roadmap to get started.
+                </p>
+              </div>
+            )}
         </>
       )}
     </div>
