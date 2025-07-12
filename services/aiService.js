@@ -1,0 +1,235 @@
+const { VertexAI } = require('@google-cloud/vertexai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const pdf = require('pdf-parse');
+const mammoth = require('mammoth');
+
+class AIService {
+  constructor() {
+    this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
+    
+    if (this.useVertexAI) {
+      // Initialize Vertex AI
+      this.vertexAI = new VertexAI({
+        project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1'
+      });
+      
+      this.model = this.vertexAI.preview.getGenerativeModel({
+        model: 'gemini-2.0-flash-exp',
+        generationConfig: {
+          maxOutputTokens: 8192,
+          temperature: 0.3,
+          topP: 0.95,
+        },
+      });
+    } else {
+      // Initialize Gemini API
+      this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      this.model = this.genAI.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+          maxOutputTokens: 8192,
+          temperature: 0.3,
+          topP: 0.95,
+        },
+      });
+    }
+    
+    console.log(`🤖 AI Service initialized using ${this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'}`);
+  }
+
+  async generateContent(prompt) {
+    try {
+      const result = await this.model.generateContent(prompt);
+      
+      if (this.useVertexAI) {
+        return result.response.candidates[0].content.parts[0].text;
+      } else {
+        return result.response.text();
+      }
+    } catch (error) {
+      console.error('Error generating content:', error);
+      throw new Error('Failed to generate AI content');
+    }
+  }
+
+  // Extract text from various document formats
+  async extractTextFromDocument(buffer, mimeType) {
+    try {
+      let extractedText = '';
+      
+      if (mimeType === 'application/pdf') {
+        const data = await pdf(buffer);
+        extractedText = data.text;
+      } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        const result = await mammoth.extractRawText({ buffer });
+        extractedText = result.value;
+      } else if (mimeType === 'text/plain') {
+        extractedText = buffer.toString('utf-8');
+      } else {
+        throw new Error(`Unsupported file type: ${mimeType}`);
+      }
+      
+      return extractedText;
+    } catch (error) {
+      console.error('Error extracting text from document:', error);
+      throw new Error('Failed to extract text from document');
+    }
+  }
+
+  // Format project description into structured plan
+  async formatProjectPlan(rawDescription) {
+    const prompt = `
+You are an expert product manager assistant. Your task is to transform a raw project description into a well-structured, comprehensive project plan.
+
+SYSTEM INSTRUCTIONS:
+- You must analyze the raw input and extract key information
+- Structure the output as a professional project plan
+- Identify goals, objectives, timelines, and success metrics
+- Use clear, actionable language
+- Be comprehensive but concise
+
+INPUT PROJECT DESCRIPTION:
+${rawDescription}
+
+OUTPUT FORMAT:
+Please provide a structured project plan with the following sections:
+
+## Project Overview
+[2-3 sentence summary of the project]
+
+## Key Objectives
+[List 3-5 main objectives]
+
+## Success Metrics
+[List measurable success criteria]
+
+## Target Timeline
+[Quarter/timeframe information]
+
+## Strategic Priorities
+[List key strategic focus areas]
+
+## Resource Requirements
+[High-level resource needs]
+
+## Risk Considerations
+[Potential risks and mitigation strategies]
+
+Ensure the output is professional, actionable, and comprehensive.`;
+
+    try {
+      return await this.generateContent(prompt);
+    } catch (error) {
+      console.error('Error formatting project plan:', error);
+      throw new Error('Failed to format project plan');
+    }
+  }
+
+  // Analyze and categorize feedback
+  async analyzeFeedback(feedbackText) {
+    const prompt = `
+You are an expert feedback analyst specializing in customer feedback analysis for product management.
+
+SYSTEM INSTRUCTIONS:
+- Analyze the provided feedback text
+- Extract key insights, sentiment, and actionable items
+- Categorize feedback appropriately
+- Identify keywords and themes
+- Provide urgency assessment
+
+FEEDBACK TO ANALYZE:
+${feedbackText}
+
+Please provide analysis in the following JSON format:
+{
+  "category": "bug-report|feature-request|improvement|complaint|praise|question|other",
+  "sentiment": "positive|negative|neutral",
+  "priority": "critical|high|medium|low",
+  "extractedKeywords": ["keyword1", "keyword2", "keyword3"],
+  "summary": "Brief summary of the feedback",
+  "actionableItems": ["action1", "action2"],
+  "relatedFeatures": ["feature1", "feature2"],
+  "urgencyScore": 5
+}
+
+Respond only with valid JSON.`;
+
+    try {
+      const response = await this.generateContent(prompt);
+      
+      // Clean and parse JSON response
+      const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+      return JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Error analyzing feedback:', error);
+      // Return default analysis if AI fails
+      return {
+        category: 'other',
+        sentiment: 'neutral',
+        priority: 'medium',
+        extractedKeywords: [],
+        summary: feedbackText.substring(0, 100) + '...',
+        actionableItems: [],
+        relatedFeatures: [],
+        urgencyScore: 5
+      };
+    }
+  }
+
+  // Generate enhanced task description
+  async enhanceTaskDescription(title, description, projectContext, feedbackContext) {
+    const prompt = `
+You are an expert product manager and task enhancement specialist.
+
+SYSTEM INSTRUCTIONS:
+- Enhance the provided task with actionable details
+- Consider project context and customer feedback
+- Provide concrete recommendations
+- Focus on implementation clarity and business value
+
+PROJECT CONTEXT:
+${projectContext}
+
+CUSTOMER FEEDBACK CONTEXT:
+${feedbackContext}
+
+TASK TO ENHANCE:
+Title: ${title}
+Description: ${description}
+
+Please provide enhanced task information in the following format:
+
+## Enhanced Description
+[Detailed, actionable description]
+
+## Acceptance Criteria
+[List of specific acceptance criteria]
+
+## Implementation Recommendations
+[Technical and design recommendations]
+
+## Customer Impact
+[How this addresses customer needs]
+
+## Success Metrics
+[Measurable outcomes]
+
+## Risk Assessment
+[Potential risks and mitigation]
+
+## Resource Requirements
+[Estimated effort and resources needed]
+
+Ensure recommendations are practical, specific, and aligned with customer feedback.`;
+
+    try {
+      return await this.generateContent(prompt);
+    } catch (error) {
+      console.error('Error enhancing task description:', error);
+      throw new Error('Failed to enhance task description');
+    }
+  }
+}
+
+module.exports = new AIService();
