@@ -495,175 +495,278 @@ What would you like to work on today?`;
   const currentProject = projects.find((p) => p._id === currentProjectId);
 
   return (
-    <div className="h-full flex flex-col max-w-4xl mx-auto">
+    <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              AI Chat Assistant
-              {currentProject && ` - ${currentProject.name}`}
-            </h1>
-            <p className="text-sm text-gray-600">
-              {currentProject
-                ? `Project-specific assistant for ${currentProject.name}`
-                : 'General roadmap assistant'}
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            {!projectId && projects.length > 0 && (
-              <select
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <ComputerDesktopIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  AI Assistant
+                  {currentProject && (
+                    <span className="text-blue-600 ml-2">
+                      • {currentProject.name}
+                    </span>
+                  )}
+                </h1>
+                <p className="text-sm text-gray-500">
+                  {currentProject
+                    ? `Project-specific insights and guidance`
+                    : 'General product management assistant'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              {!projectId && projects.length > 0 && (
+                <select
+                  value={selectedProject}
+                  onChange={(e) => setSelectedProject(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                >
+                  <option value="">All Projects</option>
+                  {projects.map((project) => (
+                    <option key={project._id} value={project._id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button
+                onClick={createNewSession}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all duration-200"
               >
-                <option value="">No specific project</option>
-                {projects.map((project) => (
-                  <option key={project._id} value={project._id}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <button
-              onClick={createNewSession}
-              className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            >
-              <PlusIcon className="h-4 w-4 mr-2" />
-              New Chat
-            </button>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                New Chat
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 text-left overflow-y-auto bg-gray-50 px-6 py-4">
-        <div className="space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center py-8">
-              <ComputerDesktopIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                Start a conversation
-                {currentProject && ` about ${currentProject.name}`}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {currentProject
-                  ? `Ask me anything about ${currentProject.name} roadmaps, feedback analysis, or task planning.`
-                  : 'Ask me anything about product roadmaps, feedback analysis, or task planning.'}
-              </p>
-              {currentProject && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-xs text-blue-700">
-                    <strong>Project Context:</strong> I'll use information about{' '}
-                    {currentProject.name} to provide more relevant responses.
-                    {currentProject.description && (
-                      <span className="block mt-1">
-                        {currentProject.description}
-                      </span>
-                    )}
+      {/* Messages Container */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full max-w-4xl mx-auto flex flex-col">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="space-y-6">
+              {messages.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
+                    <ComputerDesktopIcon className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Start a conversation
+                    {currentProject && ` about ${currentProject.name}`}
+                  </h3>
+                  <p className="text-gray-600 max-w-md mx-auto mb-6">
+                    {currentProject
+                      ? `Ask me anything about ${currentProject.name} roadmaps, feedback analysis, or task planning.`
+                      : 'Ask me anything about product roadmaps, feedback analysis, or task planning.'}
                   </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                className={`flex max-w-xs lg:max-w-md xl:max-w-lg ${
-                  message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                }`}
-              >
-                <div className="flex-shrink-0">
-                  {message.role === 'user' ? (
-                    <UserCircleIcon className="h-8 w-8 text-gray-600" />
-                  ) : (
-                    <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                      <ComputerDesktopIcon className="h-5 w-5 text-white" />
+                  {currentProject && (
+                    <div className="max-w-lg mx-auto p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                            <SparklesIcon className="h-4 w-4 text-white" />
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-blue-900 mb-1">
+                            Project Context Active
+                          </p>
+                          <p className="text-xs text-blue-700">
+                            I'll use information about {currentProject.name} to
+                            provide more relevant responses.
+                            {currentProject.description && (
+                              <span className="block mt-1 text-gray-600">
+                                {currentProject.description}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
-                </div>
-                <div
-                  className={`mx-3 px-4 py-3 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-900 border border-gray-200 shadow-sm'
-                  }`}
-                >
-                  <MarkdownMessage
-                    content={message.content}
-                    isUser={message.role === 'user'}
-                  />
-                  <p
-                    className={`text-xs mt-2 ${
-                      message.role === 'user'
-                        ? 'text-blue-200'
-                        : 'text-gray-500'
-                    }`}
-                  >
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
 
-          {loading && (
-            <div className="flex justify-start">
-              <div className="flex">
-                <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <ComputerDesktopIcon className="h-5 w-5 text-white" />
-                </div>
-                <div className="mx-3 px-4 py-2 bg-white rounded-lg border border-gray-200">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: '0.1s' }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: '0.2s' }}
-                    ></div>
+                  {/* Quick Start Suggestions */}
+                  <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                    <button
+                      onClick={() =>
+                        setInputMessage('Create a roadmap for this project')
+                      }
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="text-sm font-medium text-gray-900 mb-1">
+                        🗺️ Create Roadmap
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Generate a strategic roadmap
+                      </div>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setInputMessage('Analyze recent feedback trends')
+                      }
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="text-sm font-medium text-gray-900 mb-1">
+                        📊 Analyze Feedback
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Review customer insights
+                      </div>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setInputMessage('Prioritize tasks for this project')
+                      }
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="text-sm font-medium text-gray-900 mb-1">
+                        ⚡ Task Priority
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Help prioritize work items
+                      </div>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setInputMessage('What are the main challenges?')
+                      }
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    >
+                      <div className="text-sm font-medium text-gray-900 mb-1">
+                        🎯 Challenges
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Identify key obstacles
+                      </div>
+                    </button>
                   </div>
                 </div>
+              )}
+
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`flex max-w-2xl ${
+                      message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                    }`}
+                  >
+                    <div className="flex-shrink-0">
+                      {message.role === 'user' ? (
+                        <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center shadow-sm">
+                          <UserCircleIcon className="h-6 w-6 text-white" />
+                        </div>
+                      ) : (
+                        <div className="h-10 w-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                          <ComputerDesktopIcon className="h-5 w-5 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className={`mx-3 px-4 py-3 rounded-2xl shadow-sm ${
+                        message.role === 'user'
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
+                          : 'bg-white text-gray-900 border border-gray-200'
+                      }`}
+                    >
+                      <MarkdownMessage
+                        content={message.content}
+                        isUser={message.role === 'user'}
+                      />
+                      <p
+                        className={`text-xs mt-2 ${
+                          message.role === 'user'
+                            ? 'text-blue-100'
+                            : 'text-gray-400'
+                        }`}
+                      >
+                        {new Date(message.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="flex">
+                    <div className="h-10 w-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                      <ComputerDesktopIcon className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="mx-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                          style={{ animationDelay: '0.1s' }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                          style={{ animationDelay: '0.2s' }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          {/* Input Area */}
+          <div className="bg-white border-t border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-end space-x-3">
+                <div className="flex-1">
+                  <textarea
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={
+                      currentProject
+                        ? `Ask me about ${currentProject.name} roadmaps, feedback analysis, or task planning...`
+                        : 'Ask me about roadmaps, feedback analysis, or task planning...'
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200"
+                    rows={2}
+                    disabled={loading}
+                  />
+                </div>
+                <button
+                  onClick={sendMessage}
+                  disabled={!inputMessage.trim() || loading}
+                  className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200"
+                >
+                  {loading ? (
+                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <PaperAirplaneIcon className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                <span>Press Enter to send, Shift+Enter for new line</span>
+                <span>{inputMessage.length} characters</span>
               </div>
             </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      {/* Input */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
-        <div className="flex items-end space-x-3">
-          <div className="flex-1">
-            <textarea
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={
-                currentProject
-                  ? `Ask me about ${currentProject.name} roadmaps, feedback analysis, or task planning...`
-                  : 'Ask me about roadmaps, feedback analysis, or task planning...'
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={2}
-              disabled={loading}
-            />
           </div>
-          <button
-            onClick={sendMessage}
-            disabled={!inputMessage.trim() || loading}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <PaperAirplaneIcon className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </div>

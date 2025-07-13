@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   PlusIcon,
   CheckIcon,
@@ -504,178 +506,217 @@ const TaskManagement: React.FC = () => {
             </div>
           </div>
 
-          {/* Add Task Form */}
+          {/* Add Task Form Modal */}
           {showAddForm && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Add New Task
-              </h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      value={newTask.title}
-                      onChange={(e) =>
-                        setNewTask((prev) => ({
-                          ...prev,
-                          title: e.target.value,
-                        }))
-                      }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Task title..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Category
-                    </label>
-                    <select
-                      value={newTask.category}
-                      onChange={(e) =>
-                        setNewTask((prev) => ({
-                          ...prev,
-                          category: e.target.value as any,
-                        }))
-                      }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+              <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Add New Task
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowAddForm(false);
+                      resetNewTask();
+                    }}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <option value="feature">Feature</option>
-                      <option value="bug-fix">Bug Fix</option>
-                      <option value="improvement">Improvement</option>
-                      <option value="research">Research</option>
-                      <option value="maintenance">Maintenance</option>
-                      <option value="design">Design</option>
-                      <option value="testing">Testing</option>
-                    </select>
-                  </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
                 </div>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={newTask.title}
+                        onChange={(e) =>
+                          setNewTask((prev) => ({
+                            ...prev,
+                            title: e.target.value,
+                          }))
+                        }
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Task title..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Category
+                      </label>
+                      <select
+                        value={newTask.category}
+                        onChange={(e) =>
+                          setNewTask((prev) => ({
+                            ...prev,
+                            category: e.target.value as any,
+                          }))
+                        }
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="feature">Feature</option>
+                        <option value="bug-fix">Bug Fix</option>
+                        <option value="improvement">Improvement</option>
+                        <option value="research">Research</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="design">Design</option>
+                        <option value="testing">Testing</option>
+                      </select>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Description
-                  </label>
-                  <textarea
-                    value={newTask.description}
-                    onChange={(e) =>
-                      setNewTask((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    rows={3}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Task description..."
-                  />
-                  <div className="mt-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Description
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        value={newTask.description}
+                        onChange={(e) =>
+                          setNewTask((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
+                        rows={3}
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Task description... (supports markdown)"
+                      />
+                      {newTask.description && (
+                        <div className="mt-2 p-3 bg-gray-50 rounded-md border">
+                          <div className="text-xs font-medium text-gray-700 mb-2">
+                            Preview:
+                          </div>
+                          <div className="prose prose-xs max-w-none text-sm text-gray-600">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {newTask.description}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <button
+                        onClick={handleEnhanceTask}
+                        disabled={
+                          !newTask.title.trim() ||
+                          !newTask.description.trim() ||
+                          isEnhancingTask
+                        }
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <SparklesIcon className="h-4 w-4 mr-1" />
+                        {isEnhancingTask ? 'Enhancing...' : 'Enhance with AI'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Priority
+                      </label>
+                      <select
+                        value={newTask.priority}
+                        onChange={(e) =>
+                          setNewTask((prev) => ({
+                            ...prev,
+                            priority: e.target.value as any,
+                          }))
+                        }
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Assignee
+                      </label>
+                      <input
+                        type="text"
+                        value={newTask.assignee}
+                        onChange={(e) =>
+                          setNewTask((prev) => ({
+                            ...prev,
+                            assignee: e.target.value,
+                          }))
+                        }
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Assignee email..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Due Date
+                      </label>
+                      <input
+                        type="date"
+                        value={newTask.dueDate}
+                        onChange={(e) =>
+                          setNewTask((prev) => ({
+                            ...prev,
+                            dueDate: e.target.value,
+                          }))
+                        }
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Acceptance Criteria
+                    </label>
+                    {newTask.acceptanceCriteria.map((criteria, index) => (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={criteria}
+                          onChange={(e) =>
+                            updateAcceptanceCriteria(index, e.target.value)
+                          }
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Acceptance criteria..."
+                        />
+                        {newTask.acceptanceCriteria.length > 1 && (
+                          <button
+                            onClick={() => removeAcceptanceCriteria(index)}
+                            className="px-3 py-2 text-red-600 hover:text-red-500"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
                     <button
-                      onClick={handleEnhanceTask}
-                      disabled={
-                        !newTask.title.trim() ||
-                        !newTask.description.trim() ||
-                        isEnhancingTask
-                      }
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={addAcceptanceCriteria}
+                      className="text-sm text-blue-600 hover:text-blue-500"
                     >
-                      <SparklesIcon className="h-4 w-4 mr-1" />
-                      {isEnhancingTask ? 'Enhancing...' : 'Enhance with AI'}
+                      + Add criteria
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Priority
-                    </label>
-                    <select
-                      value={newTask.priority}
-                      onChange={(e) =>
-                        setNewTask((prev) => ({
-                          ...prev,
-                          priority: e.target.value as any,
-                        }))
-                      }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="critical">Critical</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Assignee
-                    </label>
-                    <input
-                      type="text"
-                      value={newTask.assignee}
-                      onChange={(e) =>
-                        setNewTask((prev) => ({
-                          ...prev,
-                          assignee: e.target.value,
-                        }))
-                      }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Assignee email..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Due Date
-                    </label>
-                    <input
-                      type="date"
-                      value={newTask.dueDate}
-                      onChange={(e) =>
-                        setNewTask((prev) => ({
-                          ...prev,
-                          dueDate: e.target.value,
-                        }))
-                      }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Acceptance Criteria
-                  </label>
-                  {newTask.acceptanceCriteria.map((criteria, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={criteria}
-                        onChange={(e) =>
-                          updateAcceptanceCriteria(index, e.target.value)
-                        }
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Acceptance criteria..."
-                      />
-                      {newTask.acceptanceCriteria.length > 1 && (
-                        <button
-                          onClick={() => removeAcceptanceCriteria(index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-500"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    onClick={addAcceptanceCriteria}
-                    className="text-sm text-blue-600 hover:text-blue-500"
-                  >
-                    + Add criteria
-                  </button>
-                </div>
-
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                   <button
                     onClick={() => {
                       setShowAddForm(false);
@@ -741,9 +782,11 @@ const TaskManagement: React.FC = () => {
                             <h4 className="text-sm font-medium text-gray-900">
                               {task.title}
                             </h4>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {task.description}
-                            </p>
+                            <div className="text-sm text-gray-500 mt-1 prose prose-sm max-w-none">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {task.description}
+                              </ReactMarkdown>
+                            </div>
                           </div>
                         </div>
 
@@ -799,11 +842,73 @@ const TaskManagement: React.FC = () => {
                                 <h5 className="text-sm font-medium text-gray-900">
                                   AI Suggestions:
                                 </h5>
-                                <div className="mt-1 text-sm text-gray-600 space-y-1">
-                                  {task.aiSuggestions.enhancementRecommendations.map(
-                                    (rec, index) => (
-                                      <p key={index}>• {rec}</p>
-                                    )
+                                <div className="mt-1 text-sm text-gray-600 space-y-2">
+                                  {task.aiSuggestions.enhancementRecommendations
+                                    .length > 0 && (
+                                    <div>
+                                      <h6 className="text-xs font-medium text-gray-700 mb-1">
+                                        Enhancement Recommendations:
+                                      </h6>
+                                      <div className="prose prose-xs max-w-none">
+                                        <ReactMarkdown
+                                          remarkPlugins={[remarkGfm]}
+                                        >
+                                          {task.aiSuggestions.enhancementRecommendations
+                                            .map((rec, index) => `- ${rec}`)
+                                            .join('\n')}
+                                        </ReactMarkdown>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {task.aiSuggestions.riskAssessment && (
+                                    <div>
+                                      <h6 className="text-xs font-medium text-gray-700 mb-1">
+                                        Risk Assessment:
+                                      </h6>
+                                      <div className="prose prose-xs max-w-none">
+                                        <ReactMarkdown
+                                          remarkPlugins={[remarkGfm]}
+                                        >
+                                          {task.aiSuggestions.riskAssessment}
+                                        </ReactMarkdown>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {task.aiSuggestions.resourceRequirements
+                                    .length > 0 && (
+                                    <div>
+                                      <h6 className="text-xs font-medium text-gray-700 mb-1">
+                                        Resource Requirements:
+                                      </h6>
+                                      <div className="prose prose-xs max-w-none">
+                                        <ReactMarkdown
+                                          remarkPlugins={[remarkGfm]}
+                                        >
+                                          {task.aiSuggestions.resourceRequirements
+                                            .map((req, index) => `- ${req}`)
+                                            .join('\n')}
+                                        </ReactMarkdown>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {task.aiSuggestions.successMetrics.length >
+                                    0 && (
+                                    <div>
+                                      <h6 className="text-xs font-medium text-gray-700 mb-1">
+                                        Success Metrics:
+                                      </h6>
+                                      <div className="prose prose-xs max-w-none">
+                                        <ReactMarkdown
+                                          remarkPlugins={[remarkGfm]}
+                                        >
+                                          {task.aiSuggestions.successMetrics
+                                            .map(
+                                              (metric, index) => `- ${metric}`
+                                            )
+                                            .join('\n')}
+                                        </ReactMarkdown>
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               </div>

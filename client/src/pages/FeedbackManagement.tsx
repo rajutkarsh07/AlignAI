@@ -529,173 +529,215 @@ const FeedbackManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* File Upload Form */}
+      {/* File Upload Form Modal */}
       {showUploadForm && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              Upload Feedback Document
-            </h3>
-            <button
-              onClick={() => setShowUploadForm(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <XCircleIcon className="h-6 w-6" />
-            </button>
-          </div>
-
-          {!selectedProject ? (
-            <div className="text-center py-8">
-              <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-yellow-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                Project Required
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Upload Feedback Document
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Please select a project before uploading feedback documents.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                  dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
-                }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
+              <button
+                onClick={() => setShowUploadForm(false)}
+                className="text-gray-400 hover:text-gray-500"
               >
-                <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <div className="mt-4">
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium text-gray-900">
-                      Drop files here or click to upload
-                    </span>
-                    <span className="mt-1 block text-xs text-gray-500">
-                      PDF, DOC, DOCX files up to 10MB
-                    </span>
-                  </label>
-                  <input
-                    id="file-upload"
-                    ref={fileInputRef}
-                    type="file"
-                    className="sr-only"
-                    multiple
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileSelect}
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
                   />
-                </div>
-              </div>
+                </svg>
+              </button>
+            </div>
 
-              {/* Uploaded Files List */}
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-gray-900">
-                    Uploaded Files
-                  </h4>
-                  {uploadedFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <DocumentTextIcon className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {file.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
+            {!selectedProject ? (
+              <div className="text-center py-8">
+                <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-yellow-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  Project Required
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Please select a project before uploading feedback documents.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center ${
+                    dragActive
+                      ? 'border-blue-400 bg-blue-50'
+                      : 'border-gray-300'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="mt-4">
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <span className="mt-2 block text-sm font-medium text-gray-900">
+                        Drop files here or click to upload
+                      </span>
+                      <span className="mt-1 block text-xs text-gray-500">
+                        PDF, DOC, DOCX files up to 10MB
+                      </span>
+                    </label>
+                    <input
+                      id="file-upload"
+                      ref={fileInputRef}
+                      type="file"
+                      className="sr-only"
+                      multiple
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileSelect}
+                    />
+                  </div>
+                </div>
+
+                {/* Uploaded Files List */}
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-gray-900">
+                      Uploaded Files
+                    </h4>
+                    {uploadedFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <DocumentTextIcon className="h-5 w-5 text-gray-400" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {file.status === 'uploading' && (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                              <span className="text-xs text-blue-600">
+                                Uploading...
+                              </span>
+                            </div>
+                          )}
+                          {file.status === 'processing' && (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 border-2 border-yellow-200 border-t-yellow-600 rounded-full animate-spin"></div>
+                              <span className="text-xs text-yellow-600">
+                                Processing...
+                              </span>
+                            </div>
+                          )}
+                          {file.status === 'enhancing' && (
+                            <div className="flex items-center space-x-2">
+                              <SparklesIcon className="h-4 w-4 text-purple-600 animate-pulse" />
+                              <span className="text-xs text-purple-600">
+                                Enhancing...
+                              </span>
+                            </div>
+                          )}
+                          {file.status === 'completed' && (
+                            <div className="flex items-center space-x-2">
+                              <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                              <span className="text-xs text-green-600">
+                                Completed
+                              </span>
+                            </div>
+                          )}
+                          {file.status === 'error' && (
+                            <div className="flex items-center space-x-2">
+                              <XCircleIcon className="h-4 w-4 text-red-600" />
+                              <span className="text-xs text-red-600">
+                                Error
+                              </span>
+                            </div>
+                          )}
+                          {file.status === 'completed' &&
+                            file.feedbackItems && (
+                              <button
+                                onClick={() => enhanceFeedback(file.id)}
+                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
+                              >
+                                <SparklesIcon className="h-3 w-3 mr-1" />
+                                Enhance
+                              </button>
+                            )}
+                          <button
+                            onClick={() => removeFile(file.id)}
+                            className="text-gray-400 hover:text-red-600"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {file.status === 'uploading' && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                            <span className="text-xs text-blue-600">
-                              Uploading...
-                            </span>
-                          </div>
-                        )}
-                        {file.status === 'processing' && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-yellow-200 border-t-yellow-600 rounded-full animate-spin"></div>
-                            <span className="text-xs text-yellow-600">
-                              Processing...
-                            </span>
-                          </div>
-                        )}
-                        {file.status === 'enhancing' && (
-                          <div className="flex items-center space-x-2">
-                            <SparklesIcon className="h-4 w-4 text-purple-600 animate-pulse" />
-                            <span className="text-xs text-purple-600">
-                              Enhancing...
-                            </span>
-                          </div>
-                        )}
-                        {file.status === 'completed' && (
-                          <div className="flex items-center space-x-2">
-                            <CheckCircleIcon className="h-4 w-4 text-green-600" />
-                            <span className="text-xs text-green-600">
-                              Completed
-                            </span>
-                          </div>
-                        )}
-                        {file.status === 'error' && (
-                          <div className="flex items-center space-x-2">
-                            <XCircleIcon className="h-4 w-4 text-red-600" />
-                            <span className="text-xs text-red-600">Error</span>
-                          </div>
-                        )}
-                        {file.status === 'completed' && file.feedbackItems && (
-                          <button
-                            onClick={() => enhanceFeedback(file.id)}
-                            className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
-                          >
-                            <SparklesIcon className="h-3 w-3 mr-1" />
-                            Enhance
-                          </button>
-                        )}
-                        <button
-                          onClick={() => removeFile(file.id)}
-                          className="text-gray-400 hover:text-red-600"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+              <button
+                onClick={() => setShowUploadForm(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Close
+              </button>
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Add Feedback Form */}
+      {/* Add Feedback Form Modal */}
       {showAddForm && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              Add New Feedback
-            </h3>
-            <button
-              onClick={() => setShowAddForm(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <XCircleIcon className="h-6 w-6" />
-            </button>
-          </div>
-          <div className="space-y-4">
-            <textarea
-              value={newFeedback}
-              onChange={(e) => setNewFeedback(e.target.value)}
-              placeholder="Enter customer feedback..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={4}
-            />
-            <div className="flex justify-end space-x-3">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                Add New Feedback
+              </h3>
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <textarea
+                value={newFeedback}
+                onChange={(e) => setNewFeedback(e.target.value)}
+                placeholder="Enter customer feedback..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
               <button
                 onClick={() => setShowAddForm(false)}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
