@@ -103,47 +103,47 @@ const FeedbackManagement: React.FC = () => {
   const loadSampleFeedback = () => {
     setLoading(true);
     const sampleFeedback: FeedbackItem[] = [
-      {
-        _id: '1',
-        content:
-          'The app is great but the checkout process is too slow. It takes forever to complete a purchase.',
-        source: 'App Store Review',
-        category: 'bug-report',
-        sentiment: 'negative',
-        priority: 'high',
-        isIgnored: false,
-        createdAt: new Date().toISOString(),
-        extractedKeywords: ['checkout', 'slow', 'purchase'],
-        aiAnalysis: {
-          summary:
-            'User experiencing slow checkout process affecting purchase completion',
-          actionableItems: ['Optimize checkout flow', 'Reduce loading times'],
-          relatedFeatures: ['Checkout System', 'Payment Processing'],
-          urgencyScore: 7,
-        },
-      },
-      {
-        _id: '2',
-        content:
-          'Love the new UI design! Much more intuitive than before. Keep up the great work!',
-        source: 'User Survey',
-        category: 'praise',
-        sentiment: 'positive',
-        priority: 'medium',
-        isIgnored: false,
-        createdAt: new Date().toISOString(),
-        extractedKeywords: ['UI', 'design', 'intuitive'],
-        aiAnalysis: {
-          summary:
-            'Positive feedback about UI redesign and improved user experience',
-          actionableItems: [
-            'Continue UI improvements',
-            'Document successful design patterns',
-          ],
-          relatedFeatures: ['User Interface', 'Design System'],
-          urgencyScore: 3,
-        },
-      },
+      // {
+      //   _id: '1',
+      //   content:
+      //     'The app is great but the checkout process is too slow. It takes forever to complete a purchase.',
+      //   source: 'App Store Review',
+      //   category: 'bug-report',
+      //   sentiment: 'negative',
+      //   priority: 'high',
+      //   isIgnored: false,
+      //   createdAt: new Date().toISOString(),
+      //   extractedKeywords: ['checkout', 'slow', 'purchase'],
+      //   aiAnalysis: {
+      //     summary:
+      //       'User experiencing slow checkout process affecting purchase completion',
+      //     actionableItems: ['Optimize checkout flow', 'Reduce loading times'],
+      //     relatedFeatures: ['Checkout System', 'Payment Processing'],
+      //     urgencyScore: 7,
+      //   },
+      // },
+      // {
+      //   _id: '2',
+      //   content:
+      //     'Love the new UI design! Much more intuitive than before. Keep up the great work!',
+      //   source: 'User Survey',
+      //   category: 'praise',
+      //   sentiment: 'positive',
+      //   priority: 'medium',
+      //   isIgnored: false,
+      //   createdAt: new Date().toISOString(),
+      //   extractedKeywords: ['UI', 'design', 'intuitive'],
+      //   aiAnalysis: {
+      //     summary:
+      //       'Positive feedback about UI redesign and improved user experience',
+      //     actionableItems: [
+      //       'Continue UI improvements',
+      //       'Document successful design patterns',
+      //     ],
+      //     relatedFeatures: ['User Interface', 'Design System'],
+      //     urgencyScore: 3,
+      //   },
+      // },
     ];
     setFeedback(sampleFeedback);
     setLoading(false);
