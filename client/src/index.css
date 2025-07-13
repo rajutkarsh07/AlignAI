@@ -14,29 +14,41 @@
   .btn-primary {
     @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
-  
+
   .btn-secondary {
     @apply bg-secondary-100 text-secondary-800 px-4 py-2 rounded-lg font-medium hover:bg-secondary-200 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
-  
+
   .btn-outline {
     @apply border border-secondary-300 text-secondary-700 px-4 py-2 rounded-lg font-medium hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
-  
+
   .card {
     @apply bg-white rounded-lg shadow-sm border border-secondary-200 p-6;
   }
-  
+
   .input-field {
     @apply block w-full rounded-lg border-secondary-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
   }
-  
+
   .sidebar-nav-item {
     @apply flex items-center px-3 py-2 text-sm font-medium rounded-lg hover:bg-secondary-100 hover:text-secondary-900 transition-colors;
   }
-  
+
   .sidebar-nav-item.active {
     @apply bg-primary-100 text-primary-900;
+  }
+
+  .project-nav-item {
+    @apply ml-2 border-l-2 border-transparent;
+  }
+
+  .project-nav-item:hover {
+    @apply border-l-2 border-primary-200 bg-primary-50;
+  }
+
+  .project-nav-item.active {
+    @apply border-l-2 border-primary-500 bg-primary-100 text-primary-900;
   }
 }
 
@@ -74,11 +86,21 @@
 }
 
 @keyframes loading {
-  0% { content: ''; }
-  25% { content: '.'; }
-  50% { content: '..'; }
-  75% { content: '...'; }
-  100% { content: ''; }
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
 }
 
 /* Message bubble styles */
@@ -188,7 +210,7 @@
   .card {
     @apply p-4;
   }
-  
+
   .message-bubble {
     max-width: 95%;
   }

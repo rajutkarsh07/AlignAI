@@ -31,7 +31,10 @@ interface ChatSession {
 }
 
 const ChatInterface: React.FC = () => {
-  const { projectId, sessionId } = useParams<{ projectId: string; sessionId?: string }>();
+  const { projectId, sessionId } = useParams<{
+    projectId: string;
+    sessionId?: string;
+  }>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -91,10 +94,12 @@ const ChatInterface: React.FC = () => {
     try {
       const currentProjectId = selectedProject || projectId;
       const sessionData = {
-        title: currentProjectId ? 'Project Chat Session' : 'General Chat Session',
-        ...(currentProjectId && { projectId: currentProjectId })
+        title: currentProjectId
+          ? 'Project Chat Session'
+          : 'General Chat Session',
+        ...(currentProjectId && { projectId: currentProjectId }),
       };
-      
+
       const response: any = await api.post('/chat/sessions', sessionData);
       if (response.success) {
         setSession(response.data);
@@ -108,7 +113,7 @@ const ChatInterface: React.FC = () => {
         sessionId: 'temp-' + Date.now(),
         title: 'Chat Session',
         messages: [],
-        projectId: selectedProject || projectId
+        projectId: selectedProject || projectId,
       };
       setSession(tempSession);
     }
@@ -121,20 +126,40 @@ const ChatInterface: React.FC = () => {
       id: Date.now().toString(),
       role: 'user',
       content: inputMessage.trim(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputMessage('');
     setLoading(true);
 
     try {
       // Send message to backend
       if (session?.sessionId && !session.sessionId.startsWith('temp-')) {
-        const response: any = await api.post(`/chat/sessions/${session.sessionId}/messages`, {
+        const currentProjectId = selectedProject || projectId;
+        const currentProject = projects.find((p) => p._id === currentProjectId);
+
+        const messagePayload: any = {
           content: userMessage.content,
-          agent: 'general'
-        });
+          agent: 'general',
+        };
+
+        // Add project context if a project is selected
+        if (currentProjectId) {
+          messagePayload.projectId = currentProjectId;
+          if (currentProject) {
+            messagePayload.projectContext = {
+              name: currentProject.name,
+              description: currentProject.description || '',
+              goals: currentProject.goals || [],
+            };
+          }
+        }
+
+        const response: any = await api.post(
+          `/chat/sessions/${session.sessionId}/messages`,
+          messagePayload
+        );
 
         if (response.success && response.data) {
           // Handle different response formats
@@ -142,13 +167,18 @@ const ChatInterface: React.FC = () => {
           if (response.data.response) {
             // Handle structured response
             if (typeof response.data.response === 'object') {
-              aiContent = response.data.response.text || JSON.stringify(response.data.response, null, 2);
+              aiContent =
+                response.data.response.text ||
+                JSON.stringify(response.data.response, null, 2);
             } else {
               aiContent = response.data.response;
             }
           } else if (response.data.session && response.data.session.messages) {
             // Get the latest assistant message
-            const lastMessage = response.data.session.messages[response.data.session.messages.length - 1];
+            const lastMessage =
+              response.data.session.messages[
+                response.data.session.messages.length - 1
+              ];
             if (lastMessage && lastMessage.role === 'assistant') {
               aiContent = lastMessage.content;
             }
@@ -159,9 +189,9 @@ const ChatInterface: React.FC = () => {
               id: (Date.now() + 1).toString(),
               role: 'assistant',
               content: aiContent,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             };
-            setMessages(prev => [...prev, aiMessage]);
+            setMessages((prev) => [...prev, aiMessage]);
           } else {
             throw new Error('No AI response content found');
           }
@@ -175,10 +205,44 @@ const ChatInterface: React.FC = () => {
       console.error('Error sending message:', error);
       // Provide intelligent fallback responses
       const queryLower = userMessage.content.toLowerCase();
+      const currentProjectId = selectedProject || projectId;
+      const currentProject = projects.find((p) => p._id === currentProjectId);
       let fallbackContent = '';
 
-      if (queryLower.includes('project') || (queryLower.includes('what') && queryLower.includes('have'))) {
-        fallbackContent = `I can help you with information about your projects. Currently you have several projects available. You can:
+      if (
+        queryLower.includes('project') ||
+        (queryLower.includes('what') && queryLower.includes('have'))
+      ) {
+        if (currentProject) {
+          fallbackContent = `I can help you with information about **${
+            currentProject.name
+          }**. Here's what I know about this project:
+
+${
+  currentProject.description
+    ? `**📝 Description:** ${currentProject.description}`
+    : ''
+}
+${
+  currentProject.goals && currentProject.goals.length > 0
+    ? `**🎯 Goals:** ${currentProject.goals.join(', ')}`
+    : ''
+}
+
+**📋 What I can help you with for ${currentProject.name}:**
+- Analyze project-specific feedback and trends
+- Create roadmaps tailored to this project's goals
+- Suggest task prioritization based on project objectives
+- Review project progress and milestones
+- Help with strategic decisions for this project
+
+**🗣️ Try asking:**
+- "What feedback trends are we seeing for ${currentProject.name}?"
+- "Create a roadmap for ${currentProject.name}"
+- "What are the main challenges for this project?"
+- "How can we improve ${currentProject.name} based on user feedback?"`;
+        } else {
+          fallbackContent = `I can help you with information about your projects. Currently you have several projects available. You can:
 
 **📋 Project Management:**
 - View project details and goals
@@ -196,8 +260,33 @@ const ChatInterface: React.FC = () => {
 - Track task completion
 
 Would you like me to help you with any of these areas?`;
-      } else if (queryLower.includes('roadmap') || queryLower.includes('plan')) {
-        fallbackContent = `I'd be happy to help you create a roadmap! Here's what I can assist with:
+        }
+      } else if (
+        queryLower.includes('roadmap') ||
+        queryLower.includes('plan')
+      ) {
+        if (currentProject) {
+          fallbackContent = `I'd be happy to help you create a roadmap for **${currentProject.name}**! Here's what I can assist with:
+
+**🗺️ Roadmap Generation for ${currentProject.name}:**
+- Balanced roadmaps (strategic + customer feedback)
+- Timeline planning (quarterly, yearly)
+- Priority-based task organization aligned with project goals
+- Resource allocation strategies
+
+**📊 Roadmap Types:**
+- **Strategic Focus:** Company goals first
+- **Customer-Driven:** Feedback-based priorities  
+- **Balanced Approach:** Mix of both
+- **Custom Allocation:** Your specific percentages
+
+**💡 Example Requests for ${currentProject.name}:**
+- "Create a Q1 roadmap for ${currentProject.name} focusing on customer feedback"
+- "Generate a balanced 6-month plan for this project"
+- "Show me strategic priorities for ${currentProject.name} this year"
+- "What should be our roadmap priorities for ${currentProject.name}?"`;
+        } else {
+          fallbackContent = `I'd be happy to help you create a roadmap! Here's what I can assist with:
 
 **🗺️ Roadmap Generation:**
 - Balanced roadmaps (strategic + customer feedback)
@@ -216,9 +305,39 @@ Would you like me to help you with any of these areas?`;
 - "Generate a balanced 6-month plan"
 - "Show me strategic priorities for this year"
 
-${selectedProject || projectId ? '' : '💡 **Tip:** Select a specific project for detailed roadmap generation!'}`;
+💡 **Tip:** Select a specific project for detailed roadmap generation!`;
+        }
       } else {
-        fallbackContent = `I'm your AI product management assistant! Here's how I can help:
+        if (currentProject) {
+          fallbackContent = `I'm your AI product management assistant for **${currentProject.name}**! Here's how I can help:
+
+**🎯 Project Strategy for ${currentProject.name}:**
+- Analyze project-specific feedback patterns
+- Balance project goals with user needs
+- Provide prioritization frameworks for this project
+- Strategic decision support for ${currentProject.name}
+
+**📋 Project Management:**
+- Roadmap planning and optimization for ${currentProject.name}
+- Task breakdown and enhancement
+- Timeline and resource estimation
+- Risk assessment and mitigation
+
+**📊 Analysis & Insights:**
+- Customer feedback analysis for ${currentProject.name}
+- Market trend evaluation  
+- Competitive positioning
+- Performance metrics guidance
+
+**🚀 Quick Actions for ${currentProject.name}:**
+- Ask about specific project challenges
+- Request roadmap recommendations
+- Get help prioritizing features
+- Analyze customer feedback themes
+
+What would you like to work on for ${currentProject.name} today?`;
+        } else {
+          fallbackContent = `I'm your AI product management assistant! Here's how I can help:
 
 **🎯 Product Strategy:**
 - Analyze customer feedback patterns
@@ -245,15 +364,16 @@ ${selectedProject || projectId ? '' : '💡 **Tip:** Select a specific project f
 - Analyze customer feedback themes
 
 What would you like to work on today?`;
+        }
       }
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: fallbackContent,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages((prev) => [...prev, aiMessage]);
     } finally {
       setLoading(false);
     }
@@ -266,7 +386,10 @@ What would you like to work on today?`;
     }
   };
 
-  const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({ content, isUser }) => {
+  const MarkdownMessage: React.FC<{ content: string; isUser: boolean }> = ({
+    content,
+    isUser,
+  }) => {
     if (isUser) {
       // For user messages, keep simple formatting
       return <div className="text-sm whitespace-pre-wrap">{content}</div>;
@@ -281,28 +404,36 @@ What would you like to work on today?`;
           components={{
             // Custom styling for markdown elements
             h1: ({ children }) => (
-              <h1 className="text-lg font-bold text-gray-900 mb-2">{children}</h1>
+              <h1 className="text-lg font-bold text-gray-900 mb-2">
+                {children}
+              </h1>
             ),
             h2: ({ children }) => (
-              <h2 className="text-base font-semibold text-gray-800 mb-2">{children}</h2>
+              <h2 className="text-base font-semibold text-gray-800 mb-2">
+                {children}
+              </h2>
             ),
             h3: ({ children }) => (
-              <h3 className="text-sm font-semibold text-gray-700 mb-1">{children}</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                {children}
+              </h3>
             ),
-            p: ({ children }) => (
-              <p className="mb-2 last:mb-0">{children}</p>
-            ),
+            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
             ul: ({ children }) => (
-              <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
+              <ul className="list-disc list-inside mb-2 space-y-1">
+                {children}
+              </ul>
             ),
             ol: ({ children }) => (
-              <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
+              <ol className="list-decimal list-inside mb-2 space-y-1">
+                {children}
+              </ol>
             ),
-            li: ({ children }) => (
-              <li className="text-sm">{children}</li>
-            ),
+            li: ({ children }) => <li className="text-sm">{children}</li>,
             strong: ({ children }) => (
-              <strong className="font-semibold text-gray-900">{children}</strong>
+              <strong className="font-semibold text-gray-900">
+                {children}
+              </strong>
             ),
             em: ({ children }) => (
               <em className="italic text-gray-700">{children}</em>
@@ -340,14 +471,12 @@ What would you like to work on today?`;
               </th>
             ),
             td: ({ children }) => (
-              <td className="px-2 py-1 border-t border-gray-200">
-                {children}
-              </td>
+              <td className="px-2 py-1 border-t border-gray-200">{children}</td>
             ),
             a: ({ children, href }) => (
-              <a 
-                href={href} 
-                target="_blank" 
+              <a
+                href={href}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"
               >
@@ -362,15 +491,23 @@ What would you like to work on today?`;
     );
   };
 
+  const currentProjectId = selectedProject || projectId;
+  const currentProject = projects.find((p) => p._id === currentProjectId);
+
   return (
     <div className="h-full flex flex-col max-w-4xl mx-auto">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">AI Chat Assistant</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              AI Chat Assistant
+              {currentProject && ` - ${currentProject.name}`}
+            </h1>
             <p className="text-sm text-gray-600">
-              {projectId ? 'Project-specific assistant' : 'General roadmap assistant'}
+              {currentProject
+                ? `Project-specific assistant for ${currentProject.name}`
+                : 'General roadmap assistant'}
             </p>
           </div>
           <div className="flex items-center space-x-4">
@@ -405,17 +542,37 @@ What would you like to work on today?`;
           {messages.length === 0 && (
             <div className="text-center py-8">
               <ComputerDesktopIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Start a conversation</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                Start a conversation
+                {currentProject && ` about ${currentProject.name}`}
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Ask me anything about product roadmaps, feedback analysis, or task planning.
+                {currentProject
+                  ? `Ask me anything about ${currentProject.name} roadmaps, feedback analysis, or task planning.`
+                  : 'Ask me anything about product roadmaps, feedback analysis, or task planning.'}
               </p>
+              {currentProject && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xs text-blue-700">
+                    <strong>Project Context:</strong> I'll use information about{' '}
+                    {currentProject.name} to provide more relevant responses.
+                    {currentProject.description && (
+                      <span className="block mt-1">
+                        {currentProject.description}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
             >
               <div
                 className={`flex max-w-xs lg:max-w-md xl:max-w-lg ${
@@ -438,10 +595,15 @@ What would you like to work on today?`;
                       : 'bg-white text-gray-900 border border-gray-200 shadow-sm'
                   }`}
                 >
-                  <MarkdownMessage content={message.content} isUser={message.role === 'user'} />
+                  <MarkdownMessage
+                    content={message.content}
+                    isUser={message.role === 'user'}
+                  />
                   <p
                     className={`text-xs mt-2 ${
-                      message.role === 'user' ? 'text-blue-200' : 'text-gray-500'
+                      message.role === 'user'
+                        ? 'text-blue-200'
+                        : 'text-gray-500'
                     }`}
                   >
                     {new Date(message.timestamp).toLocaleTimeString()}
@@ -460,8 +622,14 @@ What would you like to work on today?`;
                 <div className="mx-3 px-4 py-2 bg-white rounded-lg border border-gray-200">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.1s' }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -479,7 +647,11 @@ What would you like to work on today?`;
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me about roadmaps, feedback analysis, or task planning..."
+              placeholder={
+                currentProject
+                  ? `Ask me about ${currentProject.name} roadmaps, feedback analysis, or task planning...`
+                  : 'Ask me about roadmaps, feedback analysis, or task planning...'
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               rows={2}
               disabled={loading}
