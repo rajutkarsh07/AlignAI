@@ -8,14 +8,14 @@ const Roadmap = require('../models/Roadmap');
 class AgentService {
   constructor() {
     this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
-    
+
     if (this.useVertexAI) {
       // Initialize Vertex AI
       this.vertexAI = new VertexAI({
         project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1'
+        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
       });
-      
+
       this.model = this.vertexAI.preview.getGenerativeModel({
         model: 'gemini-2.0-flash-exp',
         generationConfig: {
@@ -37,19 +37,23 @@ class AgentService {
       });
     }
 
-    console.log(`🤖 Agent Service initialized using ${this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'}`);
+    console.log(
+      `🤖 Agent Service initialized using ${
+        this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'
+      }`
+    );
 
     this.agents = {
       general: this.createGeneralAgent(),
       roadmap: this.createRoadmapAgent(),
-      taskEnhancer: this.createTaskEnhancerAgent()
+      taskEnhancer: this.createTaskEnhancerAgent(),
     };
   }
 
   async generateContent(prompt) {
     try {
       const result = await this.model.generateContent(prompt);
-      
+
       if (this.useVertexAI) {
         return result.response.candidates[0].content.parts[0].text;
       } else {
@@ -102,20 +106,29 @@ EXAMPLE SCENARIOS:
 
 Remember: You are helping product managers make informed, balanced decisions that serve both business objectives and customer needs.`,
 
-      async processQuery(query, projectContext, feedbackContext, additionalContext = {}) {
+      async processQuery(
+        query,
+        projectContext,
+        feedbackContext,
+        additionalContext = {}
+      ) {
         const prompt = `You are an expert product management assistant with access to detailed project information.
 
-${projectContext ? `
+${
+  projectContext
+    ? `
 CURRENT PROJECT CONTEXT:
 ${projectContext}
 
 When the user asks about "this project" or "the project", they are referring to the project above.
-` : `
+`
+    : `
 GLOBAL CONTEXT:
 ${projectContext}
 
 The user hasn't selected a specific project yet.
-`}
+`
+}
 
 CUSTOMER FEEDBACK SUMMARY:
 ${feedbackContext}
@@ -141,7 +154,7 @@ Please provide a comprehensive, actionable response:`;
           console.error('General agent error:', error);
           throw new Error('Failed to process query');
         }
-      }
+      },
     };
   }
 
@@ -182,23 +195,40 @@ Generate detailed roadmap items with:
 - Customer quotes supporting decisions
 
 EXAMPLE QUERIES:
-- "Create a balanced roadmap for Q1 2024"
+- "Create a balanced roadmap for Q1 2025"
 - "Show me a customer-driven plan focusing on bug fixes"
 - "Generate a 6-month strategic roadmap with 70/20/10 allocation"`,
 
-      async generateRoadmap(query, projectContext, feedbackContext, parameters = {}) {
+      async generateRoadmap(
+        query,
+        projectContext,
+        feedbackContext,
+        parameters = {}
+      ) {
         const {
           timeHorizon = 'quarter',
           allocationType = 'balanced',
           focusAreas = [],
-          constraints = []
+          constraints = [],
         } = parameters;
 
         const allocationStrategies = {
-          'strategic-only': { strategic: 70, customerDriven: 20, maintenance: 10 },
-          'customer-only': { strategic: 20, customerDriven: 70, maintenance: 10 },
-          'balanced': { strategic: 60, customerDriven: 30, maintenance: 10 },
-          'custom': parameters.customAllocation || { strategic: 60, customerDriven: 30, maintenance: 10 }
+          'strategic-only': {
+            strategic: 70,
+            customerDriven: 20,
+            maintenance: 10,
+          },
+          'customer-only': {
+            strategic: 20,
+            customerDriven: 70,
+            maintenance: 10,
+          },
+          balanced: { strategic: 60, customerDriven: 30, maintenance: 10 },
+          custom: parameters.customAllocation || {
+            strategic: 60,
+            customerDriven: 30,
+            maintenance: 10,
+          },
         };
 
         const allocation = allocationStrategies[allocationType];
@@ -270,7 +300,7 @@ Generate a detailed roadmap in the following JSON format:
 
 Ensure the roadmap:
 1. Follows the specified allocation percentages
-2. Includes 8-12 roadmap items
+2. Includes 8-12 roadmap items(if the user asks for a roadmap, it should be at least 8 items)
 3. Balances quick wins with long-term strategic goals
 4. References specific customer feedback
 5. Provides clear business justification
@@ -280,13 +310,15 @@ Respond only with valid JSON.`;
 
         try {
           const response = await self.generateContent(prompt);
-          const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+          const cleanedResponse = response
+            .replace(/```json\n?|\n?```/g, '')
+            .trim();
           return JSON.parse(cleanedResponse);
         } catch (error) {
           console.error('Roadmap generation error:', error);
           throw new Error('Failed to generate roadmap');
         }
-      }
+      },
     };
   }
 
@@ -391,18 +423,25 @@ Respond only with valid JSON.`;
 
         try {
           const response = await self.generateContent(prompt);
-          const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+          const cleanedResponse = response
+            .replace(/```json\n?|\n?```/g, '')
+            .trim();
           return JSON.parse(cleanedResponse);
         } catch (error) {
           console.error('Task enhancement error:', error);
           throw new Error('Failed to enhance task');
         }
-      }
+      },
     };
   }
 
   // Main method to route queries to appropriate agents
-  async processQuery(agentType, query, projectId = null, additionalParams = {}) {
+  async processQuery(
+    agentType,
+    query,
+    projectId = null,
+    additionalParams = {}
+  ) {
     try {
       // Get project context (support both project-specific and global chat)
       let projectContext = '';
@@ -413,7 +452,7 @@ Respond only with valid JSON.`;
 Project: ${project.name}
 Description: ${project.description}
 Official Plan: ${project.formattedPlan || project.officialPlan}
-Goals: ${project.goals.map(g => `${g.title}: ${g.description}`).join('; ')}
+Goals: ${project.goals.map((g) => `${g.title}: ${g.description}`).join('; ')}
 `;
         }
       } else {
@@ -421,7 +460,7 @@ Goals: ${project.goals.map(g => `${g.title}: ${g.description}`).join('; ')}
         const allProjects = await Project.find({}).limit(10);
         projectContext = `
 GLOBAL CONTEXT - Available Projects:
-${allProjects.map(p => `• ${p.name}: ${p.description}`).join('\n')}
+${allProjects.map((p) => `• ${p.name}: ${p.description}`).join('\n')}
 Total Projects: ${allProjects.length}
 
 Note: This is a general consultation. For project-specific advice, please select a specific project.
@@ -432,10 +471,10 @@ Note: This is a general consultation. For project-specific advice, please select
       let feedbackContext = '';
       if (projectId) {
         const feedbackDocs = await Feedback.find({ projectId, isActive: true });
-        const allFeedbackItems = feedbackDocs.flatMap(doc => 
-          doc.feedbackItems.filter(item => !item.isIgnored)
+        const allFeedbackItems = feedbackDocs.flatMap((doc) =>
+          doc.feedbackItems.filter((item) => !item.isIgnored)
         );
-        
+
         feedbackContext = `
 Total Feedback Items: ${allFeedbackItems.length}
 Top Categories: ${this.getFeedbackCategorySummary(allFeedbackItems)}
@@ -444,11 +483,13 @@ Recent High-Priority Items: ${this.getHighPriorityFeedback(allFeedbackItems)}
 `;
       } else {
         // Global feedback overview
-        const allFeedbackDocs = await Feedback.find({ isActive: true }).limit(100);
-        const allFeedbackItems = allFeedbackDocs.flatMap(doc => 
-          doc.feedbackItems.filter(item => !item.isIgnored)
+        const allFeedbackDocs = await Feedback.find({ isActive: true }).limit(
+          100
         );
-        
+        const allFeedbackItems = allFeedbackDocs.flatMap((doc) =>
+          doc.feedbackItems.filter((item) => !item.isIgnored)
+        );
+
         feedbackContext = `
 GLOBAL FEEDBACK OVERVIEW:
 Total Feedback Items: ${allFeedbackItems.length}
@@ -463,20 +504,40 @@ Key Themes: ${this.getTopKeywords(allFeedbackItems)}
       try {
         switch (agentType) {
           case 'general':
-            return await agent.processQuery(query, projectContext, feedbackContext, additionalParams);
-          
+            return await agent.processQuery(
+              query,
+              projectContext,
+              feedbackContext,
+              additionalParams
+            );
+
           case 'roadmap':
             if (!projectId) {
               return this.getProjectSelectionMessage('roadmap generation');
             }
-            return await agent.generateRoadmap(query, projectContext, feedbackContext, additionalParams);
-          
+            return await agent.generateRoadmap(
+              query,
+              projectContext,
+              feedbackContext,
+              additionalParams
+            );
+
           case 'taskEnhancer':
             const { title, description } = additionalParams;
-            return await agent.enhanceTask(title, description, projectContext, feedbackContext);
-          
+            return await agent.enhanceTask(
+              title,
+              description,
+              projectContext,
+              feedbackContext
+            );
+
           default:
-            return await this.agents.general.processQuery(query, projectContext, feedbackContext, additionalParams);
+            return await this.agents.general.processQuery(
+              query,
+              projectContext,
+              feedbackContext,
+              additionalParams
+            );
         }
       } catch (aiError) {
         console.warn('AI generation failed, using fallback:', aiError.message);
@@ -529,7 +590,11 @@ Would you like me to help you with any of these areas?`,
 - "Generate a balanced 6-month plan"
 - "Show me strategic priorities for this year"
 
-${projectId ? '' : '💡 **Tip:** Select a specific project for detailed roadmap generation!'}`,
+${
+  projectId
+    ? ''
+    : '💡 **Tip:** Select a specific project for detailed roadmap generation!'
+}`,
 
       general: `I'm your AI product management assistant! Here's how I can help:
 
@@ -557,12 +622,15 @@ ${projectId ? '' : '💡 **Tip:** Select a specific project for detailed roadmap
 - Get help prioritizing features
 - Analyze customer feedback themes
 
-What would you like to work on today?`
+What would you like to work on today?`,
     };
 
     // Determine response type based on query content
     const queryLower = query.toLowerCase();
-    if (queryLower.includes('project') || queryLower.includes('what') && queryLower.includes('have')) {
+    if (
+      queryLower.includes('project') ||
+      (queryLower.includes('what') && queryLower.includes('have'))
+    ) {
       return responses.projects;
     } else if (queryLower.includes('roadmap') || queryLower.includes('plan')) {
       return responses.roadmap;
@@ -588,11 +656,11 @@ Once you select a project, I'll be able to provide much more detailed and action
   // Helper methods for context analysis
   getFeedbackCategorySummary(feedbackItems) {
     const categories = {};
-    feedbackItems.forEach(item => {
+    feedbackItems.forEach((item) => {
       categories[item.category] = (categories[item.category] || 0) + 1;
     });
     return Object.entries(categories)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([cat, count]) => `${cat}: ${count}`)
       .join(', ');
@@ -600,13 +668,13 @@ Once you select a project, I'll be able to provide much more detailed and action
 
   getTopKeywords(feedbackItems) {
     const keywords = {};
-    feedbackItems.forEach(item => {
-      item.extractedKeywords.forEach(keyword => {
+    feedbackItems.forEach((item) => {
+      item.extractedKeywords.forEach((keyword) => {
         keywords[keyword] = (keywords[keyword] || 0) + 1;
       });
     });
     return Object.entries(keywords)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([keyword]) => keyword)
       .join(', ');
@@ -614,9 +682,9 @@ Once you select a project, I'll be able to provide much more detailed and action
 
   getHighPriorityFeedback(feedbackItems) {
     return feedbackItems
-      .filter(item => ['critical', 'high'].includes(item.priority))
+      .filter((item) => ['critical', 'high'].includes(item.priority))
       .slice(0, 3)
-      .map(item => `"${item.content.substring(0, 100)}..."`)
+      .map((item) => `"${item.content.substring(0, 100)}..."`)
       .join('; ');
   }
 
@@ -629,7 +697,7 @@ Once you select a project, I'll be able to provide much more detailed and action
       return {
         query,
         results: [],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       console.error('External search error:', error);

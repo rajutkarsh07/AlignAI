@@ -512,6 +512,12 @@ const FeedbackManagement: React.FC = () => {
               ))}
             </select>
           )}
+          {projectId && selectedProject && (
+            <div className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 text-gray-700">
+              {projects.find((p) => p._id === selectedProject)?.name ||
+                `Project ${selectedProject}`}
+            </div>
+          )}
           <button
             onClick={() => setShowUploadForm(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"

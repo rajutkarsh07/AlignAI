@@ -340,6 +340,12 @@ const TaskManagement: React.FC = () => {
               ))}
             </select>
           )}
+          {projectId && selectedProject && (
+            <div className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 text-gray-700">
+              {projects.find((p) => p._id === selectedProject)?.name ||
+                `Project ${selectedProject}`}
+            </div>
+          )}
           <button
             onClick={() => setShowAddForm(true)}
             disabled={!selectedProject}

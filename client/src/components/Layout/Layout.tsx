@@ -20,7 +20,6 @@ const navigation = [
   { name: 'Feedback', href: '/feedback', icon: DocumentTextIcon },
   { name: 'Tasks', href: '/tasks', icon: ClipboardDocumentListIcon },
   { name: 'Roadmap', href: '/roadmap', icon: MapIcon },
-  { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
 ];
 
 const Layout: React.FC = () => {
@@ -54,11 +53,6 @@ const Layout: React.FC = () => {
           name: 'Roadmap',
           href: `/projects/${projectId}/roadmap`,
           icon: MapIcon,
-        },
-        {
-          name: 'Analytics',
-          href: `/projects/${projectId}/analytics`,
-          icon: ChartBarIcon,
         },
       ]
     : [];
