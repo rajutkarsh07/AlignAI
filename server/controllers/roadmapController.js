@@ -1,7 +1,7 @@
 const Roadmap = require('../models/Roadmap');
 const Project = require('../models/Project');
 const Task = require('../models/Task');
-const agentService = require('../services/aiService');
+const agentService = require('../services/agentService');
 
 // Get all roadmaps for a project
 const getProjectRoadmaps = async (req, res) => {
