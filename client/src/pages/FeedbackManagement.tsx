@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import {
@@ -8,6 +8,10 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XCircleIcon,
+  DocumentArrowUpIcon,
+  SparklesIcon,
+  EyeIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 
 interface FeedbackItem {
@@ -21,6 +25,25 @@ interface FeedbackItem {
   createdAt: string;
   feedbackDocId?: string;
   feedbackDocName?: string;
+  extractedKeywords?: string[];
+  aiAnalysis?: {
+    summary: string;
+    actionableItems: string[];
+    relatedFeatures: string[];
+    urgencyScore: number;
+  };
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  status: 'uploading' | 'processing' | 'enhancing' | 'completed' | 'error';
+  progress: number;
+  extractedText?: string;
+  feedbackItems?: FeedbackItem[];
+  error?: string;
 }
 
 const FeedbackManagement: React.FC = () => {
@@ -28,16 +51,21 @@ const FeedbackManagement: React.FC = () => {
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
-  const [selectedProject, setSelectedProject] = useState<string>(projectId || '');
+  const [selectedProject, setSelectedProject] = useState<string>(
+    projectId || ''
+  );
   const [newFeedback, setNewFeedback] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadProjects();
     if (selectedProject) {
       loadFeedback();
     } else {
-      // Load sample feedback data
       loadSampleFeedback();
     }
   }, [selectedProject]);
@@ -55,16 +83,17 @@ const FeedbackManagement: React.FC = () => {
 
   const loadFeedback = async () => {
     if (!selectedProject) return;
-    
+
     try {
       setLoading(true);
-      const response: any = await api.get(`/feedback/project/${selectedProject}`);
+      const response: any = await api.get(
+        `/feedback/project/${selectedProject}`
+      );
       if (response.success) {
         setFeedback(response.data);
       }
     } catch (error) {
       console.error('Error loading feedback:', error);
-      // Load sample data on error
       loadSampleFeedback();
     } finally {
       setLoading(false);
@@ -73,51 +102,253 @@ const FeedbackManagement: React.FC = () => {
 
   const loadSampleFeedback = () => {
     setLoading(true);
-    // Sample feedback data
     const sampleFeedback: FeedbackItem[] = [
       {
         _id: '1',
-        content: 'The app is great but the checkout process is too slow. It takes forever to complete a purchase.',
+        content:
+          'The app is great but the checkout process is too slow. It takes forever to complete a purchase.',
         source: 'App Store Review',
-        category: 'Performance',
+        category: 'bug-report',
         sentiment: 'negative',
         priority: 'high',
         isIgnored: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        extractedKeywords: ['checkout', 'slow', 'purchase'],
+        aiAnalysis: {
+          summary:
+            'User experiencing slow checkout process affecting purchase completion',
+          actionableItems: ['Optimize checkout flow', 'Reduce loading times'],
+          relatedFeatures: ['Checkout System', 'Payment Processing'],
+          urgencyScore: 7,
+        },
       },
       {
         _id: '2',
-        content: 'Love the new UI design! Much more intuitive than before. Keep up the great work!',
+        content:
+          'Love the new UI design! Much more intuitive than before. Keep up the great work!',
         source: 'User Survey',
-        category: 'UI/UX',
+        category: 'praise',
         sentiment: 'positive',
         priority: 'medium',
         isIgnored: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        extractedKeywords: ['UI', 'design', 'intuitive'],
+        aiAnalysis: {
+          summary:
+            'Positive feedback about UI redesign and improved user experience',
+          actionableItems: [
+            'Continue UI improvements',
+            'Document successful design patterns',
+          ],
+          relatedFeatures: ['User Interface', 'Design System'],
+          urgencyScore: 3,
+        },
       },
-      {
-        _id: '3',
-        content: 'Would love to see dark mode support. It would make using the app at night much better.',
-        source: 'Customer Email',
-        category: 'Feature Request',
-        sentiment: 'neutral',
-        priority: 'medium',
-        isIgnored: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        _id: '4',
-        content: 'App crashes frequently on Android devices. Please fix this urgent issue.',
-        source: 'Bug Report',
-        category: 'Bug',
-        sentiment: 'negative',
-        priority: 'critical',
-        isIgnored: false,
-        createdAt: new Date().toISOString()
-      }
     ];
     setFeedback(sampleFeedback);
     setLoading(false);
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const handleFiles = (files: FileList) => {
+    if (!selectedProject) {
+      alert('Please select a project first before uploading files.');
+      return;
+    }
+
+    // Validate file types
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    const invalidFiles = Array.from(files).filter(
+      (file) => !allowedTypes.includes(file.type)
+    );
+
+    if (invalidFiles.length > 0) {
+      alert(
+        `Invalid file type(s): ${invalidFiles
+          .map((f) => f.name)
+          .join(', ')}\n\nPlease upload only PDF, DOC, or DOCX files.`
+      );
+      return;
+    }
+
+    // Validate file sizes (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const oversizedFiles = Array.from(files).filter(
+      (file) => file.size > maxSize
+    );
+
+    if (oversizedFiles.length > 0) {
+      alert(
+        `File(s) too large: ${oversizedFiles
+          .map((f) => f.name)
+          .join(', ')}\n\nPlease upload files smaller than 10MB.`
+      );
+      return;
+    }
+
+    Array.from(files).forEach((file) => {
+      const fileId =
+        Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const newFile: UploadedFile = {
+        id: fileId,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        status: 'uploading',
+        progress: 0,
+      };
+
+      setUploadedFiles((prev) => [...prev, newFile]);
+      uploadFile(file, fileId);
+    });
+  };
+
+  const uploadFile = async (file: File, fileId: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('projectId', selectedProject);
+      formData.append('name', `Feedback from ${file.name}`);
+      formData.append('description', `Uploaded document: ${file.name}`);
+
+      // Update status to processing
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId ? { ...f, status: 'processing', progress: 50 } : f
+        )
+      );
+
+      const response: any = await api.post('/feedback/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 100)
+          );
+          setUploadedFiles((prev) =>
+            prev.map((f) => (f.id === fileId ? { ...f, progress } : f))
+          );
+        },
+      });
+
+      if (response.success) {
+        // Update status to completed
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? {
+                  ...f,
+                  status: 'completed',
+                  progress: 100,
+                  feedbackItems: response.data.feedbackItems,
+                  extractedText: response.data.extractedText, // Store extracted text for enhancement
+                }
+              : f
+          )
+        );
+
+        // Reload feedback to show new items
+        await loadFeedback();
+      } else {
+        throw new Error(response.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId
+            ? {
+                ...f,
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Upload failed',
+              }
+            : f
+        )
+      );
+    }
+  };
+
+  const enhanceFeedback = async (fileId: string) => {
+    try {
+      const file = uploadedFiles.find((f) => f.id === fileId);
+      if (!file) return;
+
+      // Update status to enhancing
+      setUploadedFiles((prev) =>
+        prev.map((f) => (f.id === fileId ? { ...f, status: 'enhancing' } : f))
+      );
+
+      const response: any = await api.post('/feedback/enhance', {
+        projectId: selectedProject,
+        rawText: file.extractedText || '',
+        fileName: file.name,
+      });
+
+      if (response.success) {
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === fileId
+              ? {
+                  ...f,
+                  status: 'completed',
+                  feedbackItems: response.data.feedbackItems,
+                }
+              : f
+          )
+        );
+
+        // Reload feedback to show enhanced items
+        await loadFeedback();
+      }
+    } catch (error) {
+      console.error('Error enhancing feedback:', error);
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === fileId
+            ? {
+                ...f,
+                status: 'error',
+                error:
+                  error instanceof Error ? error.message : 'Enhancement failed',
+              }
+            : f
+        )
+      );
+    }
+  };
+
+  const removeFile = (fileId: string) => {
+    setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
   const addFeedback = async () => {
@@ -125,54 +356,52 @@ const FeedbackManagement: React.FC = () => {
 
     try {
       if (selectedProject) {
-        // Save to backend if project is selected
         const response: any = await api.post('/feedback', {
           projectId: selectedProject,
           name: `Feedback - ${new Date().toLocaleDateString()}`,
           description: 'Manual feedback entry',
-          feedbackItems: [{
-            content: newFeedback.trim(),
-            source: 'Manual Entry',
-            customerInfo: {},
-            tags: []
-          }]
+          feedbackItems: [
+            {
+              content: newFeedback.trim(),
+              source: 'manual',
+              customerInfo: {},
+              tags: [],
+            },
+          ],
         });
 
         if (response.success) {
-          // Reload feedback to get the updated data with AI analysis
           await loadFeedback();
         }
       } else {
-        // Add to local state if no project selected
         const newItem: FeedbackItem = {
           _id: Date.now().toString(),
           content: newFeedback.trim(),
-          source: 'Manual Entry',
-          category: 'General',
+          source: 'manual',
+          category: 'other',
           sentiment: 'neutral',
           priority: 'medium',
           isIgnored: false,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         };
-        setFeedback(prev => [newItem, ...prev]);
+        setFeedback((prev) => [newItem, ...prev]);
       }
 
       setNewFeedback('');
       setShowAddForm(false);
     } catch (error) {
       console.error('Error adding feedback:', error);
-      // Fallback to local state
       const newItem: FeedbackItem = {
         _id: Date.now().toString(),
         content: newFeedback.trim(),
-        source: 'Manual Entry',
-        category: 'General',
+        source: 'manual',
+        category: 'other',
         sentiment: 'neutral',
         priority: 'medium',
         isIgnored: false,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
-      setFeedback(prev => [newItem, ...prev]);
+      setFeedback((prev) => [newItem, ...prev]);
       setNewFeedback('');
       setShowAddForm(false);
     }
@@ -180,35 +409,36 @@ const FeedbackManagement: React.FC = () => {
 
   const toggleIgnore = async (id: string) => {
     try {
-      // Find the feedback item
-      const feedbackItem = feedback.find(item => item._id === id);
+      const feedbackItem = feedback.find((item) => item._id === id);
       if (!feedbackItem) return;
 
       if (selectedProject && feedbackItem.feedbackDocId) {
-        // Update in backend if we have the necessary IDs
         const response: any = await api.put(
           `/feedback/${feedbackItem.feedbackDocId}/items/${id}/ignore`,
           { isIgnored: !feedbackItem.isIgnored }
         );
 
         if (response.success) {
-          // Update local state
-          setFeedback(prev => prev.map(item => 
-            item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
-          ));
+          setFeedback((prev) =>
+            prev.map((item) =>
+              item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
+            )
+          );
         }
       } else {
-        // Update local state only
-        setFeedback(prev => prev.map(item => 
-          item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
-        ));
+        setFeedback((prev) =>
+          prev.map((item) =>
+            item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
+          )
+        );
       }
     } catch (error) {
       console.error('Error toggling feedback ignore status:', error);
-      // Fallback to local update
-      setFeedback(prev => prev.map(item => 
-        item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
-      ));
+      setFeedback((prev) =>
+        prev.map((item) =>
+          item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
+        )
+      );
     }
   };
 
@@ -238,6 +468,23 @@ const FeedbackManagement: React.FC = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'uploading':
+        return 'text-blue-600';
+      case 'processing':
+        return 'text-yellow-600';
+      case 'enhancing':
+        return 'text-purple-600';
+      case 'completed':
+        return 'text-green-600';
+      case 'error':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -247,7 +494,7 @@ const FeedbackManagement: React.FC = () => {
             Feedback Management
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Manage and analyze customer feedback
+            Manage and analyze customer feedback with AI-powered insights
           </p>
         </div>
         <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
@@ -257,7 +504,7 @@ const FeedbackManagement: React.FC = () => {
               onChange={(e) => setSelectedProject(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Projects</option>
+              <option value="">Select Project</option>
               {projects.map((project) => (
                 <option key={project._id} value={project._id}>
                   {project.name}
@@ -265,6 +512,13 @@ const FeedbackManagement: React.FC = () => {
               ))}
             </select>
           )}
+          <button
+            onClick={() => setShowUploadForm(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+          >
+            <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
+            Upload Document
+          </button>
           <button
             onClick={() => setShowAddForm(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
@@ -275,10 +529,164 @@ const FeedbackManagement: React.FC = () => {
         </div>
       </div>
 
+      {/* File Upload Form */}
+      {showUploadForm && (
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              Upload Feedback Document
+            </h3>
+            <button
+              onClick={() => setShowUploadForm(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <XCircleIcon className="h-6 w-6" />
+            </button>
+          </div>
+
+          {!selectedProject ? (
+            <div className="text-center py-8">
+              <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-yellow-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                Project Required
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Please select a project before uploading feedback documents.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 text-center ${
+                  dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="mt-4">
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <span className="mt-2 block text-sm font-medium text-gray-900">
+                      Drop files here or click to upload
+                    </span>
+                    <span className="mt-1 block text-xs text-gray-500">
+                      PDF, DOC, DOCX files up to 10MB
+                    </span>
+                  </label>
+                  <input
+                    id="file-upload"
+                    ref={fileInputRef}
+                    type="file"
+                    className="sr-only"
+                    multiple
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileSelect}
+                  />
+                </div>
+              </div>
+
+              {/* Uploaded Files List */}
+              {uploadedFiles.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-gray-900">
+                    Uploaded Files
+                  </h4>
+                  {uploadedFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <DocumentTextIcon className="h-5 w-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {file.status === 'uploading' && (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                            <span className="text-xs text-blue-600">
+                              Uploading...
+                            </span>
+                          </div>
+                        )}
+                        {file.status === 'processing' && (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-yellow-200 border-t-yellow-600 rounded-full animate-spin"></div>
+                            <span className="text-xs text-yellow-600">
+                              Processing...
+                            </span>
+                          </div>
+                        )}
+                        {file.status === 'enhancing' && (
+                          <div className="flex items-center space-x-2">
+                            <SparklesIcon className="h-4 w-4 text-purple-600 animate-pulse" />
+                            <span className="text-xs text-purple-600">
+                              Enhancing...
+                            </span>
+                          </div>
+                        )}
+                        {file.status === 'completed' && (
+                          <div className="flex items-center space-x-2">
+                            <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                            <span className="text-xs text-green-600">
+                              Completed
+                            </span>
+                          </div>
+                        )}
+                        {file.status === 'error' && (
+                          <div className="flex items-center space-x-2">
+                            <XCircleIcon className="h-4 w-4 text-red-600" />
+                            <span className="text-xs text-red-600">Error</span>
+                          </div>
+                        )}
+                        {file.status === 'completed' && file.feedbackItems && (
+                          <button
+                            onClick={() => enhanceFeedback(file.id)}
+                            className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
+                          >
+                            <SparklesIcon className="h-3 w-3 mr-1" />
+                            Enhance
+                          </button>
+                        )}
+                        <button
+                          onClick={() => removeFile(file.id)}
+                          className="text-gray-400 hover:text-red-600"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Add Feedback Form */}
       {showAddForm && (
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Feedback</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-gray-900">
+              Add New Feedback
+            </h3>
+            <button
+              onClick={() => setShowAddForm(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <XCircleIcon className="h-6 w-6" />
+            </button>
+          </div>
           <div className="space-y-4">
             <textarea
               value={newFeedback}
@@ -315,8 +723,12 @@ const FeedbackManagement: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Feedback</dt>
-                  <dd className="text-lg font-medium text-gray-900">{feedback.length}</dd>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Total Feedback
+                  </dt>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {feedback.length}
+                  </dd>
                 </dl>
               </div>
             </div>
@@ -331,9 +743,11 @@ const FeedbackManagement: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Positive</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Positive
+                  </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {feedback.filter(f => f.sentiment === 'positive').length}
+                    {feedback.filter((f) => f.sentiment === 'positive').length}
                   </dd>
                 </dl>
               </div>
@@ -349,9 +763,11 @@ const FeedbackManagement: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Negative</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Negative
+                  </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {feedback.filter(f => f.sentiment === 'negative').length}
+                    {feedback.filter((f) => f.sentiment === 'negative').length}
                   </dd>
                 </dl>
               </div>
@@ -367,9 +783,16 @@ const FeedbackManagement: React.FC = () => {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">High Priority</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    High Priority
+                  </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {feedback.filter(f => f.priority === 'critical' || f.priority === 'high').length}
+                    {
+                      feedback.filter(
+                        (f) =>
+                          f.priority === 'critical' || f.priority === 'high'
+                      ).length
+                    }
                   </dd>
                 </dl>
               </div>
@@ -381,12 +804,14 @@ const FeedbackManagement: React.FC = () => {
       {/* Feedback List */}
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Recent Feedback</h3>
+          <h3 className="text-lg leading-6 font-medium text-gray-900">
+            Recent Feedback
+          </h3>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Customer feedback and feature requests
+            Customer feedback and feature requests with AI analysis
           </p>
         </div>
-        
+
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
@@ -395,15 +820,20 @@ const FeedbackManagement: React.FC = () => {
         ) : feedback.length === 0 ? (
           <div className="text-center py-12">
             <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No feedback</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              No feedback
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
-              Get started by adding some customer feedback.
+              Get started by uploading a document or adding feedback manually.
             </p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-200">
             {feedback.map((item) => (
-              <li key={item._id} className={`px-4 py-4 ${item.isIgnored ? 'opacity-50' : ''}`}>
+              <li
+                key={item._id}
+                className={`px-4 py-4 ${item.isIgnored ? 'opacity-50' : ''}`}
+              >
                 <div className="flex items-start space-x-4">
                   <div className="flex-shrink-0">
                     {getSentimentIcon(item.sentiment)}
@@ -411,21 +841,78 @@ const FeedbackManagement: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                            item.priority
+                          )}`}
+                        >
                           {item.priority}
                         </span>
-                        <span className="text-sm text-gray-500">{item.source}</span>
+                        <span className="text-sm text-gray-500">
+                          {item.source}
+                        </span>
                         <span className="text-sm text-gray-500">•</span>
-                        <span className="text-sm text-gray-500">{item.category}</span>
+                        <span className="text-sm text-gray-500">
+                          {item.category}
+                        </span>
                       </div>
                       <button
                         onClick={() => toggleIgnore(item._id)}
-                        className={`text-sm ${item.isIgnored ? 'text-green-600 hover:text-green-500' : 'text-gray-600 hover:text-gray-500'}`}
+                        className={`text-sm ${
+                          item.isIgnored
+                            ? 'text-green-600 hover:text-green-500'
+                            : 'text-gray-600 hover:text-gray-500'
+                        }`}
                       >
                         {item.isIgnored ? 'Unignore' : 'Ignore'}
                       </button>
                     </div>
                     <p className="mt-2 text-sm text-gray-900">{item.content}</p>
+
+                    {/* AI Analysis Display */}
+                    {item.aiAnalysis && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <SparklesIcon className="h-4 w-4 text-blue-600" />
+                          <span className="text-xs font-medium text-blue-900">
+                            AI Analysis
+                          </span>
+                        </div>
+                        <p className="text-xs text-blue-800 mb-2">
+                          {item.aiAnalysis.summary}
+                        </p>
+                        {item.aiAnalysis.actionableItems.length > 0 && (
+                          <div className="mb-2">
+                            <span className="text-xs font-medium text-blue-900">
+                              Actionable Items:
+                            </span>
+                            <ul className="text-xs text-blue-800 mt-1">
+                              {item.aiAnalysis.actionableItems.map(
+                                (action, index) => (
+                                  <li key={index} className="ml-4 list-disc">
+                                    {action}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {item.extractedKeywords &&
+                          item.extractedKeywords.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {item.extractedKeywords.map((keyword, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+                                >
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                      </div>
+                    )}
+
                     <p className="mt-1 text-xs text-gray-500">
                       {new Date(item.createdAt).toLocaleDateString()}
                     </p>

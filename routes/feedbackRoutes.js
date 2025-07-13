@@ -20,15 +20,17 @@ const storage = multer.diskStorage({
     }
   },
   filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    const uniqueName = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${path.extname(file.originalname)}`;
     cb(null, uniqueName);
-  }
+  },
 });
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024 // 10MB
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024, // 10MB
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -36,15 +38,19 @@ const upload = multer({
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/msword',
       'text/plain',
-      'text/csv'
+      'text/csv',
     ];
-    
+
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PDF, DOCX, DOC, TXT, and CSV files are allowed.'));
+      cb(
+        new Error(
+          'Invalid file type. Only PDF, DOCX, DOC, TXT, and CSV files are allowed.'
+        )
+      );
     }
-  }
+  },
 });
 
 // @route   GET /api/feedback/project/:projectId
@@ -52,67 +58,78 @@ const upload = multer({
 // @access  Public
 router.get('/project/:projectId', async (req, res) => {
   try {
-    const { page = 1, limit = 10, category, priority, sentiment, search } = req.query;
-    
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      priority,
+      sentiment,
+      search,
+    } = req.query;
+
     const project = await Project.findById(req.params.projectId);
     if (!project) {
       return res.status(404).json({
         success: false,
-        error: 'Project not found'
+        error: 'Project not found',
       });
     }
-    
+
     const query = { projectId: req.params.projectId, isActive: true };
-    
+
     const feedbackDocs = await Feedback.find(query)
       .sort({ updatedAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-    
+
     // Filter feedback items if needed
     let allFeedbackItems = [];
-    feedbackDocs.forEach(doc => {
-      let items = doc.feedbackItems.filter(item => !item.isIgnored);
-      
-      if (category) items = items.filter(item => item.category === category);
-      if (priority) items = items.filter(item => item.priority === priority);
-      if (sentiment) items = items.filter(item => item.sentiment === sentiment);
+    feedbackDocs.forEach((doc) => {
+      let items = doc.feedbackItems.filter((item) => !item.isIgnored);
+
+      if (category) items = items.filter((item) => item.category === category);
+      if (priority) items = items.filter((item) => item.priority === priority);
+      if (sentiment)
+        items = items.filter((item) => item.sentiment === sentiment);
       if (search) {
-        items = items.filter(item => 
-          item.content.toLowerCase().includes(search.toLowerCase()) ||
-          item.extractedKeywords.some(keyword => 
-            keyword.toLowerCase().includes(search.toLowerCase())
-          )
+        items = items.filter(
+          (item) =>
+            item.content.toLowerCase().includes(search.toLowerCase()) ||
+            item.extractedKeywords.some((keyword) =>
+              keyword.toLowerCase().includes(search.toLowerCase())
+            )
         );
       }
-      
-      allFeedbackItems.push(...items.map(item => ({
-        ...item.toObject(),
-        feedbackDocId: doc._id,
-        feedbackDocName: doc.name
-      })));
+
+      allFeedbackItems.push(
+        ...items.map((item) => ({
+          ...item.toObject(),
+          feedbackDocId: doc._id,
+          feedbackDocName: doc.name,
+        }))
+      );
     });
-    
+
     const total = await Feedback.countDocuments(query);
-    
+
     res.json({
       success: true,
       data: allFeedbackItems, // Return the flattened items directly
       meta: {
         feedbackDocs,
-        summary: router.calculateOverallSummary(feedbackDocs)
+        summary: router.calculateOverallSummary(feedbackDocs),
       },
       pagination: {
         current: page,
         pages: Math.ceil(total / limit),
-        total
-      }
+        total,
+      },
     });
   } catch (error) {
     console.error('Error fetching feedback:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch feedback'
+      error: 'Failed to fetch feedback',
     });
   }
 });
@@ -122,24 +139,27 @@ router.get('/project/:projectId', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const feedback = await Feedback.findById(req.params.id).populate('projectId', 'name description');
-    
+    const feedback = await Feedback.findById(req.params.id).populate(
+      'projectId',
+      'name description'
+    );
+
     if (!feedback) {
       return res.status(404).json({
         success: false,
-        error: 'Feedback not found'
+        error: 'Feedback not found',
       });
     }
-    
+
     res.json({
       success: true,
-      data: feedback
+      data: feedback,
     });
   } catch (error) {
     console.error('Error fetching feedback:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch feedback'
+      error: 'Failed to fetch feedback',
     });
   }
 });
@@ -150,32 +170,39 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { projectId, name, description, feedbackItems } = req.body;
-    
+
     // Validate required fields
-    if (!projectId || !name || !feedbackItems || !Array.isArray(feedbackItems)) {
+    if (
+      !projectId ||
+      !name ||
+      !feedbackItems ||
+      !Array.isArray(feedbackItems)
+    ) {
       return res.status(400).json({
         success: false,
-        error: 'Project ID, name, and feedback items array are required'
+        error: 'Project ID, name, and feedback items array are required',
       });
     }
-    
+
     // Verify project exists
     const project = await Project.findById(projectId);
     if (!project) {
       return res.status(404).json({
         success: false,
-        error: 'Project not found'
+        error: 'Project not found',
       });
     }
-    
+
     // Process feedback items with AI analysis
     const processedItems = [];
     for (const item of feedbackItems) {
       if (!item.content) continue;
-      
+
       // Normalize source value
-      const normalizedSource = router.normalizeSourceValue(item.source || 'manual');
-      
+      const normalizedSource = router.normalizeSourceValue(
+        item.source || 'manual'
+      );
+
       try {
         const analysis = await aiService.analyzeFeedback(item.content);
         processedItems.push({
@@ -189,13 +216,16 @@ router.post('/', async (req, res) => {
             summary: analysis.summary,
             actionableItems: analysis.actionableItems,
             relatedFeatures: analysis.relatedFeatures,
-            urgencyScore: analysis.urgencyScore
+            urgencyScore: analysis.urgencyScore,
           },
           customerInfo: item.customerInfo || {},
-          tags: item.tags || []
+          tags: item.tags || [],
         });
       } catch (analysisError) {
-        console.warn('AI analysis failed for feedback item, using defaults:', analysisError);
+        console.warn(
+          'AI analysis failed for feedback item, using defaults:',
+          analysisError
+        );
         processedItems.push({
           content: item.content,
           source: normalizedSource,
@@ -207,33 +237,33 @@ router.post('/', async (req, res) => {
             summary: item.content.substring(0, 100) + '...',
             actionableItems: [],
             relatedFeatures: [],
-            urgencyScore: 5
+            urgencyScore: 5,
           },
           customerInfo: item.customerInfo || {},
-          tags: item.tags || []
+          tags: item.tags || [],
         });
       }
     }
-    
+
     const feedback = new Feedback({
       projectId,
       name,
       description,
-      feedbackItems: processedItems
+      feedbackItems: processedItems,
     });
-    
+
     const savedFeedback = await feedback.save();
-    
+
     res.status(201).json({
       success: true,
       data: savedFeedback,
-      message: 'Feedback collection created successfully'
+      message: 'Feedback collection created successfully',
     });
   } catch (error) {
     console.error('Error creating feedback:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create feedback collection'
+      error: 'Failed to create feedback collection',
     });
   }
 });
@@ -246,45 +276,49 @@ router.post('/upload', upload.single('document'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        error: 'No file uploaded'
+        error: 'No file uploaded',
       });
     }
-    
+
     const { projectId, name, description } = req.body;
-    
+
     if (!projectId || !name) {
       return res.status(400).json({
         success: false,
-        error: 'Project ID and name are required'
+        error: 'Project ID and name are required',
       });
     }
-    
+
     // Verify project exists
     const project = await Project.findById(projectId);
     if (!project) {
       return res.status(404).json({
         success: false,
-        error: 'Project not found'
+        error: 'Project not found',
       });
     }
-    
+
     // Extract text from uploaded document
     const fileBuffer = await fs.readFile(req.file.path);
-    const extractedText = await aiService.extractTextFromDocument(fileBuffer, req.file.mimetype);
-    
-    // Split text into individual feedback items (simple split by paragraphs/lines)
-    const feedbackLines = extractedText
-      .split(/\n\s*\n|\r\n\s*\r\n/)
-      .map(line => line.trim())
-      .filter(line => line.length > 10); // Filter out very short lines
-    
-    // Process each feedback item
+    const extractedText = await aiService.extractTextFromDocument(
+      fileBuffer,
+      req.file.mimetype
+    );
+
+    // Use enhanced document processing
+    const processedDocument = await aiService.processDocumentFeedback(
+      extractedText,
+      project.description || ''
+    );
+
+    // Process each feedback item with AI analysis
     const processedItems = [];
-    for (const content of feedbackLines.slice(0, 100)) { // Limit to 100 items
+    for (const item of processedDocument.feedbackItems.slice(0, 100)) {
+      // Limit to 100 items
       try {
-        const analysis = await aiService.analyzeFeedback(content);
+        const analysis = await aiService.analyzeFeedback(item.content);
         processedItems.push({
-          content,
+          content: item.content,
           source: 'document-upload',
           category: analysis.category,
           sentiment: analysis.sentiment,
@@ -294,48 +328,52 @@ router.post('/upload', upload.single('document'), async (req, res) => {
             summary: analysis.summary,
             actionableItems: analysis.actionableItems,
             relatedFeatures: analysis.relatedFeatures,
-            urgencyScore: analysis.urgencyScore
-          }
+            urgencyScore: analysis.urgencyScore,
+          },
+          tags: item.type ? [item.type] : [],
         });
       } catch (analysisError) {
         console.warn('AI analysis failed for feedback item:', analysisError);
         processedItems.push({
-          content,
+          content: item.content,
           source: 'document-upload',
           category: 'other',
           sentiment: 'neutral',
           priority: 'medium',
           extractedKeywords: [],
           aiAnalysis: {
-            summary: content.substring(0, 100) + '...',
+            summary: item.content.substring(0, 100) + '...',
             actionableItems: [],
             relatedFeatures: [],
-            urgencyScore: 5
-          }
+            urgencyScore: 5,
+          },
+          tags: item.type ? [item.type] : [],
         });
       }
     }
-    
+
     const feedback = new Feedback({
       projectId,
       name,
-      description: description || `Feedback extracted from ${req.file.originalname}`,
-      feedbackItems: processedItems
+      description:
+        description || `Feedback extracted from ${req.file.originalname}`,
+      feedbackItems: processedItems,
     });
-    
+
     const savedFeedback = await feedback.save();
-    
+
     // Clean up uploaded file
     await fs.unlink(req.file.path);
-    
+
     res.status(201).json({
       success: true,
       data: savedFeedback,
-      message: `Feedback collection created with ${processedItems.length} items`
+      message: `Feedback collection created with ${processedItems.length} items`,
+      extractedText: extractedText.substring(0, 500) + '...', // Return preview for enhancement
     });
   } catch (error) {
     console.error('Error creating feedback from upload:', error);
-    
+
     // Clean up file if it exists
     if (req.file && req.file.path) {
       try {
@@ -344,10 +382,103 @@ router.post('/upload', upload.single('document'), async (req, res) => {
         console.error('Error cleaning up uploaded file:', unlinkError);
       }
     }
-    
+
     res.status(500).json({
       success: false,
-      error: 'Failed to create feedback from document'
+      error: 'Failed to create feedback from document',
+    });
+  }
+});
+
+// @route   POST /api/feedback/enhance
+// @desc    Enhance raw feedback text with AI analysis
+// @access  Public
+router.post('/enhance', async (req, res) => {
+  try {
+    const { projectId, rawText, fileName } = req.body;
+
+    if (!projectId || !rawText) {
+      return res.status(400).json({
+        success: false,
+        error: 'Project ID and raw text are required',
+      });
+    }
+
+    // Verify project exists
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: 'Project not found',
+      });
+    }
+
+    // Split text into individual feedback items (improved splitting)
+    const feedbackLines = rawText
+      .split(/\n\s*\n|\r\n\s*\r\n|\.\s*\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 20); // Filter out very short lines
+
+    // Process each feedback item with enhanced AI analysis
+    const processedItems = [];
+    for (const content of feedbackLines.slice(0, 50)) {
+      // Limit to 50 items for performance
+      try {
+        const analysis = await aiService.analyzeFeedback(content);
+        processedItems.push({
+          content,
+          source: 'document-upload-enhanced',
+          category: analysis.category,
+          sentiment: analysis.sentiment,
+          priority: analysis.priority,
+          extractedKeywords: analysis.extractedKeywords,
+          aiAnalysis: {
+            summary: analysis.summary,
+            actionableItems: analysis.actionableItems,
+            relatedFeatures: analysis.relatedFeatures,
+            urgencyScore: analysis.urgencyScore,
+          },
+        });
+      } catch (analysisError) {
+        console.warn('AI analysis failed for feedback item:', analysisError);
+        processedItems.push({
+          content,
+          source: 'document-upload-enhanced',
+          category: 'other',
+          sentiment: 'neutral',
+          priority: 'medium',
+          extractedKeywords: [],
+          aiAnalysis: {
+            summary: content.substring(0, 100) + '...',
+            actionableItems: [],
+            relatedFeatures: [],
+            urgencyScore: 5,
+          },
+        });
+      }
+    }
+
+    const feedback = new Feedback({
+      projectId,
+      name: `Enhanced Feedback from ${fileName || 'Document'}`,
+      description: `AI-enhanced feedback extracted from ${
+        fileName || 'uploaded document'
+      }`,
+      feedbackItems: processedItems,
+    });
+
+    const savedFeedback = await feedback.save();
+
+    res.status(201).json({
+      success: true,
+      data: savedFeedback,
+      message: `Enhanced feedback collection created with ${processedItems.length} items`,
+    });
+  } catch (error) {
+    console.error('Error enhancing feedback:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to enhance feedback',
     });
   }
 });
@@ -358,38 +489,38 @@ router.post('/upload', upload.single('document'), async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, description, feedbackItems } = req.body;
-    
+
     const feedback = await Feedback.findById(req.params.id);
-    
+
     if (!feedback) {
       return res.status(404).json({
         success: false,
-        error: 'Feedback not found'
+        error: 'Feedback not found',
       });
     }
-    
+
     // Update basic fields
     if (name) feedback.name = name;
     if (description) feedback.description = description;
-    
+
     // Update feedback items if provided
     if (feedbackItems && Array.isArray(feedbackItems)) {
       feedback.feedbackItems = feedbackItems;
     }
-    
+
     feedback.version += 1;
     const updatedFeedback = await feedback.save();
-    
+
     res.json({
       success: true,
       data: updatedFeedback,
-      message: 'Feedback updated successfully'
+      message: 'Feedback updated successfully',
     });
   } catch (error) {
     console.error('Error updating feedback:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update feedback'
+      error: 'Failed to update feedback',
     });
   }
 });
@@ -400,39 +531,42 @@ router.put('/:id', async (req, res) => {
 router.put('/:id/items/:itemId/ignore', async (req, res) => {
   try {
     const { isIgnored } = req.body;
-    
+
     const feedback = await Feedback.findById(req.params.id);
-    
+
     if (!feedback) {
       return res.status(404).json({
         success: false,
-        error: 'Feedback not found'
+        error: 'Feedback not found',
       });
     }
-    
+
     const feedbackItem = feedback.feedbackItems.id(req.params.itemId);
-    
+
     if (!feedbackItem) {
       return res.status(404).json({
         success: false,
-        error: 'Feedback item not found'
+        error: 'Feedback item not found',
       });
     }
-    
-    feedbackItem.isIgnored = isIgnored !== undefined ? isIgnored : !feedbackItem.isIgnored;
-    
+
+    feedbackItem.isIgnored =
+      isIgnored !== undefined ? isIgnored : !feedbackItem.isIgnored;
+
     const updatedFeedback = await feedback.save();
-    
+
     res.json({
       success: true,
       data: updatedFeedback,
-      message: `Feedback item ${feedbackItem.isIgnored ? 'ignored' : 'unignored'} successfully`
+      message: `Feedback item ${
+        feedbackItem.isIgnored ? 'ignored' : 'unignored'
+      } successfully`,
     });
   } catch (error) {
     console.error('Error toggling feedback item ignore status:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update feedback item'
+      error: 'Failed to update feedback item',
     });
   }
 });
@@ -443,26 +577,26 @@ router.put('/:id/items/:itemId/ignore', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const feedback = await Feedback.findById(req.params.id);
-    
+
     if (!feedback) {
       return res.status(404).json({
         success: false,
-        error: 'Feedback not found'
+        error: 'Feedback not found',
       });
     }
-    
+
     feedback.isActive = false;
     await feedback.save();
-    
+
     res.json({
       success: true,
-      message: 'Feedback collection deleted successfully'
+      message: 'Feedback collection deleted successfully',
     });
   } catch (error) {
     console.error('Error deleting feedback:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete feedback collection'
+      error: 'Failed to delete feedback collection',
     });
   }
 });
@@ -472,32 +606,32 @@ router.delete('/:id', async (req, res) => {
 // @access  Public
 router.get('/project/:projectId/analytics', async (req, res) => {
   try {
-    const feedbackDocs = await Feedback.find({ 
-      projectId: req.params.projectId, 
-      isActive: true 
+    const feedbackDocs = await Feedback.find({
+      projectId: req.params.projectId,
+      isActive: true,
     });
-    
+
     const analytics = router.calculateDetailedAnalytics(feedbackDocs);
-    
+
     res.json({
       success: true,
-      data: analytics
+      data: analytics,
     });
   } catch (error) {
     console.error('Error calculating feedback analytics:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to calculate feedback analytics'
+      error: 'Failed to calculate feedback analytics',
     });
   }
 });
 
 // Helper method to calculate overall summary
-router.calculateOverallSummary = function(feedbackDocs) {
-  const allItems = feedbackDocs.flatMap(doc => 
-    doc.feedbackItems.filter(item => !item.isIgnored)
+router.calculateOverallSummary = function (feedbackDocs) {
+  const allItems = feedbackDocs.flatMap((doc) =>
+    doc.feedbackItems.filter((item) => !item.isIgnored)
   );
-  
+
   const summary = {
     totalItems: allItems.length,
     totalCollections: feedbackDocs.length,
@@ -505,113 +639,118 @@ router.calculateOverallSummary = function(feedbackDocs) {
     sentimentBreakdown: {},
     priorityBreakdown: {},
     topKeywords: {},
-    averageUrgencyScore: 0
+    averageUrgencyScore: 0,
   };
-  
-  allItems.forEach(item => {
+
+  allItems.forEach((item) => {
     // Categories
-    summary.categoryBreakdown[item.category] = 
+    summary.categoryBreakdown[item.category] =
       (summary.categoryBreakdown[item.category] || 0) + 1;
-    
+
     // Sentiment
-    summary.sentimentBreakdown[item.sentiment] = 
+    summary.sentimentBreakdown[item.sentiment] =
       (summary.sentimentBreakdown[item.sentiment] || 0) + 1;
-    
+
     // Priority
-    summary.priorityBreakdown[item.priority] = 
+    summary.priorityBreakdown[item.priority] =
       (summary.priorityBreakdown[item.priority] || 0) + 1;
-    
+
     // Keywords
-    item.extractedKeywords.forEach(keyword => {
+    item.extractedKeywords.forEach((keyword) => {
       summary.topKeywords[keyword] = (summary.topKeywords[keyword] || 0) + 1;
     });
   });
-  
+
   // Calculate average urgency score
   if (allItems.length > 0) {
-    summary.averageUrgencyScore = allItems.reduce((sum, item) => 
-      sum + (item.aiAnalysis?.urgencyScore || 5), 0) / allItems.length;
+    summary.averageUrgencyScore =
+      allItems.reduce(
+        (sum, item) => sum + (item.aiAnalysis?.urgencyScore || 5),
+        0
+      ) / allItems.length;
   }
-  
+
   // Convert keywords to sorted array
   summary.topKeywords = Object.entries(summary.topKeywords)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 10)
     .map(([keyword, frequency]) => ({ keyword, frequency }));
-  
+
   return summary;
 };
 
 // Helper method for detailed analytics
-router.calculateDetailedAnalytics = function(feedbackDocs) {
-  const allItems = feedbackDocs.flatMap(doc => 
-    doc.feedbackItems.filter(item => !item.isIgnored)
+router.calculateDetailedAnalytics = function (feedbackDocs) {
+  const allItems = feedbackDocs.flatMap((doc) =>
+    doc.feedbackItems.filter((item) => !item.isIgnored)
   );
-  
+
   return {
     overview: router.calculateOverallSummary(feedbackDocs),
     trends: {
       weeklyVolume: router.calculateWeeklyVolume(allItems),
       sentimentTrend: router.calculateSentimentTrend(allItems),
-      categoryTrend: router.calculateCategoryTrend(allItems)
+      categoryTrend: router.calculateCategoryTrend(allItems),
     },
     insights: {
-      criticalIssues: allItems.filter(item => item.priority === 'critical').length,
-      highImpactFeatures: allItems.filter(item => 
-        item.category === 'feature-request' && item.priority === 'high'
+      criticalIssues: allItems.filter((item) => item.priority === 'critical')
+        .length,
+      highImpactFeatures: allItems.filter(
+        (item) =>
+          item.category === 'feature-request' && item.priority === 'high'
       ).length,
-      commonPainPoints: router.identifyCommonPainPoints(allItems)
-    }
+      commonPainPoints: router.identifyCommonPainPoints(allItems),
+    },
   };
 };
 
 // Helper methods for trend analysis
-router.calculateWeeklyVolume = function(items) {
+router.calculateWeeklyVolume = function (items) {
   // Implementation for weekly volume calculation
   return [];
 };
 
-router.calculateSentimentTrend = function(items) {
+router.calculateSentimentTrend = function (items) {
   // Implementation for sentiment trend calculation
   return [];
 };
 
-router.calculateCategoryTrend = function(items) {
+router.calculateCategoryTrend = function (items) {
   // Implementation for category trend calculation
   return [];
 };
 
-router.identifyCommonPainPoints = function(items) {
+router.identifyCommonPainPoints = function (items) {
   // Implementation for identifying common pain points
   return [];
 };
 
 // Helper method to normalize source values
-router.normalizeSourceValue = function(source) {
+router.normalizeSourceValue = function (source) {
   // Handle common variations and normalize to valid enum values
   const sourceMapping = {
     'Manual Entry': 'manual',
     'manual entry': 'manual',
-    'Manual': 'manual',
-    'MANUAL': 'manual',
+    Manual: 'manual',
+    MANUAL: 'manual',
     'App Store': 'app-store',
     'app store': 'app-store',
-    'appstore': 'app-store',
-    'Email': 'email',
-    'EMAIL': 'email',
+    appstore: 'app-store',
+    Email: 'email',
+    EMAIL: 'email',
     'Social Media': 'social-media',
     'social media': 'social-media',
-    'socialmedia': 'social-media',
-    'Survey': 'survey',
-    'SURVEY': 'survey',
+    socialmedia: 'social-media',
+    Survey: 'survey',
+    SURVEY: 'survey',
     'Support Ticket': 'support-ticket',
     'support ticket': 'support-ticket',
-    'support': 'support-ticket',
+    support: 'support-ticket',
     'User Interview': 'user-interview',
     'user interview': 'user-interview',
-    'interview': 'user-interview',
+    interview: 'user-interview',
     'Document Upload': 'manual',
-    'document upload': 'manual'
+    'document upload': 'manual',
   };
 
   // Return mapped value or default to 'manual' if not found

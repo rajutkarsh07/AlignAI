@@ -6,14 +6,14 @@ const mammoth = require('mammoth');
 class AIService {
   constructor() {
     this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
-    
+
     if (this.useVertexAI) {
       // Initialize Vertex AI
       this.vertexAI = new VertexAI({
         project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1'
+        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
       });
-      
+
       this.model = this.vertexAI.preview.getGenerativeModel({
         model: 'gemini-2.0-flash-exp',
         generationConfig: {
@@ -34,14 +34,18 @@ class AIService {
         },
       });
     }
-    
-    console.log(`🤖 AI Service initialized using ${this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'}`);
+
+    console.log(
+      `🤖 AI Service initialized using ${
+        this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'
+      }`
+    );
   }
 
   async generateContent(prompt) {
     try {
       const result = await this.model.generateContent(prompt);
-      
+
       if (this.useVertexAI) {
         return result.response.candidates[0].content.parts[0].text;
       } else {
@@ -57,11 +61,14 @@ class AIService {
   async extractTextFromDocument(buffer, mimeType) {
     try {
       let extractedText = '';
-      
+
       if (mimeType === 'application/pdf') {
         const data = await pdf(buffer);
         extractedText = data.text;
-      } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      } else if (
+        mimeType ===
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ) {
         const result = await mammoth.extractRawText({ buffer });
         extractedText = result.value;
       } else if (mimeType === 'text/plain') {
@@ -69,7 +76,7 @@ class AIService {
       } else {
         throw new Error(`Unsupported file type: ${mimeType}`);
       }
-      
+
       return extractedText;
     } catch (error) {
       console.error('Error extracting text from document:', error);
@@ -132,11 +139,12 @@ Ensure the output is professional, actionable, and comprehensive.`;
 You are an expert feedback analyst specializing in customer feedback analysis for product management.
 
 SYSTEM INSTRUCTIONS:
-- Analyze the provided feedback text
+- Analyze the provided feedback text thoroughly
 - Extract key insights, sentiment, and actionable items
-- Categorize feedback appropriately
-- Identify keywords and themes
+- Categorize feedback appropriately based on content
+- Identify relevant keywords and themes
 - Provide urgency assessment
+- Consider context and tone of the feedback
 
 FEEDBACK TO ANALYZE:
 ${feedbackText}
@@ -147,17 +155,25 @@ Please provide analysis in the following JSON format:
   "sentiment": "positive|negative|neutral",
   "priority": "critical|high|medium|low",
   "extractedKeywords": ["keyword1", "keyword2", "keyword3"],
-  "summary": "Brief summary of the feedback",
-  "actionableItems": ["action1", "action2"],
+  "summary": "Brief but comprehensive summary of the feedback",
+  "actionableItems": ["specific action1", "specific action2"],
   "relatedFeatures": ["feature1", "feature2"],
   "urgencyScore": 5
 }
+
+Guidelines:
+- Bug reports: Issues, crashes, errors, broken functionality
+- Feature requests: New features, enhancements, missing functionality
+- Improvements: Suggestions for better UX, performance, design
+- Complaints: Negative experiences, frustrations, problems
+- Praise: Positive experiences, compliments, satisfaction
+- Questions: Inquiries, clarifications, support requests
 
 Respond only with valid JSON.`;
 
     try {
       const response = await this.generateContent(prompt);
-      
+
       // Clean and parse JSON response
       const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
       return JSON.parse(cleanedResponse);
@@ -172,13 +188,81 @@ Respond only with valid JSON.`;
         summary: feedbackText.substring(0, 100) + '...',
         actionableItems: [],
         relatedFeatures: [],
-        urgencyScore: 5
+        urgencyScore: 5,
+      };
+    }
+  }
+
+  // Enhanced document processing for better feedback extraction
+  async processDocumentFeedback(rawText, projectContext = '') {
+    const prompt = `
+You are an expert document processor specializing in extracting and analyzing customer feedback from various document formats.
+
+SYSTEM INSTRUCTIONS:
+- Process the raw text and identify individual feedback items
+- Separate different feedback points clearly
+- Maintain context and meaning
+- Identify feedback patterns and themes
+- Provide structured output for further analysis
+
+PROJECT CONTEXT (if available):
+${projectContext}
+
+RAW DOCUMENT TEXT:
+${rawText}
+
+Please process this text and provide:
+1. Individual feedback items (separated by meaningful breaks)
+2. Overall themes and patterns
+3. Key insights for product improvement
+
+Output format:
+{
+  "feedbackItems": [
+    {
+      "content": "Individual feedback text",
+      "type": "feedback type",
+      "context": "additional context if any"
+    }
+  ],
+  "themes": ["theme1", "theme2"],
+  "insights": ["insight1", "insight2"]
+}
+
+Respond only with valid JSON.`;
+
+    try {
+      const response = await this.generateContent(prompt);
+      const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+      return JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Error processing document feedback:', error);
+      // Fallback to simple text splitting
+      const feedbackItems = rawText
+        .split(/\n\s*\n|\r\n\s*\r\n|\.\s*\n/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 20)
+        .map((content) => ({
+          content,
+          type: 'general',
+          context: '',
+        }));
+
+      return {
+        feedbackItems,
+        themes: [],
+        insights: [],
       };
     }
   }
 
   // Generate enhanced task description
-  async enhanceTaskDescription(title, description, projectContext, feedbackContext) {
+  async enhanceTaskDescription(
+    title,
+    description,
+    projectContext,
+    feedbackContext
+  ) {
     const prompt = `
 You are an expert product manager and task enhancement specialist.
 
