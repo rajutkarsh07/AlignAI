@@ -502,7 +502,7 @@ const FeedbackManagement: React.FC = () => {
             <select
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">Select Project</option>
               {projects.map((project) => (
@@ -521,7 +521,7 @@ const FeedbackManagement: React.FC = () => {
           </button>
           <button
             onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Feedback
@@ -746,7 +746,7 @@ const FeedbackManagement: React.FC = () => {
               </button>
               <button
                 onClick={addFeedback}
-                className="px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                className="px-4 py-2 border border-transparent rounded-md text-white bg-orange-600 hover:bg-orange-700"
               >
                 Add Feedback
               </button>

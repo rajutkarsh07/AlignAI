@@ -56,11 +56,11 @@ const ProjectList: React.FC = () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: '10',
-        ...(searchTerm && { search: searchTerm })
+        ...(searchTerm && { search: searchTerm }),
       });
 
       const response: any = await api.get(`/projects?${params}`);
-      
+
       if (response.success) {
         setProjects(response.data);
         setTotalPages(response.pagination.pages);
@@ -95,17 +95,20 @@ const ProjectList: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusColors = {
-      'planned': 'bg-gray-100 text-gray-800',
+      planned: 'bg-gray-100 text-gray-800',
       'in-progress': 'bg-blue-100 text-blue-800',
-      'completed': 'bg-green-100 text-green-800',
+      completed: 'bg-green-100 text-green-800',
       'on-hold': 'bg-yellow-100 text-yellow-800',
     };
 
-    return statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800';
+    return (
+      statusColors[status as keyof typeof statusColors] ||
+      'bg-gray-100 text-gray-800'
+    );
   };
 
   const getGoalsSummary = (goals: Project['goals']) => {
-    const completed = goals.filter(g => g.status === 'completed').length;
+    const completed = goals.filter((g) => g.status === 'completed').length;
     const total = goals.length;
     return { completed, total };
   };
@@ -131,7 +134,7 @@ const ProjectList: React.FC = () => {
         <div className="mt-4 flex md:ml-4 md:mt-0">
           <Link
             to="/projects/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             New Project
@@ -160,7 +163,7 @@ const ProjectList: React.FC = () => {
                 <input
                   id="search"
                   name="search"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                   placeholder="Search projects..."
                   type="search"
                   value={searchTerm}
@@ -176,14 +179,18 @@ const ProjectList: React.FC = () => {
       {projects.length === 0 && !loading ? (
         <div className="text-center py-12 bg-white shadow rounded-lg">
           <FolderIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No projects found</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No projects found
+          </h3>
           <p className="mt-1 text-sm text-gray-500">
-            {searchTerm ? 'Try adjusting your search terms.' : 'Get started by creating a new project.'}
+            {searchTerm
+              ? 'Try adjusting your search terms.'
+              : 'Get started by creating a new project.'}
           </p>
           <div className="mt-6">
             <Link
               to="/projects/new"
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
               New Project
@@ -200,8 +207,8 @@ const ProjectList: React.FC = () => {
                   <div className="px-4 py-4 flex items-center justify-between hover:bg-gray-50">
                     <div className="flex items-center min-w-0 flex-1">
                       <div className="flex-shrink-0">
-                        <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                          <FolderIcon className="h-6 w-6 text-blue-600" />
+                        <div className="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                          <FolderIcon className="h-6 w-6 text-orange-600" />
                         </div>
                       </div>
                       <div className="min-w-0 flex-1 px-4">
@@ -209,7 +216,7 @@ const ProjectList: React.FC = () => {
                           <div className="min-w-0 flex-1">
                             <Link
                               to={`/projects/${project._id}`}
-                              className="text-sm font-medium text-gray-900 truncate hover:text-blue-600"
+                              className="text-sm font-medium text-gray-900 truncate hover:text-orange-600"
                             >
                               {project.name}
                             </Link>
@@ -221,11 +228,13 @@ const ProjectList: React.FC = () => {
                         <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
                           <div className="flex items-center">
                             <CalendarIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                            Updated {new Date(project.updatedAt).toLocaleDateString()}
+                            Updated{' '}
+                            {new Date(project.updatedAt).toLocaleDateString()}
                           </div>
                           <div className="flex items-center">
                             <UserGroupIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                            {goalsSummary.completed}/{goalsSummary.total} goals completed
+                            {goalsSummary.completed}/{goalsSummary.total} goals
+                            completed
                           </div>
                           <div className="text-xs text-gray-400">
                             v{project.version}
@@ -233,12 +242,12 @@ const ProjectList: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       {/* Action buttons */}
                       <Link
                         to={`/projects/${project._id}/chat`}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200"
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 hover:bg-orange-200"
                       >
                         Chat
                       </Link>
@@ -248,7 +257,7 @@ const ProjectList: React.FC = () => {
                       >
                         Roadmap
                       </Link>
-                      
+
                       {/* Dropdown menu */}
                       <div className="relative flex items-center space-x-1">
                         <Link
@@ -293,7 +302,9 @@ const ProjectList: React.FC = () => {
               Previous
             </button>
             <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
               disabled={currentPage === totalPages}
               className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -304,14 +315,14 @@ const ProjectList: React.FC = () => {
             <div>
               <p className="text-sm text-gray-700">
                 Showing{' '}
-                <span className="font-medium">{(currentPage - 1) * 10 + 1}</span>
-                {' '}to{' '}
+                <span className="font-medium">
+                  {(currentPage - 1) * 10 + 1}
+                </span>{' '}
+                to{' '}
                 <span className="font-medium">
                   {Math.min(currentPage * 10, totalProjects)}
-                </span>
-                {' '}of{' '}
-                <span className="font-medium">{totalProjects}</span>
-                {' '}results
+                </span>{' '}
+                of <span className="font-medium">{totalProjects}</span> results
               </p>
             </div>
             <div>
@@ -323,7 +334,7 @@ const ProjectList: React.FC = () => {
                 >
                   Previous
                 </button>
-                
+
                 {/* Page numbers */}
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum: number;
@@ -353,7 +364,9 @@ const ProjectList: React.FC = () => {
                 })}
 
                 <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >

@@ -1,7 +1,7 @@
 {
   "name": "roadmap-assistant",
   "version": "1.0.0",
-  "description": "AI-powered product roadmap assistant with intelligent prioritization",
+  "description": "AlignAI - AI-powered product management platform with intelligent prioritization",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

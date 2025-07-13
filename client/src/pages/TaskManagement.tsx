@@ -330,7 +330,7 @@ const TaskManagement: React.FC = () => {
             <select
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="">Select Project</option>
               {projects.map((project) => (
@@ -343,7 +343,7 @@ const TaskManagement: React.FC = () => {
           <button
             onClick={() => setShowAddForm(true)}
             disabled={!selectedProject}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Task

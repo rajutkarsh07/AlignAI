@@ -39,7 +39,7 @@ const ProjectDetail: React.FC = () => {
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-blue-600 rounded-full animate-pulse"></div>
+              <div className="w-8 h-8 bg-orange-600 rounded-full animate-pulse"></div>
             </div>
           </div>
           <p className="mt-4 text-lg font-medium text-gray-700">
@@ -78,7 +78,7 @@ const ProjectDetail: React.FC = () => {
           <p className="text-gray-600 mb-6">{error || 'Project not found'}</p>
           <Link
             to="/projects"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors duration-200"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -307,7 +307,7 @@ const ProjectDetail: React.FC = () => {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                <button className="w-full flex items-center justify-center px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors duration-200">
                   <svg
                     className="w-4 h-4 mr-2"
                     fill="none"
@@ -409,7 +409,7 @@ const ProjectDetail: React.FC = () => {
                           Goal #{goal._id.slice(-4)}
                         </span>
                       </div>
-                      <button className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors duration-200">
+                      <button className="text-orange-600 hover:text-orange-700 text-sm font-medium transition-colors duration-200">
                         View Details →
                       </button>
                     </div>

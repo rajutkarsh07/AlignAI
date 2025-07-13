@@ -368,7 +368,7 @@ const RoadmapView: React.FC = () => {
           <button
             onClick={() => setShowCreateForm(true)}
             disabled={!selectedProject}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <SparklesIcon className="h-4 w-4 mr-2" />
             Generate Roadmap
@@ -575,7 +575,7 @@ const RoadmapView: React.FC = () => {
                   <button
                     onClick={handleGenerateRoadmap}
                     disabled={!newRoadmap.name.trim() || isGeneratingRoadmap}
-                    className="px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 border border-transparent rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isGeneratingRoadmap ? 'Generating...' : 'Generate Roadmap'}
                   </button>

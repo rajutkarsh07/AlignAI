@@ -84,7 +84,7 @@ const Layout: React.FC = () => {
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
           <div className="flex h-16 items-center justify-between px-6 border-b border-secondary-200">
             <h1 className="text-lg font-semibold text-secondary-900">
-              Roadmap Assistant
+              AlignAI
             </h1>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -107,7 +107,7 @@ const Layout: React.FC = () => {
         <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-secondary-200">
           <div className="flex h-16 items-center px-6 border-b border-secondary-200">
             <h1 className="text-lg font-semibold text-secondary-900">
-              Roadmap Assistant
+              AlignAI
             </h1>
           </div>
           <SidebarContent

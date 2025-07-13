@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
     totalProjects: 0,
     activeRoadmaps: 0,
     feedbackItems: 0,
-    pendingTasks: 0
+    pendingTasks: 0,
   });
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,21 +49,20 @@ const Dashboard: React.FC = () => {
       const projectsResponse: any = await api.get('/projects?limit=5');
       if (projectsResponse.success) {
         setRecentProjects(projectsResponse.data);
-        setStats(prev => ({
+        setStats((prev) => ({
           ...prev,
-          totalProjects: projectsResponse.pagination?.total || 0
+          totalProjects: projectsResponse.pagination?.total || 0,
         }));
       }
 
       // TODO: Fetch real stats from respective endpoints when available
       // For now, calculating from actual data
-      setStats(prev => ({
+      setStats((prev) => ({
         ...prev,
         activeRoadmaps: prev.totalProjects,
         feedbackItems: prev.totalProjects * 10, // Estimated
-        pendingTasks: prev.totalProjects * 5 // Estimated
+        pendingTasks: prev.totalProjects * 5, // Estimated
       }));
-
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
       setError('Failed to load dashboard data');
@@ -77,29 +76,29 @@ const Dashboard: React.FC = () => {
       name: 'Total Projects',
       value: stats.totalProjects,
       icon: FolderIcon,
-      color: 'bg-blue-500',
-      href: '/projects'
+      color: 'bg-orange-500',
+      href: '/projects',
     },
     {
       name: 'Active Roadmaps',
       value: stats.activeRoadmaps,
       icon: MapIcon,
       color: 'bg-green-500',
-      href: '/projects'
+      href: '/projects',
     },
     {
       name: 'Feedback Items',
       value: stats.feedbackItems,
       icon: DocumentTextIcon,
       color: 'bg-yellow-500',
-      href: '/projects'
+      href: '/projects',
     },
     {
       name: 'Pending Tasks',
       value: stats.pendingTasks,
       icon: ClipboardDocumentListIcon,
       color: 'bg-purple-500',
-      href: '/projects'
+      href: '/projects',
     },
   ];
 
@@ -131,7 +130,7 @@ const Dashboard: React.FC = () => {
           </Link>
           <Link
             to="/projects/new"
-            className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             New Project
@@ -179,7 +178,7 @@ const Dashboard: React.FC = () => {
             </h3>
             <Link
               to="/projects"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+              className="text-sm font-medium text-orange-600 hover:text-orange-500"
             >
               View all
             </Link>
@@ -188,14 +187,16 @@ const Dashboard: React.FC = () => {
           {recentProjects.length === 0 ? (
             <div className="text-center py-12">
               <FolderIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No projects</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No projects
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
                 Get started by creating a new project.
               </p>
               <div className="mt-6">
                 <Link
                   to="/projects/new"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   New Project
@@ -221,14 +222,15 @@ const Dashboard: React.FC = () => {
                         {project.description}
                       </p>
                       <p className="text-xs text-gray-400 mt-1">
-                        Updated {new Date(project.updatedAt).toLocaleDateString()}
+                        Updated{' '}
+                        {new Date(project.updatedAt).toLocaleDateString()}
                       </p>
                     </Link>
                   </div>
                   <div className="ml-4 flex-shrink-0 flex space-x-2">
                     <Link
                       to={`/projects/${project._id}/chat`}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200"
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 hover:bg-orange-200"
                     >
                       Chat
                     </Link>
@@ -255,10 +257,10 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Link
               to="/projects/new"
-              className="relative group bg-gray-50 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-500 rounded-lg hover:bg-gray-100"
+              className="relative group bg-gray-50 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500 rounded-lg hover:bg-gray-100"
             >
               <div>
-                <span className="rounded-lg inline-flex p-3 bg-blue-600 text-white">
+                <span className="rounded-lg inline-flex p-3 bg-orange-600 text-white">
                   <PlusIcon className="h-6 w-6" />
                 </span>
               </div>

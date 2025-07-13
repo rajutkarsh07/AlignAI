@@ -24,7 +24,7 @@ const ProjectForm: React.FC = () => {
     name: '',
     description: '',
     officialPlan: '',
-    goals: []
+    goals: [],
   });
 
   const [loading, setLoading] = useState(false);
@@ -49,7 +49,7 @@ const ProjectForm: React.FC = () => {
           name: project.name,
           description: project.description,
           officialPlan: project.officialPlan || '',
-          goals: project.goals || []
+          goals: project.goals || [],
         });
       }
     } catch (error) {
@@ -60,40 +60,45 @@ const ProjectForm: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleGoalChange = (index: number, field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       goals: prev.goals.map((goal, i) =>
         i === index ? { ...goal, [field]: value } : goal
-      )
+      ),
     }));
   };
 
   const addGoal = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      goals: [...prev.goals, {
-        title: '',
-        description: '',
-        priority: 'medium' as const,
-        targetQuarter: '',
-        status: 'planned' as const
-      }]
+      goals: [
+        ...prev.goals,
+        {
+          title: '',
+          description: '',
+          priority: 'medium' as const,
+          targetQuarter: '',
+          status: 'planned' as const,
+        },
+      ],
     }));
   };
 
   const removeGoal = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      goals: prev.goals.filter((_, i) => i !== index)
+      goals: prev.goals.filter((_, i) => i !== index),
     }));
   };
 
@@ -118,11 +123,15 @@ const ProjectForm: React.FC = () => {
         formDataUpload.append('name', formData.name);
         formDataUpload.append('description', formData.description);
 
-        const response: any = await api.post('/projects/upload', formDataUpload, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        const response: any = await api.post(
+          '/projects/upload',
+          formDataUpload,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
 
         if (response.success) {
           setSuccess('Project created successfully from document!');
@@ -168,10 +177,9 @@ const ProjectForm: React.FC = () => {
             {isEditing ? 'Edit Project' : 'Create New Project'}
           </h1>
           <p className="mt-2 text-gray-600">
-            {isEditing 
+            {isEditing
               ? 'Update your project details and goals'
-              : 'Create a new AI-powered product roadmap project'
-            }
+              : 'Create a new AI-powered product roadmap project'}
           </p>
         </div>
 
@@ -219,7 +227,10 @@ const ProjectForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Project Name *
               </label>
               <input
@@ -235,7 +246,10 @@ const ProjectForm: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Description *
               </label>
               <input
@@ -253,7 +267,10 @@ const ProjectForm: React.FC = () => {
 
           {uploadMode ? (
             <div>
-              <label htmlFor="document" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="document"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Upload Project Document *
               </label>
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
@@ -288,7 +305,9 @@ const ProjectForm: React.FC = () => {
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
-                  <p className="text-xs text-gray-500">PDF, DOCX, DOC, TXT up to 10MB</p>
+                  <p className="text-xs text-gray-500">
+                    PDF, DOCX, DOC, TXT up to 10MB
+                  </p>
                   {file && (
                     <p className="text-sm text-green-600 mt-2">
                       Selected: {file.name}
@@ -299,7 +318,10 @@ const ProjectForm: React.FC = () => {
             </div>
           ) : (
             <div>
-              <label htmlFor="officialPlan" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="officialPlan"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Official Project Plan *
               </label>
               <textarea
@@ -318,20 +340,27 @@ const ProjectForm: React.FC = () => {
           {!uploadMode && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Project Goals</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  Project Goals
+                </h3>
                 <button
                   type="button"
                   onClick={addGoal}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-orange-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 >
                   Add Goal
                 </button>
               </div>
 
               {formData.goals.map((goal, index) => (
-                <div key={index} className="border border-gray-200 rounded-md p-4 mb-4">
+                <div
+                  key={index}
+                  className="border border-gray-200 rounded-md p-4 mb-4"
+                >
                   <div className="flex justify-between items-start mb-4">
-                    <h4 className="text-md font-medium text-gray-800">Goal {index + 1}</h4>
+                    <h4 className="text-md font-medium text-gray-800">
+                      Goal {index + 1}
+                    </h4>
                     <button
                       type="button"
                       onClick={() => removeGoal(index)}
@@ -349,7 +378,9 @@ const ProjectForm: React.FC = () => {
                       <input
                         type="text"
                         value={goal.title}
-                        onChange={(e) => handleGoalChange(index, 'title', e.target.value)}
+                        onChange={(e) =>
+                          handleGoalChange(index, 'title', e.target.value)
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Goal title"
                       />
@@ -361,7 +392,9 @@ const ProjectForm: React.FC = () => {
                       </label>
                       <select
                         value={goal.priority}
-                        onChange={(e) => handleGoalChange(index, 'priority', e.target.value)}
+                        onChange={(e) =>
+                          handleGoalChange(index, 'priority', e.target.value)
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="low">Low</option>
@@ -378,7 +411,13 @@ const ProjectForm: React.FC = () => {
                       <input
                         type="text"
                         value={goal.targetQuarter}
-                        onChange={(e) => handleGoalChange(index, 'targetQuarter', e.target.value)}
+                        onChange={(e) =>
+                          handleGoalChange(
+                            index,
+                            'targetQuarter',
+                            e.target.value
+                          )
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         placeholder="e.g., Q1 2024"
                       />
@@ -390,7 +429,9 @@ const ProjectForm: React.FC = () => {
                       </label>
                       <select
                         value={goal.status}
-                        onChange={(e) => handleGoalChange(index, 'status', e.target.value)}
+                        onChange={(e) =>
+                          handleGoalChange(index, 'status', e.target.value)
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="planned">Planned</option>
@@ -408,7 +449,9 @@ const ProjectForm: React.FC = () => {
                     <textarea
                       rows={3}
                       value={goal.description}
-                      onChange={(e) => handleGoalChange(index, 'description', e.target.value)}
+                      onChange={(e) =>
+                        handleGoalChange(index, 'description', e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Describe the goal in detail"
                     />
@@ -430,18 +473,36 @@ const ProjectForm: React.FC = () => {
             <button
               type="submit"
               disabled={loading || (uploadMode && !file)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Processing...
                 </span>
+              ) : isEditing ? (
+                'Update Project'
               ) : (
-                isEditing ? 'Update Project' : 'Create Project'
+                'Create Project'
               )}
             </button>
           </div>

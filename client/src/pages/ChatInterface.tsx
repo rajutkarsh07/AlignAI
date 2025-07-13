@@ -454,7 +454,7 @@ What would you like to work on today?`;
               </pre>
             ),
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-blue-500 pl-3 italic text-gray-700 mb-2">
+              <blockquote className="border-l-4 border-orange-500 pl-3 italic text-gray-700 mb-2">
                 {children}
               </blockquote>
             ),
@@ -478,7 +478,7 @@ What would you like to work on today?`;
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline"
+                className="text-orange-600 hover:text-orange-800 underline"
               >
                 {children}
               </a>
@@ -502,7 +502,7 @@ What would you like to work on today?`;
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="h-10 w-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
                   <ComputerDesktopIcon className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -510,7 +510,7 @@ What would you like to work on today?`;
                 <h1 className="text-xl font-bold text-gray-900">
                   AI Assistant
                   {currentProject && (
-                    <span className="text-blue-600 ml-2">
+                    <span className="text-orange-600 ml-2">
                       • {currentProject.name}
                     </span>
                   )}
@@ -527,7 +527,7 @@ What would you like to work on today?`;
                 <select
                   value={selectedProject}
                   onChange={(e) => setSelectedProject(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm"
                 >
                   <option value="">All Projects</option>
                   {projects.map((project) => (
@@ -539,7 +539,7 @@ What would you like to work on today?`;
               )}
               <button
                 onClick={createNewSession}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all duration-200"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm transition-all duration-200"
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 New Chat
@@ -557,8 +557,8 @@ What would you like to work on today?`;
             <div className="space-y-6">
               {messages.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
-                    <ComputerDesktopIcon className="h-8 w-8 text-blue-600" />
+                  <div className="mx-auto h-16 w-16 bg-gradient-to-r from-orange-100 to-red-100 rounded-full flex items-center justify-center mb-4">
+                    <ComputerDesktopIcon className="h-8 w-8 text-orange-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     Start a conversation
@@ -570,18 +570,18 @@ What would you like to work on today?`;
                       : 'Ask me anything about product roadmaps, feedback analysis, or task planning.'}
                   </p>
                   {currentProject && (
-                    <div className="max-w-lg mx-auto p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                    <div className="max-w-lg mx-auto p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-200">
                       <div className="flex items-start space-x-3">
                         <div className="flex-shrink-0">
-                          <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                          <div className="h-8 w-8 bg-orange-600 rounded-full flex items-center justify-center">
                             <SparklesIcon className="h-4 w-4 text-white" />
                           </div>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-blue-900 mb-1">
+                          <p className="text-sm font-medium text-orange-900 mb-1">
                             Project Context Active
                           </p>
-                          <p className="text-xs text-blue-700">
+                          <p className="text-xs text-orange-700">
                             I'll use information about {currentProject.name} to
                             provide more relevant responses.
                             {currentProject.description && (
@@ -601,7 +601,7 @@ What would you like to work on today?`;
                       onClick={() =>
                         setInputMessage('Create a roadmap for this project')
                       }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200"
                     >
                       <div className="text-sm font-medium text-gray-900 mb-1">
                         🗺️ Create Roadmap
@@ -614,7 +614,7 @@ What would you like to work on today?`;
                       onClick={() =>
                         setInputMessage('Analyze recent feedback trends')
                       }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200"
                     >
                       <div className="text-sm font-medium text-gray-900 mb-1">
                         📊 Analyze Feedback
@@ -627,7 +627,7 @@ What would you like to work on today?`;
                       onClick={() =>
                         setInputMessage('Prioritize tasks for this project')
                       }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200"
                     >
                       <div className="text-sm font-medium text-gray-900 mb-1">
                         ⚡ Task Priority
@@ -640,7 +640,7 @@ What would you like to work on today?`;
                       onClick={() =>
                         setInputMessage('What are the main challenges?')
                       }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all duration-200"
                     >
                       <div className="text-sm font-medium text-gray-900 mb-1">
                         🎯 Challenges
@@ -667,11 +667,11 @@ What would you like to work on today?`;
                   >
                     <div className="flex-shrink-0">
                       {message.role === 'user' ? (
-                        <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center shadow-sm">
+                        <div className="h-10 w-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-sm">
                           <UserCircleIcon className="h-6 w-6 text-white" />
                         </div>
                       ) : (
-                        <div className="h-10 w-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                        <div className="h-10 w-10 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center shadow-sm">
                           <ComputerDesktopIcon className="h-5 w-5 text-white" />
                         </div>
                       )}
@@ -679,7 +679,7 @@ What would you like to work on today?`;
                     <div
                       className={`mx-3 px-4 py-3 rounded-2xl shadow-sm ${
                         message.role === 'user'
-                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
                           : 'bg-white text-gray-900 border border-gray-200'
                       }`}
                     >
@@ -690,7 +690,7 @@ What would you like to work on today?`;
                       <p
                         className={`text-xs mt-2 ${
                           message.role === 'user'
-                            ? 'text-blue-100'
+                            ? 'text-orange-100'
                             : 'text-gray-400'
                         }`}
                       >
@@ -707,18 +707,18 @@ What would you like to work on today?`;
               {loading && (
                 <div className="flex justify-start">
                   <div className="flex">
-                    <div className="h-10 w-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                    <div className="h-10 w-10 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center shadow-sm">
                       <ComputerDesktopIcon className="h-5 w-5 text-white" />
                     </div>
                     <div className="mx-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce"></div>
                         <div
-                          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-orange-600 rounded-full animate-bounce"
                           style={{ animationDelay: '0.1s' }}
                         ></div>
                         <div
-                          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-orange-600 rounded-full animate-bounce"
                           style={{ animationDelay: '0.2s' }}
                         ></div>
                       </div>
@@ -744,7 +744,7 @@ What would you like to work on today?`;
                         ? `Ask me about ${currentProject.name} roadmaps, feedback analysis, or task planning...`
                         : 'Ask me about roadmaps, feedback analysis, or task planning...'
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 shadow-sm transition-all duration-200"
                     rows={2}
                     disabled={loading}
                   />
@@ -752,7 +752,7 @@ What would you like to work on today?`;
                 <button
                   onClick={sendMessage}
                   disabled={!inputMessage.trim() || loading}
-                  className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200"
+                  className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200"
                 >
                   {loading ? (
                     <ArrowPathIcon className="h-4 w-4 animate-spin" />
