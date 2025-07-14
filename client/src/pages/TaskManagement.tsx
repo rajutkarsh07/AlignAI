@@ -170,11 +170,12 @@ const TaskManagement: React.FC = () => {
 
   const handleCreateTask = async () => {
     if (!newTask.title.trim() || !newTask.description.trim()) return;
-
     setIsCreatingTask(true);
     try {
+      const { assignee, ...rest } = newTask;
       const taskData = {
         ...newTask,
+        assignedTo: assignee,
         acceptanceCriteria: newTask.acceptanceCriteria.filter((criteria) =>
           criteria.trim()
         ),
