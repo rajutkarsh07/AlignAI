@@ -142,19 +142,15 @@ const ChatInterface: React.FC = () => {
         const messagePayload: any = {
           content: userMessage.content,
           agent: 'general',
-        };
-
-        // Add project context if a project is selected
-        if (currentProjectId) {
-          messagePayload.projectId = currentProjectId;
-          if (currentProject) {
-            messagePayload.projectContext = {
+          ...(currentProjectId && { projectId: currentProjectId }),
+          ...(currentProject && {
+            projectContext: {
               name: currentProject.name,
               description: currentProject.description || '',
               goals: currentProject.goals || [],
-            };
-          }
-        }
+            },
+          }),
+        };
 
         const response: any = await api.post(
           `/chat/sessions/${session.sessionId}/messages`,
