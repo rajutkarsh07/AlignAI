@@ -13,6 +13,8 @@ import {
   ExclamationTriangleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  XMarkIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import CustomSelect from '../components/CustomSelect';
 
@@ -120,14 +122,9 @@ const TaskManagement: React.FC = () => {
         if (response.success) {
           setTasks(response.data.tasks || []);
           setTaskSummary(response.data.summary || {});
-        } else {
-          setTasks([]);
-          setTaskSummary({});
         }
       } catch (error) {
         console.error('Error fetching tasks:', error);
-        setTasks([]);
-        setTaskSummary({});
       } finally {
         setIsLoading(false);
       }
@@ -175,25 +172,20 @@ const TaskManagement: React.FC = () => {
     if (!newTask.title.trim() || !newTask.description.trim()) return;
     setIsCreatingTask(true);
     try {
-      const { assignee, ...rest } = newTask;
       const taskData = {
         ...newTask,
-        assignedTo: assignee,
+        assignedTo: newTask.assignee,
         acceptanceCriteria: newTask.acceptanceCriteria.filter((criteria) =>
           criteria.trim()
         ),
         tags: [],
+        projectId: selectedProject || undefined,
       };
 
-      const response: any = await api.post('/tasks', {
-        ...taskData,
-        projectId: selectedProject,
-      });
-
+      const response: any = await api.post('/tasks', taskData);
       if (response.success) {
-        // Refresh tasks
         const tasksResponse: any = await api.get(
-          `/tasks/project/${selectedProject}`
+          selectedProject ? `/tasks/project/${selectedProject}` : '/tasks'
         );
         if (tasksResponse.success) {
           setTasks(tasksResponse.data.tasks || []);
@@ -243,9 +235,8 @@ const TaskManagement: React.FC = () => {
     try {
       const response: any = await api.put(`/tasks/${taskId}`, { status });
       if (response.success) {
-        // Refresh tasks
         const tasksResponse: any = await api.get(
-          `/tasks/project/${selectedProject}`
+          selectedProject ? `/tasks/project/${selectedProject}` : '/tasks'
         );
         if (tasksResponse.success) {
           setTasks(tasksResponse.data.tasks || []);
@@ -318,670 +309,713 @@ const TaskManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="md:flex md:items-center md:justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Task Management
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Create, track, and manage project tasks
-          </p>
-        </div>
-        <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
-          {projects.length > 0 && (
-            <CustomSelect
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              options={[
-                { value: '', label: 'All Projects' },
-                ...projects.map((project) => ({
-                  value: project._id,
-                  label: project.name,
-                })),
-              ]}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          )}
-          <button
-            onClick={() => setShowAddForm(true)}
-            disabled={!selectedProject && projects.length === 0}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Task
-          </button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="flex flex-wrap gap-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700">Project</label>
-            <CustomSelect
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              options={[
-                { value: '', label: 'All Projects' },
-                ...projects.map((project) => ({
-                  value: project._id,
-                  label: project.name,
-                })),
-              ]}
-              className="mt-1 block px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Status</label>
-            <CustomSelect
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Status' },
-                { value: 'todo', label: 'To Do' },
-                { value: 'in-progress', label: 'In Progress' },
-                { value: 'done', label: 'Done' },
-                { value: 'blocked', label: 'Blocked' },
-              ]}
-              className="mt-1 block px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Priority
-            </label>
-            <CustomSelect
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value)}
-              options={[
-                { value: 'all', label: 'All Priorities' },
-                { value: 'critical', label: 'Critical' },
-                { value: 'high', label: 'High' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'low', label: 'Low' },
-              ]}
-              className="mt-1 block px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <div className="md:flex md:items-center md:justify-between">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight">
+                Task Management
+              </h2>
+              <p className="mt-2 text-sm text-gray-500">
+                Create, track, and manage project tasks
+              </p>
+            </div>
+            <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
+              <CustomSelect
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                options={[
+                  { value: '', label: 'All Projects' },
+                  ...projects.map((project) => ({
+                    value: project._id,
+                    label: project.name,
+                  })),
+                ]}
+                className="w-64"
+                label=""
+              />
+              <button
+                onClick={() => setShowAddForm(true)}
+                disabled={!selectedProject && projects.length > 0}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Add Task
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Task Stats */}
-      {selectedProject && (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <UserIcon className="h-6 w-6 text-gray-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        {/* Filters */}
+        <div className="bg-white shadow rounded-lg p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <CustomSelect
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Statuses' },
+                  { value: 'todo', label: 'To Do' },
+                  { value: 'in-progress', label: 'In Progress' },
+                  { value: 'done', label: 'Done' },
+                  { value: 'blocked', label: 'Blocked' },
+                ]}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Priority
+              </label>
+              <CustomSelect
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Priorities' },
+                  { value: 'critical', label: 'Critical' },
+                  { value: 'high', label: 'High' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'low', label: 'Low' },
+                ]}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Project
+              </label>
+              <CustomSelect
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                options={[
+                  { value: '', label: 'All Projects' },
+                  ...projects.map((project) => ({
+                    value: project._id,
+                    label: project.name,
+                  })),
+                ]}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        {selectedProject && (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 mb-6">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-gray-100 rounded-md p-3">
+                    <UserIcon className="h-6 w-6 text-gray-600" />
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
                     <dt className="text-sm font-medium text-gray-500 truncate">
                       Total Tasks
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {taskStats.total}
+                    <dd className="flex items-baseline">
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {taskStats.total}
+                      </div>
                     </dd>
-                  </dl>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+              <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <ClockIcon className="h-6 w-6 text-blue-400" />
+                  <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                    <ClockIcon className="h-6 w-6 text-blue-600" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        In Progress
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      In Progress
+                    </dt>
+                    <dd className="flex items-baseline">
+                      <div className="text-2xl font-semibold text-gray-900">
                         {taskStats.inProgress}
-                      </dd>
-                    </dl>
+                      </div>
+                    </dd>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+              <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <CheckIcon className="h-6 w-6 text-green-400" />
+                  <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                    <CheckIcon className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Completed
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Completed
+                    </dt>
+                    <dd className="flex items-baseline">
+                      <div className="text-2xl font-semibold text-gray-900">
                         {taskStats.done}
-                      </dd>
-                    </dl>
+                      </div>
+                    </dd>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+              <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <ExclamationTriangleIcon className="h-6 w-6 text-red-400" />
+                  <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
+                    <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Blocked
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Blocked
+                    </dt>
+                    <dd className="flex items-baseline">
+                      <div className="text-2xl font-semibold text-gray-900">
                         {taskStats.blocked}
-                      </dd>
-                    </dl>
+                      </div>
+                    </dd>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+              <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <CalendarIcon className="h-6 w-6 text-yellow-400" />
+                  <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                    <CalendarIcon className="h-6 w-6 text-yellow-600" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        To Do
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      To Do
+                    </dt>
+                    <dd className="flex items-baseline">
+                      <div className="text-2xl font-semibold text-gray-900">
                         {taskStats.todo}
-                      </dd>
-                    </dl>
+                      </div>
+                    </dd>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Add Task Form Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Add New Task
-              </h3>
-              <button
-                onClick={() => {
-                  setShowAddForm(false);
-                  resetNewTask();
-                }}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+        {/* Tasks List */}
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Tasks
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Showing {filteredTasks.length} of {tasks.length} tasks
+            </p>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <ArrowPathIcon className="mx-auto h-8 w-8 text-gray-400 animate-spin" />
+              <p className="mt-2 text-sm text-gray-500">Loading tasks...</p>
             </div>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={newTask.title}
-                    onChange={(e) =>
-                      setNewTask((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Task title..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Category
-                  </label>
-                  <CustomSelect
-                    value={newTask.category}
-                    onChange={(e) =>
-                      setNewTask((prev) => ({
-                        ...prev,
-                        category: e.target.value as any,
-                      }))
-                    }
-                    options={[
-                      { value: 'feature', label: 'Feature' },
-                      { value: 'bug-fix', label: 'Bug Fix' },
-                      { value: 'improvement', label: 'Improvement' },
-                      { value: 'research', label: 'Research' },
-                      { value: 'maintenance', label: 'Maintenance' },
-                      { value: 'design', label: 'Design' },
-                      { value: 'testing', label: 'Testing' },
-                    ]}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <div className="mt-1">
-                  <textarea
-                    value={newTask.description}
-                    onChange={(e) =>
-                      setNewTask((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    rows={3}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Task description... (supports markdown)"
-                  />
-                  {newTask.description && (
-                    <div className="mt-2 p-3 bg-gray-50 rounded-md border">
-                      <div className="text-xs font-medium text-gray-700 mb-2">
-                        Preview:
-                      </div>
-                      <div className="prose prose-xs max-w-none text-sm text-gray-600">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {newTask.description}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-2">
-                  <button
-                    onClick={handleEnhanceTask}
-                    disabled={
-                      !newTask.title.trim() ||
-                      !newTask.description.trim() ||
-                      isEnhancingTask
-                    }
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <SparklesIcon className="h-4 w-4 mr-1" />
-                    {isEnhancingTask ? 'Enhancing...' : 'Enhance with AI'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Priority
-                  </label>
-                  <CustomSelect
-                    value={newTask.priority}
-                    onChange={(e) =>
-                      setNewTask((prev) => ({
-                        ...prev,
-                        priority: e.target.value as any,
-                      }))
-                    }
-                    options={[
-                      { value: 'low', label: 'Low' },
-                      { value: 'medium', label: 'Medium' },
-                      { value: 'high', label: 'High' },
-                      { value: 'critical', label: 'Critical' },
-                    ]}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Assignee
-                  </label>
-                  <input
-                    type="text"
-                    value={newTask.assignee}
-                    onChange={(e) =>
-                      setNewTask((prev) => ({
-                        ...prev,
-                        assignee: e.target.value,
-                      }))
-                    }
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Assignee email..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Due Date
-                  </label>
-                  <input
-                    type="date"
-                    value={newTask.dueDate}
-                    onChange={(e) =>
-                      setNewTask((prev) => ({
-                        ...prev,
-                        dueDate: e.target.value,
-                      }))
-                    }
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Acceptance Criteria
-                </label>
-                {newTask.acceptanceCriteria.map((criteria, index) => (
-                  <div key={index} className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={criteria}
-                      onChange={(e) =>
-                        updateAcceptanceCriteria(index, e.target.value)
-                      }
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Acceptance criteria..."
-                    />
-                    {newTask.acceptanceCriteria.length > 1 && (
-                      <button
-                        onClick={() => removeAcceptanceCriteria(index)}
-                        className="px-3 py-2 text-red-600 hover:text-red-500"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
+          ) : filteredTasks.length === 0 ? (
+            <div className="text-center py-12">
+              <CheckIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No tasks found
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {tasks.length === 0
+                  ? 'Get started by creating your first task.'
+                  : 'Try adjusting your filters.'}
+              </p>
+              <div className="mt-6">
                 <button
-                  onClick={addAcceptanceCriteria}
-                  className="text-sm text-blue-600 hover:text-blue-500"
+                  onClick={() => setShowAddForm(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  + Add criteria
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Add Task
                 </button>
               </div>
             </div>
+          ) : (
+            <ul className="divide-y divide-gray-200">
+              {filteredTasks.map((task) => {
+                const showProject = !selectedProject;
+                const project = showProject
+                  ? projects.find(
+                      (p) => p._id === (task.projectId || task.project?._id)
+                    )
+                  : null;
 
-            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-              <button
-                onClick={() => {
-                  setShowAddForm(false);
-                  resetNewTask();
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateTask}
-                disabled={
-                  !newTask.title.trim() ||
-                  !newTask.description.trim() ||
-                  isCreatingTask
-                }
-                className="px-4 py-2 border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCreatingTask ? 'Creating...' : 'Create Task'}
-              </button>
+                return (
+                  <li
+                    key={task._id}
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <div className="px-4 py-4 sm:px-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                              task.status
+                            )}`}
+                          >
+                            {task.status.replace('-', ' ')}
+                          </span>
+                          <p className="text-sm font-medium text-blue-600 truncate">
+                            {task.title}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                              task.priority
+                            )}`}
+                          >
+                            {task.priority}
+                          </span>
+                          <button
+                            onClick={() =>
+                              setExpandedTask(
+                                expandedTask === task._id ? null : task._id
+                              )
+                            }
+                            className="text-gray-400 hover:text-gray-500"
+                          >
+                            {expandedTask === task._id ? (
+                              <ChevronUpIcon className="h-5 w-5" />
+                            ) : (
+                              <ChevronDownIcon className="h-5 w-5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 sm:flex sm:justify-between">
+                        <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <UserIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                            {task.assignee || 'Unassigned'}
+                          </div>
+                          {task.dueDate && (
+                            <div className="flex items-center text-sm text-gray-500">
+                              <CalendarIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                              Due {new Date(task.dueDate).toLocaleDateString()}
+                            </div>
+                          )}
+                          {showProject && project && (
+                            <div className="flex items-center text-sm text-gray-500">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                {project.name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                          <span>
+                            Created{' '}
+                            {new Date(task.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {expandedTask === task._id && (
+                        <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2">
+                              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                Description
+                              </h4>
+                              <div className="prose prose-sm max-w-none text-gray-600">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {task.description}
+                                </ReactMarkdown>
+                              </div>
+
+                              {task.acceptanceCriteria.length > 0 && (
+                                <div className="mt-4">
+                                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                    Acceptance Criteria
+                                  </h4>
+                                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                                    {task.acceptanceCriteria.map(
+                                      (criteria, index) => (
+                                        <li key={index}>{criteria}</li>
+                                      )
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                Details
+                              </h4>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                                    Status
+                                  </label>
+                                  <CustomSelect
+                                    value={task.status}
+                                    onChange={(e) =>
+                                      updateTaskStatus(
+                                        task._id,
+                                        e.target.value as Task['status']
+                                      )
+                                    }
+                                    options={[
+                                      { value: 'todo', label: 'To Do' },
+                                      {
+                                        value: 'in-progress',
+                                        label: 'In Progress',
+                                      },
+                                      { value: 'done', label: 'Done' },
+                                      { value: 'blocked', label: 'Blocked' },
+                                    ]}
+                                    className="w-full"
+                                  />
+                                </div>
+
+                                {task.aiSuggestions && (
+                                  <div>
+                                    <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                      AI Suggestions
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {task.aiSuggestions
+                                        .enhancementRecommendations.length >
+                                        0 && (
+                                        <div>
+                                          <h5 className="text-xs font-medium text-gray-500 mb-1">
+                                            Enhancements
+                                          </h5>
+                                          <ul className="text-xs text-gray-600 space-y-1">
+                                            {task.aiSuggestions.enhancementRecommendations.map(
+                                              (rec, i) => (
+                                                <li
+                                                  key={i}
+                                                  className="flex items-start"
+                                                >
+                                                  <span className="mr-1">
+                                                    •
+                                                  </span>
+                                                  <span>{rec}</span>
+                                                </li>
+                                              )
+                                            )}
+                                          </ul>
+                                        </div>
+                                      )}
+                                      {task.aiSuggestions.riskAssessment && (
+                                        <div>
+                                          <h5 className="text-xs font-medium text-gray-500 mb-1">
+                                            Risks
+                                          </h5>
+                                          <p className="text-xs text-gray-600">
+                                            {task.aiSuggestions.riskAssessment}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </main>
+
+      {/* Add Task Modal */}
+      {showAddForm && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  onClick={() => {
+                    setShowAddForm(false);
+                    resetNewTask();
+                  }}
+                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <span className="sr-only">Close</span>
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <div>
+                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Create New Task
+                  </h3>
+                  <div className="mt-6 space-y-6">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                      <div>
+                        <label
+                          htmlFor="title"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          id="title"
+                          value={newTask.title}
+                          onChange={(e) =>
+                            setNewTask({ ...newTask, title: e.target.value })
+                          }
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="category"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Category
+                        </label>
+                        <select
+                          id="category"
+                          value={newTask.category}
+                          onChange={(e) =>
+                            setNewTask({
+                              ...newTask,
+                              category: e.target.value as any,
+                            })
+                          }
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="feature">Feature</option>
+                          <option value="bug-fix">Bug Fix</option>
+                          <option value="improvement">Improvement</option>
+                          <option value="research">Research</option>
+                          <option value="maintenance">Maintenance</option>
+                          <option value="design">Design</option>
+                          <option value="testing">Testing</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="description"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Description
+                      </label>
+                      <div className="mt-1">
+                        <textarea
+                          id="description"
+                          rows={4}
+                          value={newTask.description}
+                          onChange={(e) =>
+                            setNewTask({
+                              ...newTask,
+                              description: e.target.value,
+                            })
+                          }
+                          className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+                        ></textarea>
+                      </div>
+                      <div className="mt-2">
+                        <button
+                          onClick={handleEnhanceTask}
+                          disabled={
+                            !newTask.title.trim() ||
+                            !newTask.description.trim() ||
+                            isEnhancingTask
+                          }
+                          className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                        >
+                          <SparklesIcon className="h-4 w-4 mr-1" />
+                          {isEnhancingTask ? 'Enhancing...' : 'Enhance with AI'}
+                        </button>
+                      </div>
+                      {newTask.description && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                          <h4 className="text-xs font-medium text-gray-500 mb-2">
+                            Preview:
+                          </h4>
+                          <div className="prose prose-sm max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {newTask.description}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                      <div>
+                        <label
+                          htmlFor="priority"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Priority
+                        </label>
+                        <select
+                          id="priority"
+                          value={newTask.priority}
+                          onChange={(e) =>
+                            setNewTask({
+                              ...newTask,
+                              priority: e.target.value as any,
+                            })
+                          }
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                          <option value="critical">Critical</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="assignee"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Assignee
+                        </label>
+                        <input
+                          type="text"
+                          id="assignee"
+                          value={newTask.assignee}
+                          onChange={(e) =>
+                            setNewTask({ ...newTask, assignee: e.target.value })
+                          }
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                          placeholder="Email or username"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="dueDate"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Due Date
+                        </label>
+                        <input
+                          type="date"
+                          id="dueDate"
+                          value={newTask.dueDate}
+                          onChange={(e) =>
+                            setNewTask({ ...newTask, dueDate: e.target.value })
+                          }
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Acceptance Criteria
+                      </label>
+                      <div className="mt-2 space-y-2">
+                        {newTask.acceptanceCriteria.map((criteria, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center space-x-2"
+                          >
+                            <input
+                              type="text"
+                              value={criteria}
+                              onChange={(e) =>
+                                updateAcceptanceCriteria(index, e.target.value)
+                              }
+                              className="flex-1 block border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                              placeholder="Must be able to..."
+                            />
+                            {newTask.acceptanceCriteria.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeAcceptanceCriteria(index)}
+                                className="inline-flex items-center p-1 border border-transparent rounded-full text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              >
+                                <XMarkIcon className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={addAcceptanceCriteria}
+                          className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          <PlusIcon className="h-3 w-3 mr-1" />
+                          Add Criteria
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                <button
+                  type="button"
+                  onClick={handleCreateTask}
+                  disabled={
+                    !newTask.title.trim() ||
+                    !newTask.description.trim() ||
+                    isCreatingTask
+                  }
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
+                >
+                  {isCreatingTask ? (
+                    <>
+                      <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Create Task'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    resetNewTask();
+                  }}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Tasks List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Tasks</h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            {filteredTasks.length} of {tasks.length} tasks
-          </p>
-        </div>
-
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-500">Loading tasks...</p>
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-12">
-            <CheckIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by creating your first task.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-            {filteredTasks.map((task) => {
-              // Find project name if showing all projects
-              const showProject = !selectedProject;
-              const project = showProject
-                ? projects.find(
-                    (p) => p._id === (task.projectId || task.project?._id)
-                  )
-                : null;
-              return (
-                <div
-                  key={task._id}
-                  className="relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col group overflow-hidden"
-                  style={{ minHeight: 220 }}
-                >
-                  <div className="flex items-center justify-between px-5 pt-5 pb-2">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(task.status)}
-                      <span className="text-base font-bold text-gray-900 truncate max-w-[180px] group-hover:text-orange-600 transition-colors">
-                        {task.title}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(
-                          task.status
-                        )} border border-opacity-30`}
-                      >
-                        {task.status.replace('-', ' ')}
-                      </span>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getPriorityColor(
-                          task.priority
-                        )} border border-opacity-30`}
-                      >
-                        {task.priority}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="px-5 pb-2 flex flex-wrap gap-2 text-xs text-gray-500">
-                    <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5">
-                      <span className="font-medium">Category:</span>{' '}
-                      {task.category}
-                    </span>
-                    {task.assignee && (
-                      <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5">
-                        <UserIcon className="h-4 w-4 text-gray-400" /> @
-                        {task.assignee}
-                      </span>
-                    )}
-                    {task.dueDate && (
-                      <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5">
-                        <CalendarIcon className="h-4 w-4 text-gray-400" />
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
-                      </span>
-                    )}
-                    {showProject && project && (
-                      <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 rounded px-2 py-0.5 font-semibold border border-orange-200">
-                        <span className="font-bold">Project:</span>{' '}
-                        {project.name}
-                      </span>
-                    )}
-                  </div>
-                  <div className="px-5 pb-2 text-xs text-gray-400 flex gap-2">
-                    <span>
-                      Created: {new Date(task.createdAt).toLocaleDateString()}
-                    </span>
-                    <span>•</span>
-                    <span>
-                      Updated: {new Date(task.updatedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="px-5 pb-4">
-                    <button
-                      onClick={() =>
-                        setExpandedTask(
-                          expandedTask === task._id ? null : task._id
-                        )
-                      }
-                      className="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center gap-1 mt-2 focus:outline-none"
-                    >
-                      {expandedTask === task._id ? (
-                        <>
-                          <ChevronUpIcon className="h-4 w-4" /> Hide Details
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDownIcon className="h-4 w-4" /> View Details
-                        </>
-                      )}
-                    </button>
-                    {expandedTask === task._id && (
-                      <div className="mt-3 space-y-3 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                        <div className="text-sm text-gray-700">
-                          <span className="font-semibold">Description:</span>
-                          <div className="prose prose-sm max-w-none mt-1">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {task.description}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-                        {task.acceptanceCriteria.length > 0 && (
-                          <div>
-                            <h5 className="text-xs font-semibold text-gray-700 mb-1">
-                              Acceptance Criteria:
-                            </h5>
-                            <ul className="list-disc list-inside text-xs text-gray-600">
-                              {task.acceptanceCriteria.map(
-                                (criteria, index) => (
-                                  <li key={index}>{criteria}</li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                        {task.aiSuggestions && (
-                          <div>
-                            <h5 className="text-xs font-semibold text-gray-700 mb-1">
-                              AI Suggestions:
-                            </h5>
-                            <div className="space-y-2">
-                              {task.aiSuggestions.enhancementRecommendations
-                                .length > 0 && (
-                                <div>
-                                  <span className="font-medium">
-                                    Enhancement Recommendations:
-                                  </span>
-                                  <div className="prose prose-xs max-w-none">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {task.aiSuggestions.enhancementRecommendations
-                                        .map((rec) => `- ${rec}`)
-                                        .join('\n')}
-                                    </ReactMarkdown>
-                                  </div>
-                                </div>
-                              )}
-                              {task.aiSuggestions.riskAssessment && (
-                                <div>
-                                  <span className="font-medium">
-                                    Risk Assessment:
-                                  </span>
-                                  <div className="prose prose-xs max-w-none">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {task.aiSuggestions.riskAssessment}
-                                    </ReactMarkdown>
-                                  </div>
-                                </div>
-                              )}
-                              {task.aiSuggestions.resourceRequirements.length >
-                                0 && (
-                                <div>
-                                  <span className="font-medium">
-                                    Resource Requirements:
-                                  </span>
-                                  <div className="prose prose-xs max-w-none">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {task.aiSuggestions.resourceRequirements
-                                        .map((req) => `- ${req}`)
-                                        .join('\n')}
-                                    </ReactMarkdown>
-                                  </div>
-                                </div>
-                              )}
-                              {task.aiSuggestions.successMetrics.length > 0 && (
-                                <div>
-                                  <span className="font-medium">
-                                    Success Metrics:
-                                  </span>
-                                  <div className="prose prose-xs max-w-none">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {task.aiSuggestions.successMetrics
-                                        .map((metric) => `- ${metric}`)
-                                        .join('\n')}
-                                    </ReactMarkdown>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between px-5 pb-5 mt-auto border-t border-gray-100 pt-3 bg-gradient-to-t from-gray-50 to-white">
-                    <CustomSelect
-                      value={task.status}
-                      onChange={(e) =>
-                        updateTaskStatus(
-                          task._id,
-                          e.target.value as Task['status']
-                        )
-                      }
-                      options={[
-                        { value: 'todo', label: 'To Do' },
-                        { value: 'in-progress', label: 'In Progress' },
-                        { value: 'done', label: 'Done' },
-                        { value: 'blocked', label: 'Blocked' },
-                      ]}
-                      className="text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 px-2 py-1 bg-white"
-                    />
-                    {/* You can add more actions here if needed */}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

@@ -12,6 +12,8 @@ import {
   SparklesIcon,
   EyeIcon,
   TrashIcon,
+  ArrowPathIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import CustomSelect from '../components/CustomSelect';
 
@@ -33,7 +35,7 @@ interface FeedbackItem {
     relatedFeatures: string[];
     urgencyScore: number;
   };
-  projectId?: string; // Added for project-specific feedback
+  projectId?: string;
 }
 
 interface UploadedFile {
@@ -62,6 +64,10 @@ const FeedbackManagement: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [filterSentiment, setFilterSentiment] = useState<string>('all');
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [filterSource, setFilterSource] = useState<string>('all');
+  const [showAiAnalysis, setShowAiAnalysis] = useState<boolean>(true);
 
   useEffect(() => {
     loadProjects();
@@ -96,13 +102,12 @@ const FeedbackManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading feedback:', error);
-      loadSampleFeedback();
+      setFeedback([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch all feedback across all projects
   const loadAllFeedback = async () => {
     try {
       setLoading(true);
@@ -112,59 +117,10 @@ const FeedbackManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading all feedback:', error);
-      loadSampleFeedback();
+      setFeedback([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const loadSampleFeedback = () => {
-    setLoading(true);
-    const sampleFeedback: FeedbackItem[] = [
-      // {
-      //   _id: '1',
-      //   content:
-      //     'The app is great but the checkout process is too slow. It takes forever to complete a purchase.',
-      //   source: 'App Store Review',
-      //   category: 'bug-report',
-      //   sentiment: 'negative',
-      //   priority: 'high',
-      //   isIgnored: false,
-      //   createdAt: new Date().toISOString(),
-      //   extractedKeywords: ['checkout', 'slow', 'purchase'],
-      //   aiAnalysis: {
-      //     summary:
-      //       'User experiencing slow checkout process affecting purchase completion',
-      //     actionableItems: ['Optimize checkout flow', 'Reduce loading times'],
-      //     relatedFeatures: ['Checkout System', 'Payment Processing'],
-      //     urgencyScore: 7,
-      //   },
-      // },
-      // {
-      //   _id: '2',
-      //   content:
-      //     'Love the new UI design! Much more intuitive than before. Keep up the great work!',
-      //   source: 'User Survey',
-      //   category: 'praise',
-      //   sentiment: 'positive',
-      //   priority: 'medium',
-      //   isIgnored: false,
-      //   createdAt: new Date().toISOString(),
-      //   extractedKeywords: ['UI', 'design', 'intuitive'],
-      //   aiAnalysis: {
-      //     summary:
-      //       'Positive feedback about UI redesign and improved user experience',
-      //     actionableItems: [
-      //       'Continue UI improvements',
-      //       'Document successful design patterns',
-      //     ],
-      //     relatedFeatures: ['User Interface', 'Design System'],
-      //     urgencyScore: 3,
-      //   },
-      // },
-    ];
-    setFeedback(sampleFeedback);
-    setLoading(false);
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -199,41 +155,28 @@ const FeedbackManagement: React.FC = () => {
       return;
     }
 
-    // Validate file types
     const allowedTypes = [
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
-    const invalidFiles = Array.from(files).filter(
-      (file) => !allowedTypes.includes(file.type)
-    );
-
-    if (invalidFiles.length > 0) {
-      alert(
-        `Invalid file type(s): ${invalidFiles
-          .map((f) => f.name)
-          .join(', ')}\n\nPlease upload only PDF, DOC, or DOCX files.`
-      );
-      return;
-    }
-
-    // Validate file sizes (10MB limit)
     const maxSize = 10 * 1024 * 1024; // 10MB
-    const oversizedFiles = Array.from(files).filter(
-      (file) => file.size > maxSize
-    );
-
-    if (oversizedFiles.length > 0) {
-      alert(
-        `File(s) too large: ${oversizedFiles
-          .map((f) => f.name)
-          .join(', ')}\n\nPlease upload files smaller than 10MB.`
-      );
-      return;
-    }
 
     Array.from(files).forEach((file) => {
+      if (!allowedTypes.includes(file.type)) {
+        alert(
+          `Invalid file type: ${file.name}. Please upload only PDF, DOC, or DOCX files.`
+        );
+        return;
+      }
+
+      if (file.size > maxSize) {
+        alert(
+          `File too large: ${file.name}. Please upload files smaller than 10MB.`
+        );
+        return;
+      }
+
       const fileId =
         Date.now().toString() + Math.random().toString(36).substr(2, 9);
       const newFile: UploadedFile = {
@@ -255,10 +198,7 @@ const FeedbackManagement: React.FC = () => {
       const formData = new FormData();
       formData.append('document', file);
       formData.append('projectId', selectedProject);
-      formData.append('name', `Feedback from ${file.name}`);
-      formData.append('description', `Uploaded document: ${file.name}`);
 
-      // Update status to processing
       setUploadedFiles((prev) =>
         prev.map((f) =>
           f.id === fileId ? { ...f, status: 'processing', progress: 50 } : f
@@ -280,7 +220,6 @@ const FeedbackManagement: React.FC = () => {
       });
 
       if (response.success) {
-        // Update status to completed
         setUploadedFiles((prev) =>
           prev.map((f) =>
             f.id === fileId
@@ -289,13 +228,11 @@ const FeedbackManagement: React.FC = () => {
                   status: 'completed',
                   progress: 100,
                   feedbackItems: response.data.feedbackItems,
-                  extractedText: response.data.extractedText, // Store extracted text for enhancement
+                  extractedText: response.data.extractedText,
                 }
               : f
           )
         );
-
-        // Reload feedback to show new items
         await loadFeedback();
       } else {
         throw new Error(response.error || 'Upload failed');
@@ -321,7 +258,6 @@ const FeedbackManagement: React.FC = () => {
       const file = uploadedFiles.find((f) => f.id === fileId);
       if (!file) return;
 
-      // Update status to enhancing
       setUploadedFiles((prev) =>
         prev.map((f) => (f.id === fileId ? { ...f, status: 'enhancing' } : f))
       );
@@ -344,8 +280,6 @@ const FeedbackManagement: React.FC = () => {
               : f
           )
         );
-
-        // Reload feedback to show enhanced items
         await loadFeedback();
       }
     } catch (error) {
@@ -373,42 +307,20 @@ const FeedbackManagement: React.FC = () => {
     if (!newFeedback.trim()) return;
 
     try {
-      if (selectedProject) {
-        const response: any = await api.post('/feedback', {
-          projectId: selectedProject,
-          name: `Feedback - ${new Date().toLocaleDateString()}`,
-          description: 'Manual feedback entry',
-          feedbackItems: [
-            {
-              content: newFeedback.trim(),
-              source: 'manual',
-              customerInfo: {},
-              tags: [],
-            },
-          ],
-        });
+      const response: any = await api.post('/feedback', {
+        projectId: selectedProject,
+        content: newFeedback.trim(),
+        source: 'manual',
+      });
 
-        if (response.success) {
-          await loadFeedback();
-        }
-      } else {
-        const newItem: FeedbackItem = {
-          _id: Date.now().toString(),
-          content: newFeedback.trim(),
-          source: 'manual',
-          category: 'other',
-          sentiment: 'neutral',
-          priority: 'medium',
-          isIgnored: false,
-          createdAt: new Date().toISOString(),
-        };
-        setFeedback((prev) => [newItem, ...prev]);
+      if (response.success) {
+        await loadFeedback();
+        setNewFeedback('');
+        setShowAddForm(false);
       }
-
-      setNewFeedback('');
-      setShowAddForm(false);
     } catch (error) {
       console.error('Error adding feedback:', error);
+      // Fallback to local state update if API fails
       const newItem: FeedbackItem = {
         _id: Date.now().toString(),
         content: newFeedback.trim(),
@@ -427,23 +339,11 @@ const FeedbackManagement: React.FC = () => {
 
   const toggleIgnore = async (id: string) => {
     try {
-      const feedbackItem = feedback.find((item) => item._id === id);
-      if (!feedbackItem) return;
+      const response: any = await api.put(`/feedback/${id}/ignore`, {
+        isIgnored: !feedback.find((item) => item._id === id)?.isIgnored,
+      });
 
-      if (selectedProject && feedbackItem.feedbackDocId) {
-        const response: any = await api.put(
-          `/feedback/${feedbackItem.feedbackDocId}/items/${id}/ignore`,
-          { isIgnored: !feedbackItem.isIgnored }
-        );
-
-        if (response.success) {
-          setFeedback((prev) =>
-            prev.map((item) =>
-              item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
-            )
-          );
-        }
-      } else {
+      if (response.success) {
         setFeedback((prev) =>
           prev.map((item) =>
             item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
@@ -451,12 +351,7 @@ const FeedbackManagement: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error('Error toggling feedback ignore status:', error);
-      setFeedback((prev) =>
-        prev.map((item) =>
-          item._id === id ? { ...item, isIgnored: !item.isIgnored } : item
-        )
-      );
+      console.error('Error toggling ignore status:', error);
     }
   };
 
@@ -503,353 +398,131 @@ const FeedbackManagement: React.FC = () => {
     }
   };
 
+  const filteredFeedback = feedback.filter((item) => {
+    if (filterSentiment !== 'all' && item.sentiment !== filterSentiment)
+      return false;
+    if (filterPriority !== 'all' && item.priority !== filterPriority)
+      return false;
+    if (filterSource !== 'all' && item.source !== filterSource) return false;
+    return true;
+  });
+
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="md:flex md:items-center md:justify-between">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Feedback Management
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage and analyze customer feedback with AI-powered insights
-          </p>
-        </div>
-        <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
-          {projects.length > 0 && !projectId && (
-            <CustomSelect
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              options={projects.map((project) => ({
-                value: project._id,
-                label: project.name,
-              }))}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          )}
-          {projectId && selectedProject && (
-            <div className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 text-gray-700">
-              {projects.find((p) => p._id === selectedProject)?.name ||
-                `Project ${selectedProject}`}
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <div className="md:flex md:items-center md:justify-between">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight">
+                Feedback Management
+              </h2>
+              <p className="mt-2 text-sm text-gray-500">
+                Collect and analyze customer feedback with AI-powered insights
+              </p>
             </div>
-          )}
-          <button
-            onClick={() => setShowUploadForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-          >
-            <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
-            Upload Document
-          </button>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Feedback
-          </button>
-        </div>
-      </div>
-
-      {/* File Upload Form Modal */}
-      {showUploadForm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Upload Feedback Document
-              </h3>
-              <button
-                onClick={() => setShowUploadForm(false)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {!selectedProject ? (
-              <div className="text-center py-8">
-                <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-yellow-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  Project Required
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Please select a project before uploading feedback documents.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                <div
-                  className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                    dragActive
-                      ? 'border-blue-400 bg-blue-50'
-                      : 'border-gray-300'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="mt-4">
-                    <label htmlFor="file-upload" className="cursor-pointer">
-                      <span className="mt-2 block text-sm font-medium text-gray-900">
-                        Drop files here or click to upload
-                      </span>
-                      <span className="mt-1 block text-xs text-gray-500">
-                        PDF, DOC, DOCX files up to 10MB
-                      </span>
-                    </label>
-                    <input
-                      id="file-upload"
-                      ref={fileInputRef}
-                      type="file"
-                      className="sr-only"
-                      multiple
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleFileSelect}
-                    />
-                  </div>
-                </div>
-
-                {/* Uploaded Files List */}
-                {uploadedFiles.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-medium text-gray-900">
-                      Uploaded Files
-                    </h4>
-                    {uploadedFiles.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <DocumentTextIcon className="h-5 w-5 text-gray-400" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {file.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {file.status === 'uploading' && (
-                            <div className="flex items-center space-x-2">
-                              <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                              <span className="text-xs text-blue-600">
-                                Uploading...
-                              </span>
-                            </div>
-                          )}
-                          {file.status === 'processing' && (
-                            <div className="flex items-center space-x-2">
-                              <div className="w-4 h-4 border-2 border-yellow-200 border-t-yellow-600 rounded-full animate-spin"></div>
-                              <span className="text-xs text-yellow-600">
-                                Processing...
-                              </span>
-                            </div>
-                          )}
-                          {file.status === 'enhancing' && (
-                            <div className="flex items-center space-x-2">
-                              <SparklesIcon className="h-4 w-4 text-purple-600 animate-pulse" />
-                              <span className="text-xs text-purple-600">
-                                Enhancing...
-                              </span>
-                            </div>
-                          )}
-                          {file.status === 'completed' && (
-                            <div className="flex items-center space-x-2">
-                              <CheckCircleIcon className="h-4 w-4 text-green-600" />
-                              <span className="text-xs text-green-600">
-                                Completed
-                              </span>
-                            </div>
-                          )}
-                          {file.status === 'error' && (
-                            <div className="flex items-center space-x-2">
-                              <XCircleIcon className="h-4 w-4 text-red-600" />
-                              <span className="text-xs text-red-600">
-                                Error
-                              </span>
-                            </div>
-                          )}
-                          {file.status === 'completed' &&
-                            file.feedbackItems && (
-                              <button
-                                onClick={() => enhanceFeedback(file.id)}
-                                className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
-                              >
-                                <SparklesIcon className="h-3 w-3 mr-1" />
-                                Enhance
-                              </button>
-                            )}
-                          <button
-                            onClick={() => removeFile(file.id)}
-                            className="text-gray-400 hover:text-red-600"
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-              <button
-                onClick={() => setShowUploadForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Feedback Form Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Add New Feedback
-              </h3>
-              <button
-                onClick={() => setShowAddForm(false)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-4">
-              <textarea
-                value={newFeedback}
-                onChange={(e) => setNewFeedback(e.target.value)}
-                placeholder="Enter customer feedback..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={4}
+            <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
+              <CustomSelect
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                options={[
+                  { value: '', label: 'All Projects' },
+                  ...projects.map((project) => ({
+                    value: project._id,
+                    label: project.name,
+                  })),
+                ]}
+                className="w-64"
+                label=""
               />
-            </div>
-            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
               <button
-                onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                onClick={() => setShowUploadForm(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
               >
-                Cancel
+                <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
+                Upload
               </button>
               <button
-                onClick={addFeedback}
-                className="px-4 py-2 border border-transparent rounded-md text-white bg-orange-600 hover:bg-orange-700"
+                onClick={() => setShowAddForm(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
+                <PlusIcon className="h-4 w-4 mr-2" />
                 Add Feedback
               </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Feedback Stats */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <DocumentTextIcon className="h-6 w-6 text-gray-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        {/* Stats */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-gray-100 rounded-md p-3">
+                  <DocumentTextIcon className="h-6 w-6 text-gray-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     Total Feedback
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900">
+                  <dd className="text-2xl font-semibold text-gray-900">
                     {feedback.length}
                   </dd>
-                </dl>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <CheckCircleIcon className="h-6 w-6 text-green-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                  <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     Positive
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900">
+                  <dd className="text-2xl font-semibold text-gray-900">
                     {feedback.filter((f) => f.sentiment === 'positive').length}
                   </dd>
-                </dl>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <XCircleIcon className="h-6 w-6 text-red-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
+                  <XCircleIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     Negative
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900">
+                  <dd className="text-2xl font-semibold text-gray-900">
                     {feedback.filter((f) => f.sentiment === 'negative').length}
                   </dd>
-                </dl>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <ExclamationTriangleIcon className="h-6 w-6 text-yellow-400" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                  <ExclamationTriangleIcon className="h-6 w-6 text-orange-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     High Priority
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900">
+                  <dd className="text-2xl font-semibold text-gray-900">
                     {
                       feedback.filter(
                         (f) =>
@@ -857,60 +530,128 @@ const FeedbackManagement: React.FC = () => {
                       ).length
                     }
                   </dd>
-                </dl>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Feedback List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Recent Feedback
-          </h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Customer feedback and feature requests with AI analysis
-          </p>
+        <div className="bg-white shadow rounded-lg p-4 mb-6">
+          <h3 className="text-sm font-medium text-gray-500 mb-3">Filters</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sentiment
+              </label>
+              <CustomSelect
+                value={filterSentiment}
+                onChange={(e) => setFilterSentiment(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Sentiments' },
+                  { value: 'positive', label: 'Positive' },
+                  { value: 'negative', label: 'Negative' },
+                  { value: 'neutral', label: 'Neutral' },
+                ]}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Priority
+              </label>
+              <CustomSelect
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Priorities' },
+                  { value: 'critical', label: 'Critical' },
+                  { value: 'high', label: 'High' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'low', label: 'Low' },
+                ]}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Source
+              </label>
+              <CustomSelect
+                value={filterSource}
+                onChange={(e) => setFilterSource(e.target.value)}
+                options={[
+                  { value: 'all', label: 'All Sources' },
+                  ...Array.from(
+                    new Set(feedback.map((item) => item.source))
+                  ).map((source) => ({
+                    value: source,
+                    label: source,
+                  })),
+                ]}
+              />
+            </div>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-500">Loading feedback...</p>
+        {/* Feedback List */}
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Recent Feedback
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Showing {filteredFeedback.length} of {feedback.length} items
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAiAnalysis(!showAiAnalysis)}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <SparklesIcon className="h-4 w-4 mr-2" />
+                {showAiAnalysis ? 'Hide AI Analysis' : 'Show AI Analysis'}
+              </button>
+            </div>
           </div>
-        ) : feedback.length === 0 ? (
-          <div className="text-center py-12">
-            <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
-              No feedback
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by uploading a document or adding feedback manually.
-            </p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-200">
-            {feedback.map((item) => {
-              // Show project name if all projects are selected
-              const showProject = !selectedProject;
-              const project =
-                showProject && typeof item.projectId === 'string'
-                  ? projects.find((p) => p._id === item.projectId)
-                  : null;
-              return (
-                <li
-                  key={item._id}
-                  className={`px-4 py-4 ${item.isIgnored ? 'opacity-50' : ''}`}
-                >
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      {getSentimentIcon(item.sentiment)}
-                    </div>
-                    <div className="flex-1 min-w-0">
+
+          {loading ? (
+            <div className="text-center py-12">
+              <ArrowPathIcon className="mx-auto h-8 w-8 text-gray-400 animate-spin" />
+              <p className="mt-2 text-sm text-gray-500">Loading feedback...</p>
+            </div>
+          ) : filteredFeedback.length === 0 ? (
+            <div className="text-center py-12">
+              <ChatBubbleLeftRightIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No feedback matches your filters
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Try adjusting your filters or add new feedback.
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-200">
+              {filteredFeedback.map((item) => {
+                const showProject = !selectedProject;
+                const project =
+                  showProject && item.projectId
+                    ? projects.find((p) => p._id === item.projectId)
+                    : null;
+                return (
+                  <li
+                    key={item._id}
+                    className={`hover:bg-gray-50 transition-colors duration-150 ${
+                      item.isIgnored ? 'opacity-70' : ''
+                    }`}
+                  >
+                    <div className="px-4 py-4 sm:px-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2 flex-wrap">
+                        <div className="flex items-center space-x-3">
+                          {getSentimentIcon(item.sentiment)}
+                          <p className="text-sm font-medium text-gray-900">
+                            {item.content}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
                               item.priority
@@ -918,57 +659,69 @@ const FeedbackManagement: React.FC = () => {
                           >
                             {item.priority}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            {item.source}
-                          </span>
-                          <span className="text-sm text-gray-500">•</span>
-                          <span className="text-sm text-gray-500">
-                            {item.category}
-                          </span>
+                          <button
+                            onClick={() => toggleIgnore(item._id)}
+                            className={`text-xs ${
+                              item.isIgnored
+                                ? 'text-green-600 hover:text-green-500'
+                                : 'text-gray-600 hover:text-gray-500'
+                            }`}
+                          >
+                            {item.isIgnored ? 'Unignore' : 'Ignore'}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 sm:flex sm:justify-between">
+                        <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
+                          <div className="flex items-center text-sm text-gray-500">
+                            <span>Source: {item.source}</span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <span>Category: {item.category}</span>
+                          </div>
                           {showProject && project && (
-                            <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 rounded px-2 py-0.5 font-semibold border border-orange-200 ml-2">
-                              <span className="font-bold">Project:</span>{' '}
-                              {project.name}
-                            </span>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                {project.name}
+                              </span>
+                            </div>
                           )}
                         </div>
-                        <button
-                          onClick={() => toggleIgnore(item._id)}
-                          className={`text-sm ${
-                            item.isIgnored
-                              ? 'text-green-600 hover:text-green-500'
-                              : 'text-gray-600 hover:text-gray-500'
-                          }`}
-                        >
-                          {item.isIgnored ? 'Unignore' : 'Ignore'}
-                        </button>
+                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                          <span>
+                            Created{' '}
+                            {new Date(item.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
-                      <p className="mt-2 text-sm text-gray-900">
-                        {item.content}
-                      </p>
 
-                      {/* AI Analysis Display */}
-                      {item.aiAnalysis && (
-                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                      {/* AI Analysis */}
+                      {item.aiAnalysis && showAiAnalysis && (
+                        <div className="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
                           <div className="flex items-center space-x-2 mb-2">
                             <SparklesIcon className="h-4 w-4 text-blue-600" />
-                            <span className="text-xs font-medium text-blue-900">
+                            <h4 className="text-sm font-medium text-blue-900">
                               AI Analysis
-                            </span>
+                            </h4>
                           </div>
-                          <p className="text-xs text-blue-800 mb-2">
+                          <p className="text-sm text-blue-800 mb-2">
                             {item.aiAnalysis.summary}
                           </p>
                           {item.aiAnalysis.actionableItems.length > 0 && (
                             <div className="mb-2">
-                              <span className="text-xs font-medium text-blue-900">
+                              <h5 className="text-xs font-medium text-blue-900 mb-1">
                                 Actionable Items:
-                              </span>
-                              <ul className="text-xs text-blue-800 mt-1">
+                              </h5>
+                              <ul className="text-xs text-blue-800 space-y-1">
                                 {item.aiAnalysis.actionableItems.map(
                                   (action, index) => (
-                                    <li key={index} className="ml-4 list-disc">
-                                      {action}
+                                    <li
+                                      key={index}
+                                      className="flex items-start"
+                                    >
+                                      <span className="mr-1">•</span>
+                                      <span>{action}</span>
                                     </li>
                                   )
                                 )}
@@ -977,33 +730,316 @@ const FeedbackManagement: React.FC = () => {
                           )}
                           {item.extractedKeywords &&
                             item.extractedKeywords.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {item.extractedKeywords.map(
-                                  (keyword, index) => (
-                                    <span
-                                      key={index}
-                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                                    >
-                                      {keyword}
-                                    </span>
-                                  )
-                                )}
+                              <div>
+                                <h5 className="text-xs font-medium text-blue-900 mb-1">
+                                  Keywords:
+                                </h5>
+                                <div className="flex flex-wrap gap-1">
+                                  {item.extractedKeywords.map(
+                                    (keyword, index) => (
+                                      <span
+                                        key={index}
+                                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
+                                      >
+                                        {keyword}
+                                      </span>
+                                    )
+                                  )}
+                                </div>
                               </div>
                             )}
                         </div>
                       )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </main>
 
-                      <p className="mt-1 text-xs text-gray-500">
-                        {new Date(item.createdAt).toLocaleDateString()}
+      {/* Upload Document Modal */}
+      {showUploadForm && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  onClick={() => setShowUploadForm(false)}
+                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <span className="sr-only">Close</span>
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <div>
+                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Upload Feedback Document
+                  </h3>
+                  {!selectedProject ? (
+                    <div className="mt-4 text-center">
+                      <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-yellow-400" />
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">
+                        Project Required
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 mb-4">
+                        Please select a project before uploading feedback
+                        documents.
                       </p>
+                      <CustomSelect
+                        value={selectedProject}
+                        onChange={(e) => setSelectedProject(e.target.value)}
+                        options={projects.map((project) => ({
+                          value: project._id,
+                          label: project.name,
+                        }))}
+                        className="w-full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-6 space-y-6">
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-6 text-center ${
+                          dragActive
+                            ? 'border-blue-400 bg-blue-50'
+                            : 'border-gray-300'
+                        }`}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                      >
+                        <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="mt-4">
+                          <label
+                            htmlFor="file-upload"
+                            className="cursor-pointer"
+                          >
+                            <span className="mt-2 block text-sm font-medium text-gray-900">
+                              Drop files here or click to upload
+                            </span>
+                            <span className="mt-1 block text-xs text-gray-500">
+                              PDF, DOC, DOCX files up to 10MB
+                            </span>
+                          </label>
+                          <input
+                            id="file-upload"
+                            ref={fileInputRef}
+                            type="file"
+                            className="sr-only"
+                            multiple
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleFileSelect}
+                          />
+                        </div>
+                      </div>
+
+                      {uploadedFiles.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-medium text-gray-900">
+                            Uploaded Files
+                          </h4>
+                          {uploadedFiles.map((file) => (
+                            <div
+                              key={file.id}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <DocumentTextIcon className="h-5 w-5 text-gray-400" />
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                                    {file.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {file.status === 'uploading' && (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                                    <span className="text-xs text-blue-600">
+                                      Uploading...
+                                    </span>
+                                  </div>
+                                )}
+                                {file.status === 'processing' && (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 border-2 border-yellow-200 border-t-yellow-600 rounded-full animate-spin"></div>
+                                    <span className="text-xs text-yellow-600">
+                                      Processing...
+                                    </span>
+                                  </div>
+                                )}
+                                {file.status === 'enhancing' && (
+                                  <div className="flex items-center space-x-2">
+                                    <SparklesIcon className="h-4 w-4 text-purple-600 animate-pulse" />
+                                    <span className="text-xs text-purple-600">
+                                      Enhancing...
+                                    </span>
+                                  </div>
+                                )}
+                                {file.status === 'completed' && (
+                                  <div className="flex items-center space-x-2">
+                                    <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                                    <span className="text-xs text-green-600">
+                                      Completed
+                                    </span>
+                                  </div>
+                                )}
+                                {file.status === 'error' && (
+                                  <div className="flex items-center space-x-2">
+                                    <XCircleIcon className="h-4 w-4 text-red-600" />
+                                    <span className="text-xs text-red-600">
+                                      Error
+                                    </span>
+                                  </div>
+                                )}
+                                {file.status === 'completed' &&
+                                  file.feedbackItems && (
+                                    <button
+                                      onClick={() => enhanceFeedback(file.id)}
+                                      className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-700"
+                                    >
+                                      <SparklesIcon className="h-3 w-3 mr-1" />
+                                      Enhance
+                                    </button>
+                                  )}
+                                <button
+                                  onClick={() => removeFile(file.id)}
+                                  className="text-gray-400 hover:text-red-600"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                <button
+                  type="button"
+                  onClick={() => setShowUploadForm(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Feedback Modal */}
+      {showAddForm && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <span className="sr-only">Close</span>
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              <div>
+                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Add New Feedback
+                  </h3>
+                  <div className="mt-6 space-y-6">
+                    {!selectedProject && (
+                      <div>
+                        <label
+                          htmlFor="project"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Project
+                        </label>
+                        <CustomSelect
+                          id="project"
+                          value={selectedProject}
+                          onChange={(e) => setSelectedProject(e.target.value)}
+                          options={projects.map((project) => ({
+                            value: project._id,
+                            label: project.name,
+                          }))}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label
+                        htmlFor="feedback"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Feedback Content
+                      </label>
+                      <textarea
+                        id="feedback"
+                        rows={4}
+                        value={newFeedback}
+                        onChange={(e) => setNewFeedback(e.target.value)}
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+                        placeholder="Enter the customer feedback..."
+                      ></textarea>
                     </div>
                   </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                <button
+                  type="button"
+                  onClick={addFeedback}
+                  disabled={!newFeedback.trim()}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
+                >
+                  Add Feedback
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
