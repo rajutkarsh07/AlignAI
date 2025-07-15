@@ -149,31 +149,73 @@ const ProjectList: React.FC = () => {
       )}
 
       {/* Search and Filters */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="p-6">
-          <div className="flex flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end">
-            <div className="max-w-lg w-full lg:max-w-xs">
-              <label htmlFor="search" className="sr-only">
-                Search projects
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="search"
-                  name="search"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                  placeholder="Search projects..."
-                  type="search"
-                  value={searchTerm}
-                  onChange={handleSearch}
-                />
-              </div>
+            {/* Search and Filters */}
+      <div className="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
+        <div className="p-6 bg-gradient-to-r from-gray-50 to-white">
+          {/* Search Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Find Projects</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Search through {totalProjects} projects
+              </p>
+            </div>
+            <div className="text-sm text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+              {projects.length} shown
             </div>
           </div>
+
+          {/* Enhanced Search Bar */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 group-focus-within:text-orange-500 transition-colors duration-200" />
+            </div>
+            <input
+              id="search"
+              name="search"
+              className="block w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 text-gray-900 transition-all duration-200 ease-in-out focus:outline-none focus:placeholder-gray-300 focus:ring-0 focus:border-orange-400 focus:bg-white hover:border-gray-300 shadow-sm focus:shadow-md"
+              placeholder="Search projects by name or description..."
+              type="search"
+              value={searchTerm}
+              onChange={handleSearch}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setCurrentPage(1);
+                }}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                aria-label="Clear search"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Search Results Summary */}
+          {searchTerm && (
+            <div className="mt-4 flex items-center justify-between text-sm">
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-500">Search results for:</span>
+                <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-md font-medium">
+                  "{searchTerm}"
+                </span>
+              </div>
+              {projects.length === 0 ? (
+                <span className="text-red-600 font-medium">No matches found</span>
+              ) : (
+                <span className="text-green-600 font-medium">
+                  {projects.length} project{projects.length !== 1 ? 's' : ''} found
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
 
       {/* Projects Grid/List */}
       {projects.length === 0 && !loading ? (
