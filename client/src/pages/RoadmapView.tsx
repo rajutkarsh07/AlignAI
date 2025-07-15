@@ -831,53 +831,6 @@ const RoadmapView: React.FC = () => {
                   </div>
                 </div>
               </div>
-              {/* Roadmap Header */}
-              <div className="bg-white shadow rounded-lg p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {roadmapDetails.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {roadmapDetails.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900">
-                        {roadmapDetails.items.length} Items
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {roadmapDetails.timeHorizon}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Allocation Strategy */}
-                <div className="mt-4 grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-lg font-semibold text-blue-900">
-                      {roadmapDetails.allocationStrategy.strategic}%
-                    </div>
-                    <div className="text-sm text-blue-700">Strategic</div>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-lg font-semibold text-green-900">
-                      {roadmapDetails.allocationStrategy.customerDriven}%
-                    </div>
-                    <div className="text-sm text-green-700">
-                      Customer-Driven
-                    </div>
-                  </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <div className="text-lg font-semibold text-yellow-900">
-                      {roadmapDetails.allocationStrategy.maintenance}%
-                    </div>
-                    <div className="text-sm text-yellow-700">Maintenance</div>
-                  </div>
-                </div>
-              </div>
               {/* View Mode Toggle */}
               <div className="flex justify-center">
                 <div className="bg-white rounded-lg shadow p-1 flex">
