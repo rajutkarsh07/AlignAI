@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import CustomSelect from '../components/CustomSelect';
 
 interface ProjectFormData {
   name: string;
@@ -390,18 +391,18 @@ const ProjectForm: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Priority
                       </label>
-                      <select
+                      <CustomSelect
                         value={goal.priority}
                         onChange={(e) =>
                           handleGoalChange(index, 'priority', e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                        <option value="critical">Critical</option>
-                      </select>
+                        options={[
+                          { value: 'low', label: 'Low' },
+                          { value: 'medium', label: 'Medium' },
+                          { value: 'high', label: 'High' },
+                          { value: 'critical', label: 'Critical' },
+                        ]}
+                      />
                     </div>
 
                     <div>
@@ -427,18 +428,18 @@ const ProjectForm: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Status
                       </label>
-                      <select
+                      <CustomSelect
                         value={goal.status}
                         onChange={(e) =>
                           handleGoalChange(index, 'status', e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="planned">Planned</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="on-hold">On Hold</option>
-                      </select>
+                        options={[
+                          { value: 'planned', label: 'Planned' },
+                          { value: 'in-progress', label: 'In Progress' },
+                          { value: 'completed', label: 'Completed' },
+                          { value: 'on-hold', label: 'On Hold' },
+                        ]}
+                      />
                     </div>
                   </div>
 

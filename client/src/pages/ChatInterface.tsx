@@ -14,6 +14,7 @@ import {
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import 'highlight.js/styles/github-dark.css';
+import CustomSelect from '../components/CustomSelect';
 
 interface Message {
   id: string;
@@ -520,18 +521,17 @@ What would you like to work on today?`;
             </div>
             <div className="flex items-center space-x-3">
               {!projectId && projects.length > 0 && (
-                <select
+                <CustomSelect
                   value={selectedProject}
                   onChange={(e) => setSelectedProject(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm"
-                >
-                  <option value="">All Projects</option>
-                  {projects.map((project) => (
-                    <option key={project._id} value={project._id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'All Projects' },
+                    ...projects.map((project) => ({
+                      value: project._id,
+                      label: project.name,
+                    })),
+                  ]}
+                />
               )}
               <button
                 onClick={createNewSession}

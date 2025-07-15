@@ -13,6 +13,7 @@ import {
   EyeIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
+import CustomSelect from '../components/CustomSelect';
 
 interface FeedbackItem {
   _id: string;
@@ -516,18 +517,15 @@ const FeedbackManagement: React.FC = () => {
         </div>
         <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
           {projects.length > 0 && !projectId && (
-            <select
+            <CustomSelect
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
+              options={projects.map((project) => ({
+                value: project._id,
+                label: project.name,
+              }))}
               className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="">Select Project</option>
-              {projects.map((project) => (
-                <option key={project._id} value={project._id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+            />
           )}
           {projectId && selectedProject && (
             <div className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 text-gray-700">

@@ -14,6 +14,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
 } from '@heroicons/react/24/outline';
+import CustomSelect from '../components/CustomSelect';
 
 interface Task {
   _id: string;
@@ -330,18 +331,18 @@ const TaskManagement: React.FC = () => {
         </div>
         <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
           {projects.length > 0 && (
-            <select
+            <CustomSelect
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
+              options={[
+                { value: '', label: 'All Projects' },
+                ...projects.map((project) => ({
+                  value: project._id,
+                  label: project.name,
+                })),
+              ]}
               className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="">All Projects</option>
-              {projects.map((project) => (
-                <option key={project._id} value={project._id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+            />
           )}
           <button
             onClick={() => setShowAddForm(true)}
@@ -359,48 +360,50 @@ const TaskManagement: React.FC = () => {
         <div className="flex flex-wrap gap-4">
           <div>
             <label className="text-sm font-medium text-gray-700">Project</label>
-            <select
+            <CustomSelect
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
+              options={[
+                { value: '', label: 'All Projects' },
+                ...projects.map((project) => ({
+                  value: project._id,
+                  label: project.name,
+                })),
+              ]}
               className="mt-1 block px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-            >
-              <option value="">All Projects</option>
-              {projects.map((project) => (
-                <option key={project._id} value={project._id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Status</label>
-            <select
+            <CustomSelect
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Status' },
+                { value: 'todo', label: 'To Do' },
+                { value: 'in-progress', label: 'In Progress' },
+                { value: 'done', label: 'Done' },
+                { value: 'blocked', label: 'Blocked' },
+              ]}
               className="mt-1 block px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="todo">To Do</option>
-              <option value="in-progress">In Progress</option>
-              <option value="done">Done</option>
-              <option value="blocked">Blocked</option>
-            </select>
+            />
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">
               Priority
             </label>
-            <select
+            <CustomSelect
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Priorities' },
+                { value: 'critical', label: 'Critical' },
+                { value: 'high', label: 'High' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'low', label: 'Low' },
+              ]}
               className="mt-1 block px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Priorities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
+            />
           </div>
         </div>
       </div>
@@ -563,7 +566,7 @@ const TaskManagement: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     Category
                   </label>
-                  <select
+                  <CustomSelect
                     value={newTask.category}
                     onChange={(e) =>
                       setNewTask((prev) => ({
@@ -571,16 +574,17 @@ const TaskManagement: React.FC = () => {
                         category: e.target.value as any,
                       }))
                     }
+                    options={[
+                      { value: 'feature', label: 'Feature' },
+                      { value: 'bug-fix', label: 'Bug Fix' },
+                      { value: 'improvement', label: 'Improvement' },
+                      { value: 'research', label: 'Research' },
+                      { value: 'maintenance', label: 'Maintenance' },
+                      { value: 'design', label: 'Design' },
+                      { value: 'testing', label: 'Testing' },
+                    ]}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="feature">Feature</option>
-                    <option value="bug-fix">Bug Fix</option>
-                    <option value="improvement">Improvement</option>
-                    <option value="research">Research</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="design">Design</option>
-                    <option value="testing">Testing</option>
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -635,7 +639,7 @@ const TaskManagement: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     Priority
                   </label>
-                  <select
+                  <CustomSelect
                     value={newTask.priority}
                     onChange={(e) =>
                       setNewTask((prev) => ({
@@ -643,13 +647,14 @@ const TaskManagement: React.FC = () => {
                         priority: e.target.value as any,
                       }))
                     }
+                    options={[
+                      { value: 'low', label: 'Low' },
+                      { value: 'medium', label: 'Medium' },
+                      { value: 'high', label: 'High' },
+                      { value: 'critical', label: 'Critical' },
+                    ]}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="critical">Critical</option>
-                  </select>
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -953,7 +958,7 @@ const TaskManagement: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-center justify-between px-5 pb-5 mt-auto border-t border-gray-100 pt-3 bg-gradient-to-t from-gray-50 to-white">
-                    <select
+                    <CustomSelect
                       value={task.status}
                       onChange={(e) =>
                         updateTaskStatus(
@@ -961,13 +966,14 @@ const TaskManagement: React.FC = () => {
                           e.target.value as Task['status']
                         )
                       }
+                      options={[
+                        { value: 'todo', label: 'To Do' },
+                        { value: 'in-progress', label: 'In Progress' },
+                        { value: 'done', label: 'Done' },
+                        { value: 'blocked', label: 'Blocked' },
+                      ]}
                       className="text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 px-2 py-1 bg-white"
-                    >
-                      <option value="todo">To Do</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="done">Done</option>
-                      <option value="blocked">Blocked</option>
-                    </select>
+                    />
                     {/* You can add more actions here if needed */}
                   </div>
                 </div>

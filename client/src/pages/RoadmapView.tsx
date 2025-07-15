@@ -23,6 +23,7 @@ import {
   DraggableProvided,
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd';
+import CustomSelect from '../components/CustomSelect';
 
 interface RoadmapItem {
   _id: string;
@@ -371,18 +372,18 @@ const RoadmapView: React.FC = () => {
         </div>
         <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
           {projects.length > 0 && !projectId && (
-            <select
+            <CustomSelect
               value={selectedProject}
               onChange={(e) => setSelectedProject(e.target.value)}
+              options={[
+                { value: '', label: 'Select Project' },
+                ...projects.map((project) => ({
+                  value: project._id,
+                  label: project.name,
+                })),
+              ]}
               className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Project</option>
-              {projects.map((project) => (
-                <option key={project._id} value={project._id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+            />
           )}
           {projectId && selectedProject && (
             <div className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 text-gray-700">
@@ -391,18 +392,18 @@ const RoadmapView: React.FC = () => {
             </div>
           )}
           {selectedProject && roadmaps.length > 0 && (
-            <select
+            <CustomSelect
               value={selectedRoadmap}
               onChange={(e) => setSelectedRoadmap(e.target.value)}
+              options={[
+                { value: '', label: 'Select Roadmap' },
+                ...roadmaps.map((roadmap) => ({
+                  value: roadmap._id,
+                  label: roadmap.name,
+                })),
+              ]}
               className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Roadmap</option>
-              {roadmaps.map((roadmap) => (
-                <option key={roadmap._id} value={roadmap._id}>
-                  {roadmap.name}
-                </option>
-              ))}
-            </select>
+            />
           )}
           <button
             onClick={() => setShowCreateForm(true)}
@@ -700,6 +701,136 @@ const RoadmapView: React.FC = () => {
           {/* Roadmap Details */}
           {selectedRoadmap && roadmapDetails && (
             <>
+              <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
+                {/* Header Section */}
+                <div className="px-6 py-5 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 flex items-center">
+                        <span className="bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full">
+                          Roadmap
+                        </span>
+                        {roadmapDetails.name}
+                      </h3>
+                      <p className="text-gray-600 mt-2 leading-relaxed">
+                        {roadmapDetails.description}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-500">
+                          Total Items
+                        </div>
+                        <div className="text-2xl font-bold text-gray-900">
+                          {roadmapDetails.items.length}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedRoadmap('')}
+                        className="p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-gray-400 hover:text-gray-600"
+                        aria-label="Go back"
+                      >
+                        <svg
+                          className="h-6 w-6"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={1.5}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Allocation Strategy */}
+                <div className="px-6 py-5 bg-gray-50">
+                  <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+                    Allocation Strategy
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Strategic */}
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-100 shadow-sm">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                        <span className="text-sm font-medium text-blue-800">
+                          Strategic
+                        </span>
+                      </div>
+                      <div className="text-3xl font-bold text-blue-900 mt-2">
+                        {roadmapDetails.allocationStrategy.strategic}%
+                      </div>
+                      <div className="mt-2 h-2 w-full bg-blue-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-600 rounded-full"
+                          style={{
+                            width: `${roadmapDetails.allocationStrategy.strategic}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Customer-Driven */}
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-100 shadow-sm">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                        <span className="text-sm font-medium text-green-800">
+                          Customer-Driven
+                        </span>
+                      </div>
+                      <div className="text-3xl font-bold text-green-900 mt-2">
+                        {roadmapDetails.allocationStrategy.customerDriven}%
+                      </div>
+                      <div className="mt-2 h-2 w-full bg-green-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-green-600 rounded-full"
+                          style={{
+                            width: `${roadmapDetails.allocationStrategy.customerDriven}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Maintenance */}
+                    <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-100 shadow-sm">
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+                        <span className="text-sm font-medium text-amber-800">
+                          Maintenance
+                        </span>
+                      </div>
+                      <div className="text-3xl font-bold text-amber-900 mt-2">
+                        {roadmapDetails.allocationStrategy.maintenance}%
+                      </div>
+                      <div className="mt-2 h-2 w-full bg-amber-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-500 rounded-full"
+                          style={{
+                            width: `${roadmapDetails.allocationStrategy.maintenance}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Horizon */}
+                <div className="px-6 py-4 bg-white border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-500">
+                      Time Horizon
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900 bg-gray-100 px-3 py-1 rounded-full">
+                      {roadmapDetails.timeHorizon}
+                    </span>
+                  </div>
+                </div>
+              </div>
               {/* Roadmap Header */}
               <div className="bg-white shadow rounded-lg p-6">
                 <div className="flex items-center justify-between">
@@ -720,12 +851,6 @@ const RoadmapView: React.FC = () => {
                         {roadmapDetails.timeHorizon}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setSelectedRoadmap('')}
-                      className="text-gray-400 hover:text-gray-500"
-                    >
-                      ← Back to list
-                    </button>
                   </div>
                 </div>
 
@@ -753,7 +878,6 @@ const RoadmapView: React.FC = () => {
                   </div>
                 </div>
               </div>
-
               {/* View Mode Toggle */}
               <div className="flex justify-center">
                 <div className="bg-white rounded-lg shadow p-1 flex">
