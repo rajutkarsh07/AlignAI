@@ -10,21 +10,6 @@ class AIService {
     this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
 
     if (this.useVertexAI) {
-      // const ai = new GoogleGenAI({
-      //   vertexai: true,
-      //   project: 'itd-ai-interns',
-      //   location: 'global'
-      // });
-
-      // this.model = ai.getGenerativeModel({
-      //   model: 'gemini-2.0-flash-exp',
-      //   generationConfig: {
-      //     maxOutputTokens: 8192,
-      //     temperature: 0.3,
-      //     topP: 0.95,
-      //   },
-      // });
-
       this.ai = new GoogleGenAI({
         vertexai: true,
         project: 'itd-ai-interns',

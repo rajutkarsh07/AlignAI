@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "AlignAI - AI-powered product management platform with intelligent prioritization",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
