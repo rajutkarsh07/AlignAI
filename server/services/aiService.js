@@ -3,25 +3,62 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
 
+const { GoogleGenAI } = require('@google/genai');
+
 class AIService {
   constructor() {
     this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
 
     if (this.useVertexAI) {
-      // Initialize Vertex AI
-      this.vertexAI = new VertexAI({
-        project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+      // const ai = new GoogleGenAI({
+      //   vertexai: true,
+      //   project: 'itd-ai-interns',
+      //   location: 'global'
+      // });
+
+      // this.model = ai.getGenerativeModel({
+      //   model: 'gemini-2.0-flash-exp',
+      //   generationConfig: {
+      //     maxOutputTokens: 8192,
+      //     temperature: 0.3,
+      //     topP: 0.95,
+      //   },
+      // });
+
+      this.ai = new GoogleGenAI({
+        vertexai: true,
+        project: 'itd-ai-interns',
+        location: 'global'
       });
 
-      this.model = this.vertexAI.preview.getGenerativeModel({
-        model: 'gemini-2.0-flash-exp',
-        generationConfig: {
-          maxOutputTokens: 8192,
-          temperature: 0.3,
-          topP: 0.95,
-        },
-      });
+      this.model = 'gemini-2.5-flash';
+
+      this.generationConfig = {
+        maxOutputTokens: 65535,
+        temperature: 1,
+        topP: 1,
+        seed: 0,
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'OFF',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'OFF',
+          },
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'OFF',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'OFF',
+          }
+        ],
+      };
+
+      console.log('🤖 Agent Service initialized in aiService using Vertex AI');
     } else {
       // Initialize Gemini API
       this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -44,11 +81,18 @@ class AIService {
 
   async generateContent(prompt) {
     try {
-      const result = await this.model.generateContent(prompt);
+      if(this.useVertexAI){
+        const req = {
+          model: this.model,
+          contents: [prompt],
+          config: this.generationConfig,
+        };
 
-      if (this.useVertexAI) {
-        return result.response.candidates[0].content.parts[0].text;
-      } else {
+        const response = await this.ai.models.generateContent(req);
+        return response.text;
+      }
+      else{
+        const result = await this.model.generateContent(prompt);
         return result.response.text();
       }
     } catch (error) {

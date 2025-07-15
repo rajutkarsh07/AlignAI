@@ -5,25 +5,45 @@ const Feedback = require('../models/Feedback');
 const Task = require('../models/Task');
 const Roadmap = require('../models/Roadmap');
 
+const { GoogleGenAI } = require('@google/genai');
 class AgentService {
   constructor() {
     this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
 
     if (this.useVertexAI) {
-      // Initialize Vertex AI
-      this.vertexAI = new VertexAI({
-        project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+      this.ai = new GoogleGenAI({
+        vertexai: true,
+        project: 'itd-ai-interns',
+        location: 'global'
       });
+      this.model = 'gemini-2.5-flash';
 
-      this.model = this.vertexAI.preview.getGenerativeModel({
-        model: 'gemini-2.0-flash-exp',
-        generationConfig: {
-          maxOutputTokens: 8192,
-          temperature: 0.4,
-          topP: 0.95,
-        },
-      });
+      this.generationConfig = {
+        maxOutputTokens: 65535,
+        temperature: 1,
+        topP: 1,
+        seed: 0,
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'OFF',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'OFF',
+          },
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'OFF',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'OFF',
+          }
+        ],
+      };
+      
+      console.log('🤖 Agent Service initialized in agentService using Vertex AI');
     } else {
       // Initialize Gemini API
       this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -52,11 +72,18 @@ class AgentService {
 
   async generateContent(prompt) {
     try {
-      const result = await this.model.generateContent(prompt);
+      if(this.useVertexAI){
+        const req = {
+          model: this.model,
+          contents: [prompt],
+          config: this.generationConfig,
+        };
 
-      if (this.useVertexAI) {
-        return result.response.candidates[0].content.parts[0].text;
-      } else {
+        const response = await this.ai.models.generateContent(req);
+        return response.text;
+      }
+      else{
+        const result = await this.model.generateContent(prompt);
         return result.response.text();
       }
     } catch (error) {
@@ -688,12 +715,11 @@ Once you select a project, I'll be able to provide much more detailed and action
       .join('; ');
   }
 
-  // External search integration with Tavily when needed
+  // External search integration
   async searchExternalInformation(query) {
-    // This would integrate with Tavily MCP server for external searches
-    // Implementation depends on the MCP server setup
+    
     try {
-      // Placeholder for Tavily integration
+      
       return {
         query,
         results: [],

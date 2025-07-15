@@ -4,7 +4,7 @@ const feedbackItemSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 2000,
+    maxlength: 10000,
   },
   source: {
     type: String,
