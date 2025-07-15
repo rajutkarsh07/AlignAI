@@ -13,7 +13,7 @@ class AIService {
       this.ai = new GoogleGenAI({
         vertexai: true,
         project: 'itd-ai-interns',
-        location: 'global'
+        location: 'global',
       });
 
       this.model = 'gemini-2.5-flash';
@@ -39,7 +39,7 @@ class AIService {
           {
             category: 'HARM_CATEGORY_HARASSMENT',
             threshold: 'OFF',
-          }
+          },
         ],
       };
 
@@ -66,7 +66,7 @@ class AIService {
 
   async generateContent(prompt) {
     try {
-      if(this.useVertexAI){
+      if (this.useVertexAI) {
         const req = {
           model: this.model,
           contents: [prompt],
@@ -75,8 +75,7 @@ class AIService {
 
         const response = await this.ai.models.generateContent(req);
         return response.text;
-      }
-      else{
+      } else {
         const result = await this.model.generateContent(prompt);
         return result.response.text();
       }

@@ -483,6 +483,72 @@ const getKanbanData = async (req, res) => {
   }
 };
 
+// Get all tasks across all projects
+const getAllTasks = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      status,
+      priority,
+      category,
+      assignedTo,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    // Build query
+    const query = {};
+    if (status) query.status = status;
+    if (priority) query.priority = priority;
+    if (category) query.category = category;
+    if (assignedTo) query['assignedTo.email'] = assignedTo;
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } },
+      ];
+    }
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    const tasks = await Task.find(query)
+      .sort(sort)
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .populate('dependencies.taskId', 'title status priority')
+      .populate('relatedFeedback.feedbackId', 'name');
+
+    const total = await Task.countDocuments(query);
+
+    // Calculate summary statistics for all tasks
+    const summary = await calculateAllTasksSummary();
+
+    res.json({
+      success: true,
+      data: {
+        tasks,
+        summary,
+      },
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching all tasks:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch all tasks',
+    });
+  }
+};
+
 // Helper method to calculate task summary
 const calculateTaskSummary = async (projectId) => {
   try {
@@ -762,6 +828,87 @@ const generateTaskFallback = (title, description) => {
   };
 };
 
+// Helper method to calculate summary for all tasks
+const calculateAllTasksSummary = async () => {
+  try {
+    const tasks = await Task.find({});
+    const summary = {
+      total: tasks.length,
+      byStatus: {},
+      byPriority: {},
+      byCategory: {},
+      completionRate: 0,
+      averageUrgencyScore: 0,
+      overdueTasks: 0,
+      totalEstimatedEffort: 0,
+      totalActualEffort: 0,
+    };
+    const statuses = [
+      'backlog',
+      'planned',
+      'in-progress',
+      'review',
+      'testing',
+      'completed',
+      'cancelled',
+      'todo',
+      'done',
+      'blocked',
+    ];
+    const priorities = ['critical', 'high', 'medium', 'low'];
+    const categories = [
+      'feature',
+      'bug-fix',
+      'improvement',
+      'research',
+      'maintenance',
+      'design',
+      'testing',
+    ];
+    statuses.forEach((status) => (summary.byStatus[status] = 0));
+    priorities.forEach((priority) => (summary.byPriority[priority] = 0));
+    categories.forEach((category) => (summary.byCategory[category] = 0));
+    let totalUrgencyScore = 0;
+    let totalEffortValue = 0;
+    let totalActualEffortValue = 0;
+    tasks.forEach((task) => {
+      if (summary.byStatus[task.status] !== undefined)
+        summary.byStatus[task.status]++;
+      if (summary.byPriority[task.priority] !== undefined)
+        summary.byPriority[task.priority]++;
+      if (summary.byCategory[task.category] !== undefined)
+        summary.byCategory[task.category]++;
+      totalUrgencyScore += task.urgencyScore || 0;
+      if (
+        task.timeline &&
+        task.timeline.plannedEndDate &&
+        task.timeline.plannedEndDate < new Date() &&
+        task.status !== 'completed'
+      ) {
+        summary.overdueTasks++;
+      }
+      if (task.estimatedEffort && task.estimatedEffort.value) {
+        totalEffortValue += task.estimatedEffort.value;
+      }
+      if (task.actualEffort && task.actualEffort.value) {
+        totalActualEffortValue += task.actualEffort.value;
+      }
+    });
+    summary.completionRate =
+      tasks.length > 0 && summary.byStatus.completed !== undefined
+        ? (summary.byStatus.completed / tasks.length) * 100
+        : 0;
+    summary.averageUrgencyScore =
+      tasks.length > 0 ? totalUrgencyScore / tasks.length : 0;
+    summary.totalEstimatedEffort = totalEffortValue;
+    summary.totalActualEffort = totalActualEffortValue;
+    return summary;
+  } catch (error) {
+    console.error('Error calculating all tasks summary:', error);
+    return {};
+  }
+};
+
 // Placeholder methods for analytics calculations
 const calculateVelocityTrend = (tasks) => {
   return [];
@@ -810,4 +957,5 @@ module.exports = {
   removeDependency,
   getTaskAnalytics,
   getKanbanData,
+  getAllTasks, // <-- export the new controller
 };

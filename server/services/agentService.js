@@ -14,7 +14,7 @@ class AgentService {
       this.ai = new GoogleGenAI({
         vertexai: true,
         project: 'itd-ai-interns',
-        location: 'global'
+        location: 'global',
       });
       this.model = 'gemini-2.5-flash';
 
@@ -39,11 +39,13 @@ class AgentService {
           {
             category: 'HARM_CATEGORY_HARASSMENT',
             threshold: 'OFF',
-          }
+          },
         ],
       };
-      
-      console.log('🤖 Agent Service initialized in agentService using Vertex AI');
+
+      console.log(
+        '🤖 Agent Service initialized in agentService using Vertex AI'
+      );
     } else {
       // Initialize Gemini API
       this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -72,7 +74,7 @@ class AgentService {
 
   async generateContent(prompt) {
     try {
-      if(this.useVertexAI){
+      if (this.useVertexAI) {
         const req = {
           model: this.model,
           contents: [prompt],
@@ -81,8 +83,7 @@ class AgentService {
 
         const response = await this.ai.models.generateContent(req);
         return response.text;
-      }
-      else{
+      } else {
         const result = await this.model.generateContent(prompt);
         return result.response.text();
       }
@@ -717,9 +718,7 @@ Once you select a project, I'll be able to provide much more detailed and action
 
   // External search integration
   async searchExternalInformation(query) {
-    
     try {
-      
       return {
         query,
         results: [],

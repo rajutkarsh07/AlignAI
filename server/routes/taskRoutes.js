@@ -10,9 +10,15 @@ const {
   removeDependency,
   getTaskAnalytics,
   getKanbanData,
+  getAllTasks,
 } = require('../controllers/taskController');
 
 const router = express.Router();
+
+// @route   GET /api/tasks
+// @desc    Get all tasks across all projects
+// @access  Public
+router.get('/', getAllTasks);
 
 // @route   GET /api/tasks/project/:projectId
 // @desc    Get all tasks for a project
