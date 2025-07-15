@@ -32,6 +32,7 @@ interface FeedbackItem {
     relatedFeatures: string[];
     urgencyScore: number;
   };
+  projectId?: string; // Added for project-specific feedback
 }
 
 interface UploadedFile {
@@ -66,7 +67,7 @@ const FeedbackManagement: React.FC = () => {
     if (selectedProject) {
       loadFeedback();
     } else {
-      loadSampleFeedback();
+      loadAllFeedback();
     }
   }, [selectedProject]);
 
@@ -94,6 +95,22 @@ const FeedbackManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading feedback:', error);
+      loadSampleFeedback();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch all feedback across all projects
+  const loadAllFeedback = async () => {
+    try {
+      setLoading(true);
+      const response: any = await api.get('/feedback');
+      if (response.success) {
+        setFeedback(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading all feedback:', error);
       loadSampleFeedback();
     } finally {
       setLoading(false);
@@ -877,97 +894,115 @@ const FeedbackManagement: React.FC = () => {
           </div>
         ) : (
           <ul className="divide-y divide-gray-200">
-            {feedback.map((item) => (
-              <li
-                key={item._id}
-                className={`px-4 py-4 ${item.isIgnored ? 'opacity-50' : ''}`}
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    {getSentimentIcon(item.sentiment)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
-                            item.priority
-                          )}`}
-                        >
-                          {item.priority}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          {item.source}
-                        </span>
-                        <span className="text-sm text-gray-500">•</span>
-                        <span className="text-sm text-gray-500">
-                          {item.category}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => toggleIgnore(item._id)}
-                        className={`text-sm ${
-                          item.isIgnored
-                            ? 'text-green-600 hover:text-green-500'
-                            : 'text-gray-600 hover:text-gray-500'
-                        }`}
-                      >
-                        {item.isIgnored ? 'Unignore' : 'Ignore'}
-                      </button>
+            {feedback.map((item) => {
+              // Show project name if all projects are selected
+              const showProject = !selectedProject;
+              const project =
+                showProject && typeof item.projectId === 'string'
+                  ? projects.find((p) => p._id === item.projectId)
+                  : null;
+              return (
+                <li
+                  key={item._id}
+                  className={`px-4 py-4 ${item.isIgnored ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      {getSentimentIcon(item.sentiment)}
                     </div>
-                    <p className="mt-2 text-sm text-gray-900">{item.content}</p>
-
-                    {/* AI Analysis Display */}
-                    {item.aiAnalysis && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <SparklesIcon className="h-4 w-4 text-blue-600" />
-                          <span className="text-xs font-medium text-blue-900">
-                            AI Analysis
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2 flex-wrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                              item.priority
+                            )}`}
+                          >
+                            {item.priority}
                           </span>
-                        </div>
-                        <p className="text-xs text-blue-800 mb-2">
-                          {item.aiAnalysis.summary}
-                        </p>
-                        {item.aiAnalysis.actionableItems.length > 0 && (
-                          <div className="mb-2">
-                            <span className="text-xs font-medium text-blue-900">
-                              Actionable Items:
+                          <span className="text-sm text-gray-500">
+                            {item.source}
+                          </span>
+                          <span className="text-sm text-gray-500">•</span>
+                          <span className="text-sm text-gray-500">
+                            {item.category}
+                          </span>
+                          {showProject && project && (
+                            <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 rounded px-2 py-0.5 font-semibold border border-orange-200 ml-2">
+                              <span className="font-bold">Project:</span>{' '}
+                              {project.name}
                             </span>
-                            <ul className="text-xs text-blue-800 mt-1">
-                              {item.aiAnalysis.actionableItems.map(
-                                (action, index) => (
-                                  <li key={index} className="ml-4 list-disc">
-                                    {action}
-                                  </li>
-                                )
-                              )}
-                            </ul>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => toggleIgnore(item._id)}
+                          className={`text-sm ${
+                            item.isIgnored
+                              ? 'text-green-600 hover:text-green-500'
+                              : 'text-gray-600 hover:text-gray-500'
+                          }`}
+                        >
+                          {item.isIgnored ? 'Unignore' : 'Ignore'}
+                        </button>
+                      </div>
+                      <p className="mt-2 text-sm text-gray-900">
+                        {item.content}
+                      </p>
+
+                      {/* AI Analysis Display */}
+                      {item.aiAnalysis && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <SparklesIcon className="h-4 w-4 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-900">
+                              AI Analysis
+                            </span>
                           </div>
-                        )}
-                        {item.extractedKeywords &&
-                          item.extractedKeywords.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {item.extractedKeywords.map((keyword, index) => (
-                                <span
-                                  key={index}
-                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
-                                >
-                                  {keyword}
-                                </span>
-                              ))}
+                          <p className="text-xs text-blue-800 mb-2">
+                            {item.aiAnalysis.summary}
+                          </p>
+                          {item.aiAnalysis.actionableItems.length > 0 && (
+                            <div className="mb-2">
+                              <span className="text-xs font-medium text-blue-900">
+                                Actionable Items:
+                              </span>
+                              <ul className="text-xs text-blue-800 mt-1">
+                                {item.aiAnalysis.actionableItems.map(
+                                  (action, index) => (
+                                    <li key={index} className="ml-4 list-disc">
+                                      {action}
+                                    </li>
+                                  )
+                                )}
+                              </ul>
                             </div>
                           )}
-                      </div>
-                    )}
+                          {item.extractedKeywords &&
+                            item.extractedKeywords.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {item.extractedKeywords.map(
+                                  (keyword, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800"
+                                    >
+                                      {keyword}
+                                    </span>
+                                  )
+                                )}
+                              </div>
+                            )}
+                        </div>
+                      )}
 
-                    <p className="mt-1 text-xs text-gray-500">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

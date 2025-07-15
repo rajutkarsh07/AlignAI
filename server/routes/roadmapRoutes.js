@@ -12,9 +12,15 @@ const {
   convertToTasks,
   getRoadmapTimeline,
   getRoadmapAnalytics,
+  getAllRoadmaps, // <-- import the new controller
 } = require('../controllers/roadmapController');
 
 const router = express.Router();
+
+// @route   GET /api/roadmap
+// @desc    Get all roadmaps across all projects
+// @access  Public
+router.get('/', getAllRoadmaps);
 
 // @route   GET /api/roadmap/project/:projectId
 // @desc    Get all roadmaps for a project

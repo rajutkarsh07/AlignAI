@@ -603,6 +603,73 @@ const getFeedbackAnalytics = async (req, res) => {
   }
 };
 
+// Get all feedback across all projects
+const getAllFeedback = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      category,
+      priority,
+      sentiment,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    // Build query for Feedback documents (no projectId filter)
+    const feedbackDocs = await Feedback.find({})
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    // Flatten feedback items and filter as needed
+    let allFeedbackItems = [];
+    feedbackDocs.forEach((doc) => {
+      let items = doc.feedbackItems.filter((item) => !item.isIgnored);
+      if (category) items = items.filter((item) => item.category === category);
+      if (priority) items = items.filter((item) => item.priority === priority);
+      if (sentiment)
+        items = items.filter((item) => item.sentiment === sentiment);
+      if (search) {
+        items = items.filter(
+          (item) =>
+            item.content.toLowerCase().includes(search.toLowerCase()) ||
+            (item.extractedKeywords || []).some((keyword) =>
+              keyword.toLowerCase().includes(search.toLowerCase())
+            )
+        );
+      }
+      allFeedbackItems.push(
+        ...items.map((item) => ({
+          ...item.toObject(),
+          feedbackDocId: doc._id,
+          feedbackDocName: doc.name,
+          projectId: doc.projectId,
+        }))
+      );
+    });
+
+    const total = await Feedback.countDocuments({});
+
+    res.json({
+      success: true,
+      data: allFeedbackItems,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching all feedback:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch all feedback',
+    });
+  }
+};
+
 // Helper method to calculate overall summary
 const calculateOverallSummary = (feedbackDocs) => {
   const allItems = feedbackDocs.flatMap((doc) =>
@@ -745,4 +812,5 @@ module.exports = {
   toggleFeedbackItemIgnore,
   deleteFeedback,
   getFeedbackAnalytics,
+  getAllFeedback, // <-- export the new controller
 };

@@ -10,9 +10,15 @@ const {
   toggleFeedbackItemIgnore,
   deleteFeedback,
   getFeedbackAnalytics,
+  getAllFeedback, // <-- import the new controller
 } = require('../controllers/feedbackController');
 
 const router = express.Router();
+
+// @route   GET /api/feedback
+// @desc    Get all feedback items across all projects
+// @access  Public
+router.get('/', getAllFeedback);
 
 // @route   GET /api/feedback/project/:projectId
 // @desc    Get all feedback for a project

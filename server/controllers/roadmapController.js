@@ -717,6 +717,56 @@ const getRoadmapAnalytics = async (req, res) => {
   }
 };
 
+// Get all roadmaps across all projects
+const getAllRoadmaps = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 20,
+      type,
+      timeHorizon,
+      search,
+      sortBy = 'updatedAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    // Build query for all roadmaps
+    const query = { isActive: true };
+    if (type) query.type = type;
+    if (timeHorizon) query.timeHorizon = timeHorizon;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const roadmaps = await Roadmap.find(query)
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .populate('projectId', 'name description');
+
+    const total = await Roadmap.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: roadmaps,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching all roadmaps:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch all roadmaps',
+    });
+  }
+};
+
 // Helper method to map roadmap category to task category
 const mapRoadmapCategoryToTask = (roadmapCategory) => {
   const mapping = {
@@ -930,4 +980,5 @@ module.exports = {
   convertToTasks,
   getRoadmapTimeline,
   getRoadmapAnalytics,
+  getAllRoadmaps, // <-- export the new controller
 };

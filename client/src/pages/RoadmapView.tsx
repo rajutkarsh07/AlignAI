@@ -13,6 +13,16 @@ import {
   SparklesIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+  DroppableProvided,
+  DroppableStateSnapshot,
+  DraggableProvided,
+  DraggableStateSnapshot,
+} from '@hello-pangea/dnd';
 
 interface RoadmapItem {
   _id: string;
@@ -137,11 +147,21 @@ const RoadmapView: React.FC = () => {
     fetchProjects();
   }, []);
 
-  // Fetch roadmaps for selected project
+  // Fetch roadmaps for selected project or all projects
   useEffect(() => {
     const fetchRoadmaps = async () => {
       if (!selectedProject) {
-        setRoadmaps([]);
+        // Fetch all roadmaps
+        setIsLoadingRoadmaps(true);
+        try {
+          const response: any = await api.get('/roadmap');
+          setRoadmaps(response.success ? response.data : []);
+        } catch (error) {
+          console.error('Error fetching all roadmaps:', error);
+          setRoadmaps([]);
+        } finally {
+          setIsLoadingRoadmaps(false);
+        }
         return;
       }
 
@@ -153,6 +173,7 @@ const RoadmapView: React.FC = () => {
         setRoadmaps(response.success ? response.data : []);
       } catch (error) {
         console.error('Error fetching roadmaps:', error);
+        setRoadmaps([]);
       } finally {
         setIsLoadingRoadmaps(false);
       }
@@ -322,6 +343,18 @@ const RoadmapView: React.FC = () => {
     'customer-only': { strategic: 20, customerDriven: 70, maintenance: 10 },
     balanced: { strategic: 60, customerDriven: 30, maintenance: 10 },
     custom: newRoadmap.customAllocation,
+  };
+
+  // Kanban drag-and-drop handler
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination || !roadmapDetails) return;
+    const { draggableId, destination, source } = result;
+    const item = roadmapDetails.items.find((i) => i._id === draggableId);
+    if (!item) return;
+    const newStatus = destination.droppableId as RoadmapItem['status'];
+    if (item.status !== newStatus) {
+      updateItemStatus(item._id, newStatus);
+    }
   };
 
   return (
@@ -592,53 +625,75 @@ const RoadmapView: React.FC = () => {
 
           {/* Roadmap List */}
           {!selectedRoadmap && roadmaps.length > 0 && (
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Available Roadmaps
-                </h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                  Select a roadmap to view details
-                </p>
-              </div>
-              <ul className="divide-y divide-gray-200">
-                {roadmaps.map((roadmap) => (
-                  <li key={roadmap._id} className="px-4 py-4 hover:bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          {roadmap.name}
-                        </h4>
-                        <p className="text-sm text-gray-500 mt-1">
+            <div className="p-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                Available Roadmaps
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {roadmaps.map((roadmap) => {
+                  const showProject = !selectedProject;
+                  const project =
+                    showProject && roadmap.projectId
+                      ? projects.find((p) => {
+                          const pid =
+                            typeof roadmap.projectId === 'object' &&
+                            roadmap.projectId !== null
+                              ? (roadmap.projectId as any)._id
+                              : roadmap.projectId;
+                          return p._id === pid;
+                        })
+                      : null;
+                  return (
+                    <div
+                      key={roadmap._id}
+                      className="relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col group overflow-hidden min-h-[180px]"
+                    >
+                      <div className="flex flex-col flex-1 p-5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapIcon className="h-5 w-5 text-blue-400" />
+                          <span className="text-base font-bold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
+                            {roadmap.name}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-2 line-clamp-2">
                           {roadmap.description}
                         </p>
-                        <div className="mt-2 flex items-center space-x-4">
+                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold ${getCategoryColor(
                               roadmap.type
-                            )}`}
+                            )} border border-opacity-30`}
                           >
                             {roadmap.type.replace('-', ' ')}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5">
                             {roadmap.timeHorizon}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5">
                             {roadmap.items.length} items
                           </span>
+                          {showProject && project && (
+                            <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 rounded px-2 py-0.5 font-semibold border border-orange-200">
+                              <span className="font-bold">Project:</span>{' '}
+                              {project.name}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1" />
+                        <div className="flex justify-end mt-2">
+                          <button
+                            onClick={() => setSelectedRoadmap(roadmap._id)}
+                            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                          >
+                            View Details
+                            <ArrowRightIcon className="ml-1 h-3 w-3" />
+                          </button>
                         </div>
                       </div>
-                      <button
-                        onClick={() => setSelectedRoadmap(roadmap._id)}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
-                      >
-                        View Details
-                        <ArrowRightIcon className="ml-1 h-3 w-3" />
-                      </button>
                     </div>
-                  </li>
-                ))}
-              </ul>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -827,59 +882,94 @@ const RoadmapView: React.FC = () => {
 
               {/* Kanban View */}
               {viewMode === 'kanban' && (
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                  {[
-                    'proposed',
-                    'approved',
-                    'in-progress',
-                    'completed',
-                    'cancelled',
-                  ].map((status) => {
-                    const items = roadmapDetails.items.filter(
-                      (item) => item.status === status
-                    );
-                    return (
-                      <div key={status} className="bg-white shadow rounded-lg">
-                        <div className="px-4 py-3 border-b border-gray-200">
-                          <h4 className="text-sm font-medium text-gray-900 capitalize">
-                            {status.replace('-', ' ')} ({items.length})
-                          </h4>
-                        </div>
-                        <div className="p-4 space-y-3">
-                          {items.map((item) => (
+                <DragDropContext onDragEnd={onDragEnd}>
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    {[
+                      'proposed',
+                      'approved',
+                      'in-progress',
+                      'completed',
+                      'cancelled',
+                    ].map((status) => {
+                      const items = roadmapDetails.items.filter(
+                        (item) => item.status === status
+                      );
+                      return (
+                        <Droppable droppableId={status} key={status}>
+                          {(
+                            provided: DroppableProvided,
+                            snapshot: DroppableStateSnapshot
+                          ) => (
                             <div
-                              key={item._id}
-                              className="border border-gray-200 rounded-lg p-3"
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className={`bg-white shadow rounded-lg min-h-[120px] transition-all ${
+                                snapshot.isDraggingOver
+                                  ? 'ring-2 ring-blue-400'
+                                  : ''
+                              }`}
                             >
-                              <h5 className="text-sm font-medium text-gray-900">
-                                {item.title}
-                              </h5>
-                              <div className="mt-2 flex items-center space-x-2">
-                                <span
-                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                                    item.category
-                                  )}`}
-                                >
-                                  {item.category.replace('-', ' ')}
-                                </span>
-                                <span
-                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                                    item.priority
-                                  )}`}
-                                >
-                                  {item.priority}
-                                </span>
+                              <div className="px-4 py-3 border-b border-gray-200">
+                                <h4 className="text-sm font-medium text-gray-900 capitalize">
+                                  {status.replace('-', ' ')} ({items.length})
+                                </h4>
                               </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {item.timeframe.quarter}
-                              </p>
+                              <div className="p-4 space-y-3">
+                                {items.map((item, idx) => (
+                                  <Draggable
+                                    key={item._id}
+                                    draggableId={item._id}
+                                    index={idx}
+                                  >
+                                    {(
+                                      provided: DraggableProvided,
+                                      snapshot: DraggableStateSnapshot
+                                    ) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`border border-gray-200 rounded-lg p-3 bg-white transition-shadow ${
+                                          snapshot.isDragging
+                                            ? 'shadow-xl ring-2 ring-blue-400'
+                                            : ''
+                                        }`}
+                                      >
+                                        <h5 className="text-sm font-medium text-gray-900">
+                                          {item.title}
+                                        </h5>
+                                        <div className="mt-2 flex items-center space-x-2">
+                                          <span
+                                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                                              item.category
+                                            )}`}
+                                          >
+                                            {item.category.replace('-', ' ')}
+                                          </span>
+                                          <span
+                                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                                              item.priority
+                                            )}`}
+                                          >
+                                            {item.priority}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {item.timeframe.quarter}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                          )}
+                        </Droppable>
+                      );
+                    })}
+                  </div>
+                </DragDropContext>
               )}
 
               {/* List View */}
