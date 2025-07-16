@@ -21,7 +21,6 @@ const ProjectDetail: React.FC = () => {
       try {
         const response = await projectsApi.getById(id);
         setProject(response.data);
-        console.log(response.data);
       } catch (err: any) {
         setError(err.message || 'Error loading project');
       } finally {
