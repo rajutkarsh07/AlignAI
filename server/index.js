@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+const { GoogleGenAI } = require('@google/genai');
 
 // Initialize Vertex with your Cloud project and location
 const ai = new GoogleGenAI({

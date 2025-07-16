@@ -20,6 +20,7 @@ const roadmapRoutes = require('./routes/roadmapRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
+app.use(cors());
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
