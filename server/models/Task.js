@@ -15,11 +15,11 @@ const taskSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true,
-    maxlength: 10000
+    maxlength: 10000,
   },
   enhancedDescription: {
     type: String,
-    maxlength: 10000
+    maxlength: 10000,
   },
   category: {
     type: String,
@@ -46,6 +46,9 @@ const taskSchema = new mongoose.Schema({
       'planned',
       'in-progress',
       'review',
+      'todo',
+      'done',
+      'blocked',
       'testing',
       'completed',
       'cancelled',

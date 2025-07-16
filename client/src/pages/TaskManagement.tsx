@@ -309,16 +309,16 @@ const TaskManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div className="bg-white shadow-lg rounded-b-2xl">
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="md:flex md:items-center md:justify-between">
             <div className="min-w-0 flex-1">
-              <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:tracking-tight">
+              <h2 className="text-3xl font-extrabold leading-8 text-gray-900 sm:text-4xl sm:tracking-tight">
                 Task Management
               </h2>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-base text-gray-500">
                 Create, track, and manage project tasks
               </p>
             </div>
@@ -339,9 +339,9 @@ const TaskManagement: React.FC = () => {
               <button
                 onClick={() => setShowAddForm(true)}
                 disabled={!selectedProject && projects.length > 0}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <PlusIcon className="h-4 w-4 mr-2" />
+                <PlusIcon className="h-5 w-5 mr-2" />
                 Add Task
               </button>
             </div>
@@ -350,10 +350,10 @@ const TaskManagement: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Filters */}
-        <div className="bg-white shadow rounded-lg p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 sticky top-4 z-10 border border-blue-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Status
@@ -407,8 +407,8 @@ const TaskManagement: React.FC = () => {
 
         {/* Stats */}
         {selectedProject && (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 mb-6">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 mb-8">
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-gray-100 rounded-md p-3">
@@ -428,7 +428,7 @@ const TaskManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
@@ -448,7 +448,7 @@ const TaskManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
@@ -468,7 +468,7 @@ const TaskManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
@@ -488,7 +488,7 @@ const TaskManagement: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
@@ -511,44 +511,46 @@ const TaskManagement: React.FC = () => {
         )}
 
         {/* Tasks List */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Tasks
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Showing {filteredTasks.length} of {tasks.length} tasks
-            </p>
+        <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
+          <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-xl leading-7 font-semibold text-gray-900">
+                Tasks
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Showing {filteredTasks.length} of {tasks.length} tasks
+              </p>
+            </div>
           </div>
 
           {isLoading ? (
-            <div className="text-center py-12">
-              <ArrowPathIcon className="mx-auto h-8 w-8 text-gray-400 animate-spin" />
-              <p className="mt-2 text-sm text-gray-500">Loading tasks...</p>
+            <div className="text-center py-16">
+              <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+              <p className="mt-4 text-base text-gray-500">Loading tasks...</p>
             </div>
           ) : filteredTasks.length === 0 ? (
-            <div className="text-center py-12">
-              <CheckIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
+            <div className="text-center py-16">
+              <SparklesIcon className="mx-auto h-14 w-14 text-blue-300" />
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">
                 No tasks found
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-2 text-base text-gray-500">
                 {tasks.length === 0
-                  ? 'Get started by creating your first task.'
+                  ? 'Get started by creating your first task!'
                   : 'Try adjusting your filters.'}
               </p>
-              <div className="mt-6">
+              <div className="mt-8">
                 <button
                   onClick={() => setShowAddForm(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
                 >
-                  <PlusIcon className="h-4 w-4 mr-2" />
+                  <PlusIcon className="h-5 w-5 mr-2" />
                   Add Task
                 </button>
               </div>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-gray-100">
               {filteredTasks.map((task) => {
                 const showProject = !selectedProject;
                 const project = showProject
@@ -560,25 +562,25 @@ const TaskManagement: React.FC = () => {
                 return (
                   <li
                     key={task._id}
-                    className="hover:bg-gray-50 transition-colors duration-150"
+                    className="hover:bg-blue-50/60 transition-colors duration-200 group"
                   >
-                    <div className="px-4 py-4 sm:px-6">
+                    <div className="px-6 py-5 sm:px-8 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(
                               task.status
                             )}`}
                           >
                             {task.status.replace('-', ' ')}
                           </span>
-                          <p className="text-sm font-medium text-blue-600 truncate">
+                          <p className="text-base font-medium text-blue-700 truncate">
                             {task.title}
                           </p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
                               task.priority
                             )}`}
                           >
@@ -590,18 +592,20 @@ const TaskManagement: React.FC = () => {
                                 expandedTask === task._id ? null : task._id
                               )
                             }
-                            className="text-gray-400 hover:text-gray-500"
+                            className="text-gray-400 hover:text-blue-500 transition"
+                            aria-label={
+                              expandedTask === task._id ? 'Collapse' : 'Expand'
+                            }
                           >
                             {expandedTask === task._id ? (
-                              <ChevronUpIcon className="h-5 w-5" />
+                              <ChevronUpIcon className="h-6 w-6" />
                             ) : (
-                              <ChevronDownIcon className="h-5 w-5" />
+                              <ChevronDownIcon className="h-6 w-6" />
                             )}
                           </button>
                         </div>
                       </div>
-
-                      <div className="mt-2 sm:flex sm:justify-between">
+                      <div className="mt-1 sm:flex sm:justify-between">
                         <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
                           <div className="flex items-center text-sm text-gray-500">
                             <UserIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
@@ -615,127 +619,138 @@ const TaskManagement: React.FC = () => {
                           )}
                           {showProject && project && (
                             <div className="flex items-center text-sm text-gray-500">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
                                 {project.name}
                               </span>
                             </div>
                           )}
                         </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                        <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
                           <span>
                             Created{' '}
                             {new Date(task.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
-
-                      {expandedTask === task._id && (
-                        <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="md:col-span-2">
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                Description
-                              </h4>
-                              <div className="prose prose-sm max-w-none text-gray-600">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {task.description}
-                                </ReactMarkdown>
-                              </div>
-
-                              {task.acceptanceCriteria.length > 0 && (
-                                <div className="mt-4">
-                                  <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                    Acceptance Criteria
-                                  </h4>
-                                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                                    {task.acceptanceCriteria.map(
-                                      (criteria, index) => (
-                                        <li key={index}>{criteria}</li>
-                                      )
-                                    )}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-
-                            <div>
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                Details
-                              </h4>
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                                    Status
-                                  </label>
-                                  <CustomSelect
-                                    value={task.status}
-                                    onChange={(e) =>
-                                      updateTaskStatus(
-                                        task._id,
-                                        e.target.value as Task['status']
-                                      )
-                                    }
-                                    options={[
-                                      { value: 'todo', label: 'To Do' },
-                                      {
-                                        value: 'in-progress',
-                                        label: 'In Progress',
-                                      },
-                                      { value: 'done', label: 'Done' },
-                                      { value: 'blocked', label: 'Blocked' },
-                                    ]}
-                                    className="w-full"
-                                  />
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                          expandedTask === task._id
+                            ? 'max-h-[1000px] opacity-100 mt-4'
+                            : 'max-h-0 opacity-0'
+                        } bg-gray-50 rounded-lg border border-gray-200`}
+                        style={{ willChange: 'max-height, opacity' }}
+                      >
+                        {expandedTask === task._id && (
+                          <div className="p-4 animate-fade-in">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <div className="md:col-span-2">
+                                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                  Description
+                                </h4>
+                                <div className="prose prose-sm max-w-none text-gray-600">
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {task.description}
+                                  </ReactMarkdown>
                                 </div>
 
-                                {task.aiSuggestions && (
-                                  <div>
+                                {task.acceptanceCriteria.length > 0 && (
+                                  <div className="mt-4">
                                     <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                      AI Suggestions
+                                      Acceptance Criteria
                                     </h4>
-                                    <div className="space-y-3">
-                                      {task.aiSuggestions
-                                        .enhancementRecommendations.length >
-                                        0 && (
-                                        <div>
-                                          <h5 className="text-xs font-medium text-gray-500 mb-1">
-                                            Enhancements
-                                          </h5>
-                                          <ul className="text-xs text-gray-600 space-y-1">
-                                            {task.aiSuggestions.enhancementRecommendations.map(
-                                              (rec, i) => (
-                                                <li
-                                                  key={i}
-                                                  className="flex items-start"
-                                                >
-                                                  <span className="mr-1">
-                                                    •
-                                                  </span>
-                                                  <span>{rec}</span>
-                                                </li>
-                                              )
-                                            )}
-                                          </ul>
-                                        </div>
+                                    <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                                      {task.acceptanceCriteria.map(
+                                        (criteria, index) => (
+                                          <li key={index}>{criteria}</li>
+                                        )
                                       )}
-                                      {task.aiSuggestions.riskAssessment && (
-                                        <div>
-                                          <h5 className="text-xs font-medium text-gray-500 mb-1">
-                                            Risks
-                                          </h5>
-                                          <p className="text-xs text-gray-600">
-                                            {task.aiSuggestions.riskAssessment}
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
+                                    </ul>
                                   </div>
                                 )}
                               </div>
+
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                  Details
+                                </h4>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                                      Status
+                                    </label>
+                                    <CustomSelect
+                                      value={task.status}
+                                      onChange={(e) =>
+                                        updateTaskStatus(
+                                          task._id,
+                                          e.target.value as Task['status']
+                                        )
+                                      }
+                                      options={[
+                                        { value: 'todo', label: 'To Do' },
+                                        {
+                                          value: 'in-progress',
+                                          label: 'In Progress',
+                                        },
+                                        { value: 'done', label: 'Done' },
+                                        { value: 'blocked', label: 'Blocked' },
+                                      ]}
+                                      className="w-full"
+                                    />
+                                  </div>
+
+                                  {task.aiSuggestions && (
+                                    <div>
+                                      <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                        AI Suggestions
+                                      </h4>
+                                      <div className="space-y-3">
+                                        {task.aiSuggestions
+                                          .enhancementRecommendations.length >
+                                          0 && (
+                                          <div>
+                                            <h5 className="text-xs font-medium text-gray-500 mb-1">
+                                              Enhancements
+                                            </h5>
+                                            <ul className="text-xs text-gray-600 space-y-1">
+                                              {task.aiSuggestions.enhancementRecommendations.map(
+                                                (rec, i) => (
+                                                  <li
+                                                    key={i}
+                                                    className="flex items-start"
+                                                  >
+                                                    <span className="mr-1">
+                                                      •
+                                                    </span>
+                                                    <span>{rec}</span>
+                                                  </li>
+                                                )
+                                              )}
+                                            </ul>
+                                          </div>
+                                        )}
+                                        {task.aiSuggestions.riskAssessment && (
+                                          <div>
+                                            <h5 className="text-xs font-medium text-gray-500 mb-1">
+                                              Risks
+                                            </h5>
+                                            <p className="text-xs text-gray-600">
+                                              {
+                                                task.aiSuggestions
+                                                  .riskAssessment
+                                              }
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </li>
                 );
@@ -753,7 +768,7 @@ const TaskManagement: React.FC = () => {
               className="fixed inset-0 transition-opacity"
               aria-hidden="true"
             >
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              <div className="absolute inset-0 bg-gray-700 opacity-70"></div>
             </div>
             <span
               className="hidden sm:inline-block sm:align-middle sm:h-screen"
@@ -761,14 +776,14 @@ const TaskManagement: React.FC = () => {
             >
               &#8203;
             </span>
-            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 border border-blue-100">
               <div className="absolute top-0 right-0 pt-4 pr-4">
                 <button
                   onClick={() => {
                     setShowAddForm(false);
                     resetNewTask();
                   }}
-                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                  className="bg-white rounded-full text-gray-400 hover:text-blue-500 focus:outline-none shadow p-1 transition"
                 >
                   <span className="sr-only">Close</span>
                   <XMarkIcon className="h-6 w-6" />
