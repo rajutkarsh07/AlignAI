@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:5000/api'
+    : 'https://alignai-uk7v.onrender.com/api';
 
 // Create axios instance with default config
 export const api = axios.create({
@@ -285,158 +288,179 @@ export interface RoadmapItem {
 
 // API Functions
 export const projectsApi = {
-  getAll: (params?: any): Promise<ApiResponse<Project[]>> => 
+  getAll: (params?: any): Promise<ApiResponse<Project[]>> =>
     api.get('/projects', { params }),
-  
-  getById: (id: string): Promise<ApiResponse<Project>> => 
+
+  getById: (id: string): Promise<ApiResponse<Project>> =>
     api.get(`/projects/${id}`),
-  
-  create: (data: Partial<Project>): Promise<ApiResponse<Project>> => 
+
+  create: (data: Partial<Project>): Promise<ApiResponse<Project>> =>
     api.post('/projects', data),
-  
-  createFromUpload: (formData: FormData): Promise<ApiResponse<Project>> => 
+
+  createFromUpload: (formData: FormData): Promise<ApiResponse<Project>> =>
     api.post('/projects/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  
-  update: (id: string, data: Partial<Project>): Promise<ApiResponse<Project>> => 
+
+  update: (id: string, data: Partial<Project>): Promise<ApiResponse<Project>> =>
     api.put(`/projects/${id}`, data),
-  
-  delete: (id: string): Promise<ApiResponse> => 
-    api.delete(`/projects/${id}`),
-  
-  addGoal: (id: string, goal: Partial<Goal>): Promise<ApiResponse<Project>> => 
+
+  delete: (id: string): Promise<ApiResponse> => api.delete(`/projects/${id}`),
+
+  addGoal: (id: string, goal: Partial<Goal>): Promise<ApiResponse<Project>> =>
     api.post(`/projects/${id}/goals`, goal),
-  
-  updateGoal: (id: string, goalId: string, data: Partial<Goal>): Promise<ApiResponse<Project>> => 
+
+  updateGoal: (
+    id: string,
+    goalId: string,
+    data: Partial<Goal>
+  ): Promise<ApiResponse<Project>> =>
     api.put(`/projects/${id}/goals/${goalId}`, data),
-  
-  deleteGoal: (id: string, goalId: string): Promise<ApiResponse<Project>> => 
-    api.delete(`/projects/${id}/goals/${goalId}`)
+
+  deleteGoal: (id: string, goalId: string): Promise<ApiResponse<Project>> =>
+    api.delete(`/projects/${id}/goals/${goalId}`),
 };
 
 export const feedbackApi = {
-  getByProject: (projectId: string, params?: any): Promise<ApiResponse> => 
+  getByProject: (projectId: string, params?: any): Promise<ApiResponse> =>
     api.get(`/feedback/project/${projectId}`, { params }),
-  
-  getById: (id: string): Promise<ApiResponse<FeedbackCollection>> => 
+
+  getById: (id: string): Promise<ApiResponse<FeedbackCollection>> =>
     api.get(`/feedback/${id}`),
-  
-  create: (data: any): Promise<ApiResponse<FeedbackCollection>> => 
+
+  create: (data: any): Promise<ApiResponse<FeedbackCollection>> =>
     api.post('/feedback', data),
-  
-  createFromUpload: (formData: FormData): Promise<ApiResponse<FeedbackCollection>> => 
+
+  createFromUpload: (
+    formData: FormData
+  ): Promise<ApiResponse<FeedbackCollection>> =>
     api.post('/feedback/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  
-  update: (id: string, data: any): Promise<ApiResponse<FeedbackCollection>> => 
+
+  update: (id: string, data: any): Promise<ApiResponse<FeedbackCollection>> =>
     api.put(`/feedback/${id}`, data),
-  
-  toggleIgnore: (id: string, itemId: string, isIgnored: boolean): Promise<ApiResponse<FeedbackCollection>> => 
+
+  toggleIgnore: (
+    id: string,
+    itemId: string,
+    isIgnored: boolean
+  ): Promise<ApiResponse<FeedbackCollection>> =>
     api.put(`/feedback/${id}/items/${itemId}/ignore`, { isIgnored }),
-  
-  delete: (id: string): Promise<ApiResponse> => 
-    api.delete(`/feedback/${id}`),
-  
-  getAnalytics: (projectId: string): Promise<ApiResponse> => 
-    api.get(`/feedback/project/${projectId}/analytics`)
+
+  delete: (id: string): Promise<ApiResponse> => api.delete(`/feedback/${id}`),
+
+  getAnalytics: (projectId: string): Promise<ApiResponse> =>
+    api.get(`/feedback/project/${projectId}/analytics`),
 };
 
 export const tasksApi = {
-  getByProject: (projectId: string, params?: any): Promise<ApiResponse> => 
+  getByProject: (projectId: string, params?: any): Promise<ApiResponse> =>
     api.get(`/tasks/project/${projectId}`, { params }),
-  
-  getById: (id: string): Promise<ApiResponse<Task>> => 
-    api.get(`/tasks/${id}`),
-  
-  create: (data: Partial<Task>): Promise<ApiResponse<Task>> => 
+
+  getById: (id: string): Promise<ApiResponse<Task>> => api.get(`/tasks/${id}`),
+
+  create: (data: Partial<Task>): Promise<ApiResponse<Task>> =>
     api.post('/tasks', data),
-  
-  createEnhanced: (data: any): Promise<ApiResponse<Task>> => 
+
+  createEnhanced: (data: any): Promise<ApiResponse<Task>> =>
     api.post('/tasks/enhance', data),
-  
-  update: (id: string, data: Partial<Task>): Promise<ApiResponse<Task>> => 
+
+  update: (id: string, data: Partial<Task>): Promise<ApiResponse<Task>> =>
     api.put(`/tasks/${id}`, data),
-  
-  delete: (id: string): Promise<ApiResponse> => 
-    api.delete(`/tasks/${id}`),
-  
-  addDependency: (id: string, data: any): Promise<ApiResponse<Task>> => 
+
+  delete: (id: string): Promise<ApiResponse> => api.delete(`/tasks/${id}`),
+
+  addDependency: (id: string, data: any): Promise<ApiResponse<Task>> =>
     api.post(`/tasks/${id}/dependencies`, data),
-  
-  removeDependency: (id: string, dependencyId: string): Promise<ApiResponse<Task>> => 
+
+  removeDependency: (
+    id: string,
+    dependencyId: string
+  ): Promise<ApiResponse<Task>> =>
     api.delete(`/tasks/${id}/dependencies/${dependencyId}`),
-  
-  getAnalytics: (projectId: string): Promise<ApiResponse> => 
+
+  getAnalytics: (projectId: string): Promise<ApiResponse> =>
     api.get(`/tasks/project/${projectId}/analytics`),
-  
-  getKanban: (projectId: string): Promise<ApiResponse> => 
-    api.get(`/tasks/project/${projectId}/kanban`)
+
+  getKanban: (projectId: string): Promise<ApiResponse> =>
+    api.get(`/tasks/project/${projectId}/kanban`),
 };
 
 export const chatApi = {
-  getSessionsByProject: (projectId: string, params?: any): Promise<ApiResponse<ChatSession[]>> => 
+  getSessionsByProject: (
+    projectId: string,
+    params?: any
+  ): Promise<ApiResponse<ChatSession[]>> =>
     api.get(`/chat/project/${projectId}/sessions`, { params }),
-  
-  getSession: (sessionId: string): Promise<ApiResponse<ChatSession>> => 
+
+  getSession: (sessionId: string): Promise<ApiResponse<ChatSession>> =>
     api.get(`/chat/sessions/${sessionId}`),
-  
-  createSession: (data: any): Promise<ApiResponse<ChatSession>> => 
+
+  createSession: (data: any): Promise<ApiResponse<ChatSession>> =>
     api.post('/chat/sessions', data),
-  
-  sendMessage: (sessionId: string, data: any): Promise<ApiResponse> => 
+
+  sendMessage: (sessionId: string, data: any): Promise<ApiResponse> =>
     api.post(`/chat/sessions/${sessionId}/messages`, data),
-  
-  updateSession: (sessionId: string, data: any): Promise<ApiResponse<ChatSession>> => 
+
+  updateSession: (
+    sessionId: string,
+    data: any
+  ): Promise<ApiResponse<ChatSession>> =>
     api.put(`/chat/sessions/${sessionId}`, data),
-  
-  deleteSession: (sessionId: string): Promise<ApiResponse> => 
+
+  deleteSession: (sessionId: string): Promise<ApiResponse> =>
     api.delete(`/chat/sessions/${sessionId}`),
-  
-  clearSession: (sessionId: string): Promise<ApiResponse<ChatSession>> => 
+
+  clearSession: (sessionId: string): Promise<ApiResponse<ChatSession>> =>
     api.post(`/chat/sessions/${sessionId}/clear`),
-  
-  exportSession: (sessionId: string, format: 'json' | 'txt'): Promise<any> => 
-    api.get(`/chat/sessions/${sessionId}/export?format=${format}`)
+
+  exportSession: (sessionId: string, format: 'json' | 'txt'): Promise<any> =>
+    api.get(`/chat/sessions/${sessionId}/export?format=${format}`),
 };
 
 export const roadmapApi = {
-  getByProject: (projectId: string, params?: any): Promise<ApiResponse<Roadmap[]>> => 
+  getByProject: (
+    projectId: string,
+    params?: any
+  ): Promise<ApiResponse<Roadmap[]>> =>
     api.get(`/roadmap/project/${projectId}`, { params }),
-  
-  getById: (id: string): Promise<ApiResponse<Roadmap>> => 
+
+  getById: (id: string): Promise<ApiResponse<Roadmap>> =>
     api.get(`/roadmap/${id}`),
-  
-  generate: (data: any): Promise<ApiResponse<Roadmap>> => 
+
+  generate: (data: any): Promise<ApiResponse<Roadmap>> =>
     api.post('/roadmap/generate', data),
-  
-  create: (data: Partial<Roadmap>): Promise<ApiResponse<Roadmap>> => 
+
+  create: (data: Partial<Roadmap>): Promise<ApiResponse<Roadmap>> =>
     api.post('/roadmap', data),
-  
-  update: (id: string, data: Partial<Roadmap>): Promise<ApiResponse<Roadmap>> => 
+
+  update: (id: string, data: Partial<Roadmap>): Promise<ApiResponse<Roadmap>> =>
     api.put(`/roadmap/${id}`, data),
-  
-  delete: (id: string): Promise<ApiResponse> => 
-    api.delete(`/roadmap/${id}`),
-  
-  addItem: (id: string, item: any): Promise<ApiResponse<Roadmap>> => 
+
+  delete: (id: string): Promise<ApiResponse> => api.delete(`/roadmap/${id}`),
+
+  addItem: (id: string, item: any): Promise<ApiResponse<Roadmap>> =>
     api.post(`/roadmap/${id}/items`, item),
-  
-  updateItem: (id: string, itemId: string, data: any): Promise<ApiResponse<Roadmap>> => 
+
+  updateItem: (
+    id: string,
+    itemId: string,
+    data: any
+  ): Promise<ApiResponse<Roadmap>> =>
     api.put(`/roadmap/${id}/items/${itemId}`, data),
-  
-  deleteItem: (id: string, itemId: string): Promise<ApiResponse<Roadmap>> => 
+
+  deleteItem: (id: string, itemId: string): Promise<ApiResponse<Roadmap>> =>
     api.delete(`/roadmap/${id}/items/${itemId}`),
-  
-  convertToTasks: (id: string, itemIds?: string[]): Promise<ApiResponse> => 
+
+  convertToTasks: (id: string, itemIds?: string[]): Promise<ApiResponse> =>
     api.post(`/roadmap/${id}/convert-to-tasks`, { itemIds }),
-  
-  getTimeline: (id: string): Promise<ApiResponse> => 
+
+  getTimeline: (id: string): Promise<ApiResponse> =>
     api.get(`/roadmap/${id}/timeline`),
-  
-  getAnalytics: (projectId: string): Promise<ApiResponse> => 
-    api.get(`/roadmap/project/${projectId}/analytics`)
+
+  getAnalytics: (projectId: string): Promise<ApiResponse> =>
+    api.get(`/roadmap/project/${projectId}/analytics`),
 };
 
 export default api;
