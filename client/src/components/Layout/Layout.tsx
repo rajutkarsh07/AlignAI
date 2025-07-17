@@ -13,6 +13,8 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 
+import AlignAI from "../../assets/alignai.png"
+
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
   { name: 'Projects', href: '/projects', icon: FolderIcon },
@@ -77,9 +79,7 @@ const Layout: React.FC = () => {
         />
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
           <div className="flex h-16 items-center justify-between px-6 border-b border-secondary-200">
-            <h1 className="text-lg font-semibold text-secondary-900">
-              AlignAI
-            </h1>
+            <img src={AlignAI} alt="AlignAI logo" />
             <button
               onClick={() => setSidebarOpen(false)}
               className="text-secondary-400 hover:text-secondary-600"
@@ -100,9 +100,7 @@ const Layout: React.FC = () => {
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-secondary-200">
           <div className="flex h-16 items-center px-6 border-b border-secondary-200">
-            <h1 className="text-lg font-semibold text-secondary-900">
-              AlignAI
-            </h1>
+            <img src={AlignAI} alt="AlignAI logo" />
           </div>
           <SidebarContent
             navigation={navigation}
