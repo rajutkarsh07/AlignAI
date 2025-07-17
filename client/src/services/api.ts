@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_BASE_URL =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost:5000/api'
-    : 'https://alignai-uk7v.onrender.com/api';
+    : process.env.REACT_APP_API_URL;
 
 // Create axios instance with default config
 export const api = axios.create({
