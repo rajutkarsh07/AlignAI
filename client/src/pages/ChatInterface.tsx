@@ -58,17 +58,6 @@ const ChatInterface: React.FC = () => {
     }
   }, [sessionId, projectId]);
 
-  useEffect(() => {
-    // Only scroll to bottom if there are messages and we're not at the initial load
-    if (messages.length > 0) {
-      scrollToBottom();
-    }
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const loadProjects = async () => {
     try {
       const response: any = await api.get('/projects');
