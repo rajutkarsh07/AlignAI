@@ -64,19 +64,100 @@ class AIService {
     );
   }
 
-  async generateContent(prompt) {
+  // Validate if the query is project-related
+  isProjectRelatedQuery(prompt) {
+    const projectKeywords = [
+      'project', 'task', 'feedback', 'bug', 'feature', 'requirement',
+      'development', 'product', 'user', 'customer', 'issue', 'enhancement',
+      'improvement', 'roadmap', 'sprint', 'story', 'epic', 'backlog',
+      'priority', 'timeline', 'deadline', 'milestone', 'release',
+      'documentation', 'plan', 'planning', 'analysis', 'test', 'testing',
+      'design', 'ui', 'ux', 'api', 'database', 'implementation',
+      'deployment', 'performance', 'security', 'integration', 'workflow',
+      'process', 'team', 'collaboration', 'review', 'approval',
+      'stakeholder', 'business', 'objective', 'goal', 'metric',
+      'kpi', 'success', 'criteria', 'scope', 'resource', 'budget',
+      'risk', 'mitigation', 'technical', 'functional', 'non-functional'
+    ];
+
+    const normalizedPrompt = prompt.toLowerCase();
+    
+    // Check if any project keywords are present
+    const hasProjectKeywords = projectKeywords.some(keyword => 
+      normalizedPrompt.includes(keyword)
+    );
+
+    // Check for common non-project queries patterns
+    const nonProjectPatterns = [
+      /who is\s+\w+/i,
+      /what is\s+\w+.*born/i,
+      /tell me about\s+(?!project|task|feedback)\w+/i,
+      /cricket/i,
+      /sports/i,
+      /celebrity/i,
+      /actor/i,
+      /actress/i,
+      /singer/i,
+      /politician/i,
+      /history of\s+(?!project|development|software)\w+/i,
+      /capital of/i,
+      /weather/i,
+      /recipe/i,
+      /cooking/i,
+      /movie/i,
+      /film/i,
+      /song/i,
+      /music/i,
+      /book/i,
+      /novel/i
+    ];
+
+    const hasNonProjectPatterns = nonProjectPatterns.some(pattern => 
+      pattern.test(normalizedPrompt)
+    );
+
+    return hasProjectKeywords && !hasNonProjectPatterns;
+  }
+
+  // Enhanced generateContent with input validation
+  async generateContent(prompt, context = 'general') {
     try {
+      // For specific contexts (like formatProjectPlan, analyzeFeedback), skip validation
+      const allowedContexts = ['project-plan', 'feedback-analysis', 'task-enhancement', 'document-processing'];
+      
+      if (!allowedContexts.includes(context) && !this.isProjectRelatedQuery(prompt)) {
+        return "I'm sorry, but I can only assist with project-related queries, including feedback analysis, task management, project planning, and development-related questions. Please ask me something related to your project, tasks, or feedback.";
+      }
+
+      // Add system instruction to restrict responses
+      const systemInstruction = `
+IMPORTANT SYSTEM RESTRICTION:
+You are a specialized AI assistant for project management, task planning, and feedback analysis. 
+You must ONLY respond to queries related to:
+- Project planning and management
+- Task creation and enhancement
+- Feedback analysis and categorization
+- Software development and product management
+- Business objectives and requirements
+- Technical documentation and implementation
+
+If asked about anything unrelated to projects, tasks, feedback, or business/technical topics, 
+politely decline and redirect the user to ask project-related questions.
+
+USER QUERY: ${prompt}
+`;
+
       if (this.useVertexAI) {
         const req = {
           model: this.model,
-          contents: [prompt],
+          contents: [systemInstruction],
           config: this.generationConfig,
         };
 
         const response = await this.ai.models.generateContent(req);
         return response.text;
       } else {
-        const result = await this.model.generateContent(prompt);
+        const result = await this.model.generateContent(systemInstruction);
         return result.response.text();
       }
     } catch (error) {
@@ -154,7 +235,7 @@ Please provide a structured project plan with the following sections:
 Ensure the output is professional, actionable, and comprehensive.`;
 
     try {
-      return await this.generateContent(prompt);
+      return await this.generateContent(prompt, 'project-plan');
     } catch (error) {
       console.error('Error formatting project plan:', error);
       throw new Error('Failed to format project plan');
@@ -200,7 +281,7 @@ Guidelines:
 Respond only with valid JSON.`;
 
     try {
-      const response = await this.generateContent(prompt);
+      const response = await this.generateContent(prompt, 'feedback-analysis');
 
       // Clean and parse JSON response
       const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
@@ -260,7 +341,7 @@ Output format:
 Respond only with valid JSON.`;
 
     try {
-      const response = await this.generateContent(prompt);
+      const response = await this.generateContent(prompt, 'document-processing');
       const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
       return JSON.parse(cleanedResponse);
     } catch (error) {
@@ -336,10 +417,32 @@ Please provide enhanced task information in the following format:
 Ensure recommendations are practical, specific, and aligned with customer feedback.`;
 
     try {
-      return await this.generateContent(prompt);
+      return await this.generateContent(prompt, 'task-enhancement');
     } catch (error) {
       console.error('Error enhancing task description:', error);
       throw new Error('Failed to enhance task description');
+    }
+  }
+
+  // New method for general chat queries with restrictions
+  async processChatQuery(userQuery) {
+    try {
+      // Validate if the query is project-related
+      if (!this.isProjectRelatedQuery(userQuery)) {
+        return {
+          response: "I'm sorry, but I can only assist with project-related queries. I can help you with:\n\n• Project planning and management\n• Task creation and enhancement\n• Feedback analysis and categorization\n• Software development questions\n• Product management strategies\n• Technical documentation\n• Business requirements and objectives\n\nPlease ask me something related to your project, tasks, or feedback analysis.",
+          isRestricted: true
+        };
+      }
+
+      const response = await this.generateContent(userQuery, 'general');
+      return {
+        response,
+        isRestricted: false
+      };
+    } catch (error) {
+      console.error('Error processing chat query:', error);
+      throw new Error('Failed to process chat query');
     }
   }
 }
