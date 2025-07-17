@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import {
@@ -12,6 +12,7 @@ import {
   ExclamationTriangleIcon,
   SparklesIcon,
   ArrowRightIcon,
+  ChartPieIcon, // Added for Insights tab
 } from '@heroicons/react/24/outline';
 import {
   DragDropContext,
@@ -24,7 +25,21 @@ import {
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd';
 import CustomSelect from '../components/CustomSelect';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
+// Interfaces (RoadmapItem, Roadmap, Project) remain unchanged...
 interface RoadmapItem {
   _id: string;
   title: string;
@@ -96,9 +111,9 @@ const RoadmapView: React.FC = () => {
   const [selectedRoadmap, setSelectedRoadmap] = useState<string>(
     roadmapId || ''
   );
-  const [viewMode, setViewMode] = useState<'timeline' | 'kanban' | 'list'>(
-    'timeline'
-  );
+
+  const [viewMode, setViewMode] = useState<'timeline' | 'kanban' | 'list' | 'insights'
+  >('timeline');
   const [newRoadmap, setNewRoadmap] = useState<{
     name: string;
     description: string;
@@ -131,7 +146,7 @@ const RoadmapView: React.FC = () => {
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [isUpdatingItem, setIsUpdatingItem] = useState(false);
 
-  // Fetch projects
+  // Data fetching useEffects remain unchanged...
   useEffect(() => {
     const fetchProjects = async () => {
       setIsLoadingProjects(true);
@@ -148,11 +163,9 @@ const RoadmapView: React.FC = () => {
     fetchProjects();
   }, []);
 
-  // Fetch roadmaps for selected project or all projects
   useEffect(() => {
     const fetchRoadmaps = async () => {
       if (!selectedProject) {
-        // Fetch all roadmaps
         setIsLoadingRoadmaps(true);
         try {
           const response: any = await api.get('/roadmap');
@@ -183,7 +196,6 @@ const RoadmapView: React.FC = () => {
     fetchRoadmaps();
   }, [selectedProject]);
 
-  // Fetch specific roadmap details
   useEffect(() => {
     const fetchRoadmapDetails = async () => {
       if (!selectedRoadmap) {
@@ -205,6 +217,7 @@ const RoadmapView: React.FC = () => {
     fetchRoadmapDetails();
   }, [selectedRoadmap]);
 
+  // All handler functions (resetNewRoadmap, handleGenerateRoadmap, etc.) remain unchanged...
   const resetNewRoadmap = () => {
     setNewRoadmap({
       name: '',
@@ -238,7 +251,6 @@ const RoadmapView: React.FC = () => {
       });
 
       if (response.success) {
-        // Refresh roadmaps
         const roadmapsResponse: any = await api.get(
           `/roadmap/project/${selectedProject}`
         );
@@ -268,7 +280,6 @@ const RoadmapView: React.FC = () => {
         { status }
       );
       if (response.success) {
-        // Refresh roadmap details
         const roadmapResponse: any = await api.get(
           `/roadmap/${selectedRoadmap}`
         );
@@ -283,6 +294,18 @@ const RoadmapView: React.FC = () => {
     }
   };
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination || !roadmapDetails) return;
+    const { draggableId, destination } = result;
+    const item = roadmapDetails.items.find((i) => i._id === draggableId);
+    if (!item) return;
+    const newStatus = destination.droppableId as RoadmapItem['status'];
+    if (item.status !== newStatus) {
+      updateItemStatus(item._id, newStatus);
+    }
+  };
+
+  // Helper functions for colors and data filtering remain unchanged...
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'strategic':
@@ -346,21 +369,94 @@ const RoadmapView: React.FC = () => {
     custom: newRoadmap.customAllocation,
   };
 
-  // Kanban drag-and-drop handler
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination || !roadmapDetails) return;
-    const { draggableId, destination, source } = result;
-    const item = roadmapDetails.items.find((i) => i._id === draggableId);
-    if (!item) return;
-    const newStatus = destination.droppableId as RoadmapItem['status'];
-    if (item.status !== newStatus) {
-      updateItemStatus(item._id, newStatus);
+  // NEW: Memoized data for charts
+  const insightsData = useMemo(() => {
+    if (!roadmapDetails) {
+      return {
+        categoryDistribution: [],
+        priorityBreakdown: [],
+        statusOverview: [],
+        quarterlyLoad: [],
+      };
     }
+
+    const items = roadmapDetails.items;
+
+    const categoryCounts = items.reduce((acc, item) => {
+      acc[item.category] = (acc[item.category] || 0) + 1;
+      return acc;
+    }, {} as Record<RoadmapItem['category'], number>);
+    const categoryDistribution = Object.entries(categoryCounts).map(
+      ([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1).replace('-', ' '),
+        value,
+      })
+    );
+
+    const priorityOrder = ['critical', 'high', 'medium', 'low'];
+    const priorityCounts = items.reduce((acc, item) => {
+      acc[item.priority] = (acc[item.priority] || 0) + 1;
+      return acc;
+    }, {} as Record<RoadmapItem['priority'], number>);
+    const priorityBreakdown = priorityOrder.map((p) => ({
+      name: p.charAt(0).toUpperCase() + p.slice(1),
+      count: priorityCounts[p as RoadmapItem['priority']] || 0,
+    }));
+
+    const statusCounts = items.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {} as Record<RoadmapItem['status'], number>);
+    const statusOverview = Object.entries(statusCounts).map(
+      ([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1).replace('-', ' '),
+        value,
+      })
+    );
+
+    const quarterCounts = items.reduce((acc, item) => {
+      const quarter = item.timeframe.quarter;
+      acc[quarter] = (acc[quarter] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const quarterlyLoad = Object.entries(quarterCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return {
+      categoryDistribution,
+      priorityBreakdown,
+      statusOverview,
+      quarterlyLoad,
+    };
+  }, [roadmapDetails]);
+
+  // NEW: Colors for charts
+  const CHART_COLORS = {
+    category: {
+      strategic: '#3b82f6',
+      'customer-driven': '#22c55e',
+      maintenance: '#f59e0b',
+      innovation: '#a855f7',
+    },
+    priority: {
+      critical: '#ef4444',
+      high: '#f97316',
+      medium: '#eab308',
+      low: '#84cc16',
+    },
+    status: {
+      proposed: '#6b7280',
+      approved: '#0ea5e9',
+      'in-progress': '#f59e0b',
+      completed: '#16a34a',
+      cancelled: '#dc2626',
+    },
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-0">
-      {/* Header */}
+      {/* Header section remains unchanged */}
       <div className="bg-white shadow-lg rounded-b-2xl mb-8">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="md:flex md:items-center md:justify-between">
@@ -763,388 +859,392 @@ const RoadmapView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Allocation Strategy */}
-                  <div className="px-8 py-6 bg-gray-50">
-                    <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
-                      Allocation Strategy
-                    </h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      {/* Strategic */}
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-100 shadow-sm">
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                          <span className="text-sm font-medium text-blue-800">
-                            Strategic
-                          </span>
-                        </div>
-                        <div className="text-3xl font-bold text-blue-900 mt-2">
-                          {roadmapDetails.allocationStrategy.strategic}%
-                        </div>
-                        <div className="mt-2 h-2 w-full bg-blue-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-blue-600 rounded-full"
-                            style={{
-                              width: `${roadmapDetails.allocationStrategy.strategic}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      {/* Customer-Driven */}
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-100 shadow-sm">
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                          <span className="text-sm font-medium text-green-800">
-                            Customer-Driven
-                          </span>
-                        </div>
-                        <div className="text-3xl font-bold text-green-900 mt-2">
-                          {roadmapDetails.allocationStrategy.customerDriven}%
-                        </div>
-                        <div className="mt-2 h-2 w-full bg-green-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-green-600 rounded-full"
-                            style={{
-                              width: `${roadmapDetails.allocationStrategy.customerDriven}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      {/* Maintenance */}
-                      <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-100 shadow-sm">
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="h-3 w-3 rounded-full bg-amber-500"></div>
-                          <span className="text-sm font-medium text-amber-800">
-                            Maintenance
-                          </span>
-                        </div>
-                        <div className="text-3xl font-bold text-amber-900 mt-2">
-                          {roadmapDetails.allocationStrategy.maintenance}%
-                        </div>
-                        <div className="mt-2 h-2 w-full bg-amber-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-amber-500 rounded-full"
-                            style={{
-                              width: `${roadmapDetails.allocationStrategy.maintenance}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Time Horizon */}
-                  <div className="px-8 py-4 bg-white border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-500">
-                        Time Horizon
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 bg-gray-100 px-3 py-1 rounded-full">
-                        {roadmapDetails.timeHorizon}
+              {/* Allocation Strategy */}
+              <div className="px-8 py-6 bg-gray-50">
+                <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+                  Allocation Strategy
+                </h4>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Strategic */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-100 shadow-sm">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                      <span className="text-sm font-medium text-blue-800">
+                        Strategic
                       </span>
                     </div>
-                  </div>
-                </div>
-              </div>
-              {/* View Mode Toggle */}
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-                <div className="flex justify-center">
-                  <div className="bg-white rounded-xl shadow-lg p-1 flex border border-blue-100">
-                    {[
-                      {
-                        key: 'timeline',
-                        label: 'Timeline',
-                        icon: CalendarIcon,
-                      },
-                      { key: 'kanban', label: 'Kanban', icon: ChartBarIcon },
-                      { key: 'list', label: 'List', icon: ClockIcon },
-                    ].map(({ key, label, icon: Icon }) => (
-                      <button
-                        key={key}
-                        onClick={() => setViewMode(key as any)}
-                        className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
-                          viewMode === key
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'text-gray-500 hover:text-gray-700'
-                        }`}
-                      >
-                        <Icon className="h-4 w-4 mr-2" />
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Timeline View */}
-              {viewMode === 'timeline' && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-                  {quarters.map((quarter) => {
-                    const items = getQuarterItems(quarter);
-                    if (items.length === 0) return null;
-
-                    return (
+                    <div className="text-3xl font-bold text-blue-900 mt-2">
+                      {roadmapDetails.allocationStrategy.strategic}%
+                    </div>
+                    <div className="mt-2 h-2 w-full bg-blue-200 rounded-full overflow-hidden">
                       <div
-                        key={quarter}
-                        className="bg-white shadow-2xl rounded-2xl border border-blue-100"
-                      >
-                        <div className="px-8 py-6 border-b border-gray-200">
-                          <h4 className="text-lg font-medium text-gray-900">
-                            {quarter}
-                          </h4>
-                          <p className="text-sm text-gray-500">
-                            {items.length} items planned
-                          </p>
-                        </div>
-                        <div className="p-8">
-                          <div className="grid gap-4">
-                            {items.map((item) => (
-                              <div
-                                key={item._id}
-                                className="border text-left border-gray-200 rounded-xl p-4 hover:bg-blue-50/60 transition-colors duration-200"
-                              >
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <h5 className="text-sm font-medium text-gray-900">
-                                      {item.title}
-                                    </h5>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                      {item.description}
-                                    </p>
-                                    <div className="mt-2 flex items-center space-x-2">
-                                      <span
-                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                                          item.category
-                                        )}`}
-                                      >
-                                        {item.category.replace('-', ' ')}
-                                      </span>
-                                      <span
-                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                                          item.priority
-                                        )}`}
-                                      >
-                                        {item.priority}
-                                      </span>
-                                      <span className="text-xs text-gray-500">
-                                        {item.timeframe.estimatedDuration.value}{' '}
-                                        {item.timeframe.estimatedDuration.unit}
-                                      </span>
-                                      <span className="text-xs text-gray-500">
-                                        {item.resourceAllocation.teamMembers}{' '}
-                                        team members
-                                      </span>
-                                    </div>
-                                    {item.successMetrics.length > 0 && (
-                                      <div className="mt-2">
-                                        <div className="text-xs font-medium text-gray-700">
-                                          Success Metrics:
-                                        </div>
-                                        <ul className="text-xs text-gray-600 list-disc list-inside">
-                                          {item.successMetrics
-                                            .slice(0, 2)
-                                            .map((metric, index) => (
-                                              <li key={index}>{metric}</li>
-                                            ))}
-                                        </ul>
-                                      </div>
-                                    )}
-                                  </div>
-                                  <select
-                                    value={item.status}
-                                    onChange={(e) =>
-                                      updateItemStatus(
-                                        item._id,
-                                        e.target.value as RoadmapItem['status']
-                                      )
-                                    }
-                                    className={`text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
-                                      item.status
+                        className="h-full bg-blue-600 rounded-full"
+                        style={{
+                          width: `${roadmapDetails.allocationStrategy.strategic}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Customer-Driven */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-100 shadow-sm">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium text-green-800">
+                        Customer-Driven
+                      </span>
+                    </div>
+                    <div className="text-3xl font-bold text-green-900 mt-2">
+                      {roadmapDetails.allocationStrategy.customerDriven}%
+                    </div>
+                    <div className="mt-2 h-2 w-full bg-green-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-green-600 rounded-full"
+                        style={{
+                          width: `${roadmapDetails.allocationStrategy.customerDriven}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Maintenance */}
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-100 shadow-sm">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+                      <span className="text-sm font-medium text-amber-800">
+                        Maintenance
+                      </span>
+                    </div>
+                    <div className="text-3xl font-bold text-amber-900 mt-2">
+                      {roadmapDetails.allocationStrategy.maintenance}%
+                    </div>
+                    <div className="mt-2 h-2 w-full bg-amber-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber-500 rounded-full"
+                        style={{
+                          width: `${roadmapDetails.allocationStrategy.maintenance}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Time Horizon */}
+              <div className="px-8 py-4 bg-white border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-500">
+                    Time Horizon
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900 bg-gray-100 px-3 py-1 rounded-full">
+                    {roadmapDetails.timeHorizon}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* UPDATED: View Mode Toggle */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <div className="flex justify-center">
+              <div className="bg-white rounded-xl shadow-lg p-1 flex border border-blue-100">
+                {[
+                  { key: 'timeline', label: 'Timeline', icon: CalendarIcon },
+                  { key: 'kanban', label: 'Kanban', icon: ChartBarIcon },
+                  { key: 'list', label: 'List', icon: ClockIcon },
+                  { key: 'insights', label: 'Insights', icon: ChartPieIcon }, // Added Insights tab
+                ].map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() =>
+                      setViewMode(
+                        key as 'timeline' | 'kanban' | 'list' | 'insights'
+                      )
+                    }
+                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
+                      viewMode === key
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Timeline, Kanban, and List views remain unchanged */}
+          {/* Timeline View */}
+          {viewMode === 'timeline' && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+              {quarters.map((quarter) => {
+                const items = getQuarterItems(quarter);
+                if (items.length === 0) return null;
+
+                return (
+                  <div
+                    key={quarter}
+                    className="bg-white shadow-2xl rounded-2xl border border-blue-100"
+                  >
+                    <div className="px-8 py-6 border-b border-gray-200">
+                      <h4 className="text-lg font-medium text-gray-900">
+                        {quarter}
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {items.length} items planned
+                      </p>
+                    </div>
+                    <div className="p-8">
+                      <div className="grid gap-4">
+                        {items.map((item) => (
+                          <div
+                            key={item._id}
+                            className="border text-left border-gray-200 rounded-xl p-4 hover:bg-blue-50/60 transition-colors duration-200"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h5 className="text-sm font-medium text-gray-900">
+                                  {item.title}
+                                </h5>
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {item.description}
+                                </p>
+                                <div className="mt-2 flex items-center space-x-2">
+                                  <span
+                                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                                      item.category
                                     )}`}
                                   >
-                                    <option value="proposed">Proposed</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="in-progress">
-                                      In Progress
-                                    </option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                  </select>
+                                    {item.category.replace('-', ' ')}
+                                  </span>
+                                  <span
+                                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                                      item.priority
+                                    )}`}
+                                  >
+                                    {item.priority}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {
+                                      item.timeframe.estimatedDuration.value
+                                    }{' '}
+                                    {item.timeframe.estimatedDuration.unit}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {item.resourceAllocation.teamMembers} team
+                                    members
+                                  </span>
                                 </div>
+                                {item.successMetrics.length > 0 && (
+                                  <div className="mt-2">
+                                    <div className="text-xs font-medium text-gray-700">
+                                      Success Metrics:
+                                    </div>
+                                    <ul className="text-xs text-gray-600 list-disc list-inside">
+                                      {item.successMetrics
+                                        .slice(0, 2)
+                                        .map((metric, index) => (
+                                          <li key={index}>{metric}</li>
+                                        ))}
+                                    </ul>
+                                  </div>
+                                )}
                               </div>
-                            ))}
+                              <select
+                                value={item.status}
+                                onChange={(e) =>
+                                  updateItemStatus(
+                                    item._id,
+                                    e.target.value as RoadmapItem['status']
+                                  )
+                                }
+                                className={`text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                                  item.status
+                                )}`}
+                              >
+                                <option value="proposed">Proposed</option>
+                                <option value="approved">Approved</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Kanban View */}
+          {viewMode === 'kanban' && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <DragDropContext onDragEnd={onDragEnd}>
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                  {[
+                    'proposed',
+                    'approved',
+                    'in-progress',
+                    'completed',
+                    'cancelled',
+                  ].map((status) => {
+                    const items = roadmapDetails.items.filter(
+                      (item) => item.status === status
+                    );
+                    return (
+                      <Droppable droppableId={status} key={status}>
+                        {(
+                          provided: DroppableProvided,
+                          snapshot: DroppableStateSnapshot
+                        ) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={`bg-white shadow-2xl rounded-2xl border border-blue-100 min-h-[120px] transition-all ${
+                              snapshot.isDraggingOver
+                                ? 'ring-2 ring-blue-400'
+                                : ''
+                            }`}
+                          >
+                            <div className="px-6 py-4 border-b border-gray-200">
+                              <h4 className="text-sm font-medium text-gray-900 capitalize">
+                                {status.replace('-', ' ')} ({items.length})
+                              </h4>
+                            </div>
+                            <div className="p-6 space-y-3">
+                              {items.map((item, idx) => (
+                                <Draggable
+                                  key={item._id}
+                                  draggableId={item._id}
+                                  index={idx}
+                                >
+                                  {(
+                                    provided: DraggableProvided,
+                                    snapshot: DraggableStateSnapshot
+                                  ) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`border border-gray-200 rounded-xl p-3 bg-white transition-shadow ${
+                                        snapshot.isDragging
+                                          ? 'shadow-xl ring-2 ring-blue-400'
+                                          : ''
+                                      }`}
+                                    >
+                                      <h5 className="text-sm font-medium text-gray-900">
+                                        {item.title}
+                                      </h5>
+                                      <div className="mt-2 flex items-center space-x-2">
+                                        <span
+                                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                                            item.category
+                                          )}`}
+                                        >
+                                          {item.category.replace('-', ' ')}
+                                        </span>
+                                        <span
+                                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                                            item.priority
+                                          )}`}
+                                        >
+                                          {item.priority}
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        {item.timeframe.quarter}
+                                      </p>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          </div>
+                        )}
+                      </Droppable>
                     );
                   })}
                 </div>
-              )}
+              </DragDropContext>
+            </div>
+          )}
 
-              {/* Kanban View */}
-              {viewMode === 'kanban' && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <DragDropContext onDragEnd={onDragEnd}>
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                      {[
-                        'proposed',
-                        'approved',
-                        'in-progress',
-                        'completed',
-                        'cancelled',
-                      ].map((status) => {
-                        const items = roadmapDetails.items.filter(
-                          (item) => item.status === status
-                        );
-                        return (
-                          <Droppable droppableId={status} key={status}>
-                            {(
-                              provided: DroppableProvided,
-                              snapshot: DroppableStateSnapshot
-                            ) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className={`bg-white shadow-2xl rounded-2xl border border-blue-100 min-h-[120px] transition-all ${
-                                  snapshot.isDraggingOver
-                                    ? 'ring-2 ring-blue-400'
-                                    : ''
-                                }`}
-                              >
-                                <div className="px-6 py-4 border-b border-gray-200">
-                                  <h4 className="text-sm font-medium text-gray-900 capitalize">
-                                    {status.replace('-', ' ')} ({items.length})
-                                  </h4>
-                                </div>
-                                <div className="p-6 space-y-3">
-                                  {items.map((item, idx) => (
-                                    <Draggable
-                                      key={item._id}
-                                      draggableId={item._id}
-                                      index={idx}
-                                    >
-                                      {(
-                                        provided: DraggableProvided,
-                                        snapshot: DraggableStateSnapshot
-                                      ) => (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                          className={`border border-gray-200 rounded-xl p-3 bg-white transition-shadow ${
-                                            snapshot.isDragging
-                                              ? 'shadow-xl ring-2 ring-blue-400'
-                                              : ''
-                                          }`}
-                                        >
-                                          <h5 className="text-sm font-medium text-gray-900">
-                                            {item.title}
-                                          </h5>
-                                          <div className="mt-2 flex items-center space-x-2">
-                                            <span
-                                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                                                item.category
-                                              )}`}
-                                            >
-                                              {item.category.replace('-', ' ')}
-                                            </span>
-                                            <span
-                                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                                                item.priority
-                                              )}`}
-                                            >
-                                              {item.priority}
-                                            </span>
-                                          </div>
-                                          <p className="text-xs text-gray-500 mt-1">
-                                            {item.timeframe.quarter}
-                                          </p>
-                                        </div>
-                                      )}
-                                    </Draggable>
-                                  ))}
-                                  {provided.placeholder}
-                                </div>
-                              </div>
-                            )}
-                          </Droppable>
-                        );
-                      })}
-                    </div>
-                  </DragDropContext>
-                </div>
-              )}
-
-              {/* List View */}
-              {viewMode === 'list' && (
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 overflow-hidden">
-                    <ul className="divide-y divide-gray-100">
-                      {roadmapDetails.items.map((item) => (
-                        <li
-                          key={item._id}
-                          className="px-8 py-6 hover:bg-blue-50/60 transition-colors duration-200"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-gray-900">
-                                {item.title}
-                              </h4>
-                              <p className="text-sm text-gray-500 mt-1">
-                                {item.description}
-                              </p>
-                              <div className="mt-2 flex items-center space-x-4">
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                                    item.category
-                                  )}`}
-                                >
-                                  {item.category.replace('-', ' ')}
-                                </span>
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
-                                    item.priority
-                                  )}`}
-                                >
-                                  {item.priority}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {item.timeframe.quarter}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {item.timeframe.estimatedDuration.value}{' '}
-                                  {item.timeframe.estimatedDuration.unit}
-                                </span>
-                              </div>
-                            </div>
-                            <select
-                              value={item.status}
-                              onChange={(e) =>
-                                updateItemStatus(
-                                  item._id,
-                                  e.target.value as RoadmapItem['status']
-                                )
-                              }
-                              className={`text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
-                                item.status
+          {/* List View */}
+          {viewMode === 'list' && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 overflow-hidden">
+                <ul className="divide-y divide-gray-100">
+                  {roadmapDetails.items.map((item) => (
+                    <li
+                      key={item._id}
+                      className="px-8 py-6 hover:bg-blue-50/60 transition-colors duration-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900">
+                            {item.title}
+                          </h4>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {item.description}
+                          </p>
+                          <div className="mt-2 flex items-center space-x-4">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                                item.category
                               )}`}
                             >
-                              <option value="proposed">Proposed</option>
-                              <option value="approved">Approved</option>
-                              <option value="in-progress">In Progress</option>
-                              <option value="completed">Completed</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
+                              {item.category.replace('-', ' ')}
+                            </span>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                                item.priority
+                              )}`}
+                            >
+                              {item.priority}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {item.timeframe.quarter}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {item.timeframe.estimatedDuration.value}{' '}
+                              {item.timeframe.estimatedDuration.unit}
+                            </span>
                           </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </>
+                        </div>
+                        <select
+                          value={item.status}
+                          onChange={(e) =>
+                            updateItemStatus(
+                              item._id,
+                              e.target.value as RoadmapItem['status']
+                            )
+                          }
+                          className={`text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                            item.status
+                          )}`}
+                        >
+                          <option value="proposed">Proposed</option>
+                          <option value="approved">Approved</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="completed">Completed</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           )}
+
+          
+        </>
+      )}
 
           {/* Empty state for no roadmaps */}
           {selectedProject &&
@@ -1165,6 +1265,136 @@ const RoadmapView: React.FC = () => {
             )}
         </>
       )}
+
+      {/* NEW: Insights View */}
+          {viewMode === 'insights' && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Category Distribution Chart */}
+                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                    Category Distribution
+                  </h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={insightsData.categoryDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                        label={({ name, percent }) =>
+                          `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`
+                        }
+                      >
+                        {insightsData.categoryDistribution.map(
+                          (entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={
+                                CHART_COLORS.category[
+                                  entry.name
+                                    .toLowerCase()
+                                    .replace(' ', '-') as keyof typeof CHART_COLORS.category
+                                ]
+                              }
+                            />
+                          )
+                        )}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Priority Breakdown Chart */}
+                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                    Priority Breakdown
+                  </h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={insightsData.priorityBreakdown}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="count">
+                        {insightsData.priorityBreakdown.map(
+                          (entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={
+                                CHART_COLORS.priority[
+                                  entry.name.toLowerCase() as keyof typeof CHART_COLORS.priority
+                                ]
+                              }
+                            />
+                          )
+                        )}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Status Overview Chart */}
+                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                    Status Overview
+                  </h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={insightsData.statusOverview}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                        label
+                      >
+                        {insightsData.statusOverview.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={
+                              CHART_COLORS.status[
+                                entry.name
+                                  .toLowerCase()
+                                  .replace(' ', '-') as keyof typeof CHART_COLORS.status
+                              ]
+                            }
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Quarterly Load Chart */}
+                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                    Quarterly Load (# of Items)
+                  </h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={insightsData.quarterlyLoad}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#3b82f6" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
     </div>
   );
 };
