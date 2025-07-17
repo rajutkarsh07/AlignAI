@@ -22,8 +22,8 @@ A comprehensive product management tool that helps balance strategic goals with 
 
 ### Key Features
 
-- **Document Upload**: Support for PDF, DOCX, DOC, and TXT files
-- **Feedback Management**: Ignore/unignore feedback items, bulk analysis
+- **Document Upload**: Support for PDF, DOCX, DOC, and TXT files (Projects); PDF, DOCX, DOC and TXT(Feedback)
+- **Feedback Management**: Ignore/unignore feedback items, bulk analysis, CSV import
 - **Task Management**: AI-enhanced task creation with acceptance criteria
 - **Roadmap Generation**: Multiple allocation strategies and timeline horizons
 - **Analytics Dashboard**: Performance metrics and insights
@@ -68,34 +68,51 @@ A comprehensive product management tool that helps balance strategic goals with 
 ### 1. Clone and Setup
 
 ```bash
+# Clone the repository
+# (Note: the project is called roadmap-assistant in scripts, but the product is AlignAI)
 git clone <repository-url>
-cd roadmap-assistant
+cd AlignAI
 npm run setup
 ```
 
 ### 2. Environment Configuration
 
-Copy `.env` and configure:
+The setup script creates `.env.example` and `service-account-key.json.example`.
+
+Copy and configure your environment:
 
 ```bash
-cp .env .env.local
+cp .env.example .env
 ```
 
-Update `.env.local`:
+Update `.env`:
 
 ```env
-# MongoDB
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# MongoDB Configuration
 MONGODB_URI=mongodb://localhost:27017/roadmap-assistant
 
-# Google Cloud Vertex AI
+# Google Cloud Vertex AI Configuration
 GOOGLE_CLOUD_PROJECT_ID=your-project-id
 GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
 
-# Other settings
-PORT=5000
-NODE_ENV=development
+# JWT Secret (for future authentication)
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# CORS Configuration
 FRONTEND_URL=http://localhost:3000
+
+# File Upload Configuration
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=./uploads
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
 ### 3. Google Cloud Setup
@@ -125,16 +142,16 @@ npm run client:dev   # Frontend only
 2. **Create Project**: Click "New Project"
 3. **Project Setup**:
    - Enter project name and description
-   - Upload project documents (PDF/DOCX) or enter text manually
+   - Upload project documents (PDF/DOCX/TXT) or enter text manually
    - AI will format and structure your project plan
 
 ### Managing Feedback
 
 1. **Upload Feedback**: Go to Feedback section
-   - Upload documents containing customer feedback
+   - Upload documents containing customer feedback (PDF, DOCX, DOC, TXT)
    - Or manually enter feedback items
 2. **AI Analysis**: System automatically:
-   - Categories feedback (bug-report, feature-request, etc.)
+   - Categorizes feedback (bug-report, feature-request, etc.)
    - Analyzes sentiment (positive, negative, neutral)
    - Assigns priority levels
    - Extracts keywords and themes
@@ -193,32 +210,71 @@ Description: Implement secure login system"
 - `POST /api/projects/upload` - Create from document
 - `GET /api/projects/:id` - Get project details
 - `PUT /api/projects/:id` - Update project
+- `DELETE /api/projects/:id` - Delete project
+- `POST /api/projects/:id/goals` - Add goal
+- `PUT /api/projects/:id/goals/:goalId` - Update goal
+- `DELETE /api/projects/:id/goals/:goalId` - Delete goal
 
 ### Feedback
 
+- `GET /api/feedback` - Get all feedback items across all projects
 - `GET /api/feedback/project/:projectId` - Get project feedback
 - `POST /api/feedback` - Create feedback collection
-- `POST /api/feedback/upload` - Upload feedback document
+- `POST /api/feedback/upload` - Upload feedback document (PDF, DOCX, DOC, TXT, **CSV**)
+- `POST /api/feedback/enhance` - Enhance raw feedback text with AI analysis
 - `PUT /api/feedback/:id/items/:itemId/ignore` - Toggle ignore status
+- `GET /api/feedback/project/:projectId/analytics` - Get feedback analytics for a project
 
-### Chat
+### Tasks
 
-- `POST /api/chat/sessions` - Create chat session
-- `POST /api/chat/sessions/:sessionId/messages` - Send message
-- `GET /api/chat/sessions/:sessionId` - Get session history
+- `GET /api/tasks` - Get all tasks across all projects
+- `GET /api/tasks/project/:projectId` - Get project tasks
+- `GET /api/tasks/:id` - Get task by ID
+- `POST /api/tasks` - Create task
+- `POST /api/tasks/enhance` - Enhance task description using AI
+- `PUT /api/tasks/:id` - Update task
+- `DELETE /api/tasks/:id` - Delete task
+- `POST /api/tasks/:id/dependencies` - Add dependency
+- `DELETE /api/tasks/:id/dependencies/:dependencyId` - Remove dependency
+- `GET /api/tasks/project/:projectId/analytics` - Get task analytics for a project
+- `GET /api/tasks/project/:projectId/kanban` - Get tasks organized by status (Kanban view)
 
 ### Roadmaps
 
-- `POST /api/roadmap/generate` - Generate AI roadmap
+- `GET /api/roadmap` - Get all roadmaps across all projects
 - `GET /api/roadmap/project/:projectId` - Get project roadmaps
-- `POST /api/roadmap/:id/convert-to-tasks` - Convert to tasks
+- `GET /api/roadmap/:id` - Get roadmap by ID
+- `POST /api/roadmap/generate` - Generate AI roadmap
+- `POST /api/roadmap` - Create roadmap manually
+- `PUT /api/roadmap/:id` - Update roadmap
+- `DELETE /api/roadmap/:id` - Delete roadmap
+- `POST /api/roadmap/:id/items` - Add roadmap item
+- `PUT /api/roadmap/:id/items/:itemId` - Update roadmap item
+- `DELETE /api/roadmap/:id/items/:itemId` - Delete roadmap item
+- `POST /api/roadmap/:id/convert-to-tasks` - Convert roadmap items to tasks
+- `GET /api/roadmap/project/:projectId/analytics` - Get roadmap analytics for a project
+
+### Chat
+
+- `GET /api/chat/project/:projectId/sessions` - Get all chat sessions for a project
+- `GET /api/chat/sessions/:sessionId` - Get session history
+- `POST /api/chat/sessions` - Create chat session
+- `POST /api/chat/sessions/:sessionId/messages` - Send message
+- `PUT /api/chat/sessions/:sessionId` - Update session
+- `DELETE /api/chat/sessions/:sessionId` - Delete session
+- `POST /api/chat/sessions/:sessionId/clear` - Clear session
+- `GET /api/chat/sessions/:sessionId/export?format=json|txt` - Export chat session (JSON or TXT)
+
+### Health
+
+- `GET /api/health` - Health check endpoint
 
 ## 🎯 Example Use Cases
 
 ### Scenario 1: Mobile App Product Manager
 
 1. Upload PRD document for new social features
-2. Import App Store reviews and user surveys
+2. Import App Store reviews and user surveys (CSV supported)
 3. Ask: "Create a balanced 6-month roadmap focusing on user engagement"
 4. AI generates roadmap balancing strategic features with user-requested improvements
 
@@ -245,6 +301,7 @@ Description: Implement secure login system"
 - MongoDB connection security
 - CORS configuration
 - Error handling without data exposure
+- JWT secret present for future authentication (no auth endpoints yet)
 
 ## 🧪 Testing
 
