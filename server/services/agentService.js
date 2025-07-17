@@ -328,7 +328,7 @@ Generate a detailed roadmap in the following JSON format:
 
 Ensure the roadmap:
 1. Follows the specified allocation percentages
-2. Includes 8-12 roadmap items(if the user asks for a roadmap, it should be at least 8 items)
+2. Includes 8-20 roadmap items(if the user asks for a roadmap, it should be at least 8 items)
 3. Balances quick wins with long-term strategic goals
 4. References specific customer feedback
 5. Provides clear business justification
