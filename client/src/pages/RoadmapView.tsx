@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import * as XLSX from 'xlsx';
 import {
   PlusIcon,
   MapIcon,
@@ -12,7 +13,8 @@ import {
   ExclamationTriangleIcon,
   SparklesIcon,
   ArrowRightIcon,
-  ChartPieIcon, // Added for Insights tab
+  ArrowDownTrayIcon,
+  ChartPieIcon,
 } from '@heroicons/react/24/outline';
 import {
   DragDropContext,
@@ -453,6 +455,236 @@ const RoadmapView: React.FC = () => {
       cancelled: '#dc2626',
     },
   };
+
+
+// Excel download function
+const downloadExcel = () => {
+  if (!roadmapDetails) return;
+
+  const workbook = XLSX.utils.book_new();
+
+  // Tab 1: Roadmap Overview
+  const overviewData = [
+    ['Roadmap Name', roadmapDetails.name],
+    ['Description', roadmapDetails.description],
+    ['Type', roadmapDetails.type],
+    ['Time Horizon', roadmapDetails.timeHorizon],
+    ['Created Date', new Date(roadmapDetails.createdAt).toLocaleDateString()],
+    ['Last Updated', new Date(roadmapDetails.updatedAt).toLocaleDateString()],
+    ['Total Items', roadmapDetails.items.length],
+    [],
+    ['Allocation Strategy'],
+    ['Strategic', `${roadmapDetails.allocationStrategy.strategic}%`],
+    ['Customer-Driven', `${roadmapDetails.allocationStrategy.customerDriven}%`],
+    ['Maintenance', `${roadmapDetails.allocationStrategy.maintenance}%`],
+  ];
+  const overviewWorksheet = XLSX.utils.aoa_to_sheet(overviewData);
+  XLSX.utils.book_append_sheet(workbook, overviewWorksheet, 'Overview');
+
+  // Tab 2: Complete Timeline
+  const timelineData = [
+    [
+      'Quarter',
+      'Title',
+      'Description',
+      'Category',
+      'Priority',
+      'Status',
+      'Duration',
+      'Team Members',
+      'Cost Estimate',
+      'Strategic Alignment',
+      'Customer Impact',
+      'Revenue Impact',
+      'Risk Level',
+      'Success Metrics',
+      'Dependencies',
+      'Customer Quotes',
+    ],
+  ];
+
+  roadmapDetails.items.forEach((item) => {
+    timelineData.push([
+      item.timeframe.quarter,
+      item.title,
+      item.description,
+      item.category,
+      item.priority,
+      item.status,
+      `${item.timeframe.estimatedDuration.value} ${item.timeframe.estimatedDuration.unit}`,
+      item.resourceAllocation.teamMembers.toString(),
+      `$${item.resourceAllocation.estimatedCost.toLocaleString()}`,
+      item.businessJustification.strategicAlignment.toString(),
+      item.businessJustification.customerImpact.toString(),
+      item.businessJustification.revenueImpact.toString(),
+      item.businessJustification.riskLevel,
+      item.successMetrics.join('; '),
+      item.dependencies.join('; '),
+      item.relatedFeedback.map(f => f.customerQuotes.join('; ')).join(' | '),
+    ]);
+  });
+
+  const timelineWorksheet = XLSX.utils.aoa_to_sheet(timelineData);
+  XLSX.utils.book_append_sheet(workbook, timelineWorksheet, 'Complete Timeline');
+
+  // Tab 3-6: By Quarter
+  const quarters = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'];
+  quarters.forEach((quarter) => {
+    const quarterItems = roadmapDetails.items.filter(
+      (item) => item.timeframe.quarter === quarter
+    );
+
+    if (quarterItems.length > 0) {
+      const quarterData = [
+        [
+          'Title',
+          'Description',
+          'Category',
+          'Priority',
+          'Status',
+          'Duration',
+          'Team Members',
+          'Cost Estimate',
+          'Success Metrics',
+        ],
+      ];
+
+      quarterItems.forEach((item) => {
+        quarterData.push([
+          item.title,
+          item.description,
+          item.category,
+          item.priority,
+          item.status,
+          `${item.timeframe.estimatedDuration.value} ${item.timeframe.estimatedDuration.unit}`,
+          item.resourceAllocation.teamMembers.toString(),
+          `$${item.resourceAllocation.estimatedCost.toLocaleString()}`,
+          item.successMetrics.join('; '),
+        ]);
+      });
+
+      const quarterWorksheet = XLSX.utils.aoa_to_sheet(quarterData);
+      XLSX.utils.book_append_sheet(workbook, quarterWorksheet, quarter);
+    }
+  });
+
+  // Tab 7-10: By Category
+  const categories = ['strategic', 'customer-driven', 'maintenance', 'innovation'];
+  categories.forEach((category) => {
+    const categoryItems = roadmapDetails.items.filter(
+      (item) => item.category === category
+    );
+
+    if (categoryItems.length > 0) {
+      const categoryData = [
+        [
+          'Quarter',
+          'Title',
+          'Description',
+          'Priority',
+          'Status',
+          'Duration',
+          'Team Members',
+          'Cost Estimate',
+          'Strategic Alignment',
+          'Customer Impact',
+          'Revenue Impact',
+          'Risk Level',
+        ],
+      ];
+
+      categoryItems.forEach((item) => {
+        categoryData.push([
+          item.timeframe.quarter,
+          item.title,
+          item.description,
+          item.priority,
+          item.status,
+          `${item.timeframe.estimatedDuration.value} ${item.timeframe.estimatedDuration.unit}`,
+          item.resourceAllocation.teamMembers.toString(),
+          `$${item.resourceAllocation.estimatedCost.toLocaleString()}`,
+          item.businessJustification.strategicAlignment.toString(),
+          item.businessJustification.customerImpact.toString(),
+          item.businessJustification.revenueImpact.toString(),
+          item.businessJustification.riskLevel,
+        ]);
+      });
+
+      const categoryWorksheet = XLSX.utils.aoa_to_sheet(categoryData);
+      const categoryName = category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ');
+      XLSX.utils.book_append_sheet(workbook, categoryWorksheet, categoryName);
+    }
+  });
+
+  // Tab 11: Analytics Summary
+  const analyticsData = [
+    ['Analytics Summary'],
+    [],
+    ['Status Distribution'],
+    ['Status', 'Count'],
+  ];
+
+  const statusCounts = roadmapDetails.items.reduce((acc, item) => {
+    acc[item.status] = (acc[item.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  Object.entries(statusCounts).forEach(([status, count]) => {
+    analyticsData.push([status, count.toString()]);
+  });
+
+  analyticsData.push([''], ['Priority Distribution'], ['Priority', 'Count']);
+
+  const priorityCounts = roadmapDetails.items.reduce((acc, item) => {
+    acc[item.priority] = (acc[item.priority] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  Object.entries(priorityCounts).forEach(([priority, count]) => {
+    analyticsData.push([priority, count.toString()]);
+  });
+
+  analyticsData.push([''], ['Category Distribution'], ['Category', 'Count']);
+
+  const categoryCounts = roadmapDetails.items.reduce((acc, item) => {
+    acc[item.category] = (acc[item.category] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  Object.entries(categoryCounts).forEach(([category, count]) => {
+    analyticsData.push([category, count.toString()]);
+  });
+
+  // Add resource allocation summary
+  const totalTeamMembers = roadmapDetails.items.reduce(
+    (sum, item) => sum + item.resourceAllocation.teamMembers,
+    0
+  );
+  const totalCost = roadmapDetails.items.reduce(
+    (sum, item) => sum + item.resourceAllocation.estimatedCost,
+    0
+  );
+
+  analyticsData.push(
+    [''],
+    ['Resource Summary'],
+    ['Total Team Members', totalTeamMembers.toString()],
+    ['Total Estimated Cost', `$${totalCost.toLocaleString()}`],
+    ['Average Team Size', (totalTeamMembers / roadmapDetails.items.length).toFixed(1)],
+    ['Average Cost per Item', `$${(totalCost / roadmapDetails.items.length).toLocaleString()}`]
+  );
+
+  const analyticsWorksheet = XLSX.utils.aoa_to_sheet(analyticsData);
+  XLSX.utils.book_append_sheet(workbook, analyticsWorksheet, 'Analytics');
+
+  // Generate filename with timestamp
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+  const filename = `roadmap-${roadmapDetails.name.replace(/[^a-zA-Z0-9]/g, '_')}-${timestamp}.xlsx`;
+
+  // Download the file
+  XLSX.writeFile(workbook, filename);
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-0">
@@ -971,7 +1203,16 @@ const RoadmapView: React.FC = () => {
                   </button>
                 ))}
               </div>
+            <button
+              onClick={downloadExcel}
+              disabled={!roadmapDetails}
+              className="inline-flex items-center ml-3 rounded-xl shadow-lg border px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+              Download Excel
+            </button>
             </div>
+
           </div>
 
           {/* Timeline, Kanban, and List views remain unchanged */}
