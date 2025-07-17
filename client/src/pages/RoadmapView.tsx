@@ -14,6 +14,9 @@ import {
   SparklesIcon,
   ArrowRightIcon,
   ArrowDownTrayIcon,
+  DevicePhoneMobileIcon,
+  ComputerDesktopIcon,
+  DeviceTabletIcon,
   ChartPieIcon,
 } from '@heroicons/react/24/outline';
 import {
@@ -101,6 +104,26 @@ interface Project {
   description: string;
 }
 
+interface WireframeComponent {
+  id: string;
+  type: 'header' | 'navigation' | 'content' | 'sidebar' | 'footer' | 'form' | 'button' | 'card' | 'modal';
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  dependencies: string[];
+  relatedRoadmapItems: string[];
+}
+
+interface WireframeScreen {
+  id: string;
+  name: string;
+  device: 'mobile' | 'tablet' | 'desktop';
+  category: 'user-flow' | 'feature' | 'redesign' | 'new-feature';
+  components: WireframeComponent[];
+  relatedQuarter: string;
+  estimatedEffort: number;
+}
+
 const RoadmapView: React.FC = () => {
   const { projectId, roadmapId } = useParams<{
     projectId: string;
@@ -147,6 +170,10 @@ const RoadmapView: React.FC = () => {
   const [isLoadingRoadmap, setIsLoadingRoadmap] = useState(false);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [isUpdatingItem, setIsUpdatingItem] = useState(false);
+  const [insightsMode, setInsightsMode] = useState<'analytics' | 'wireframes'>('analytics');
+  const [wireframes, setWireframes] = useState<WireframeScreen[]>([]);
+  const [selectedWireframe, setSelectedWireframe] = useState<string>('');
+  const [isGeneratingWireframes, setIsGeneratingWireframes] = useState(false);
 
   // Data fetching useEffects remain unchanged...
   useEffect(() => {
@@ -361,6 +388,93 @@ const RoadmapView: React.FC = () => {
       (item) => item.timeframe.quarter === quarter
     );
   };
+
+  const generateWireframes = async () => {
+    if (!roadmapDetails) return;
+
+    setIsGeneratingWireframes(true);
+    try {
+      const mockWireframes: WireframeScreen[] = roadmapDetails.items
+        .filter(item => item.category !== 'maintenance')
+        .slice(0, 6)
+        .map((item, index) => ({
+          id: `wireframe-${item._id}`,
+          name: `${item.title} - UI Design`,
+          device: ['mobile', 'tablet', 'desktop'][index % 3] as 'mobile' | 'tablet' | 'desktop',
+          category: item.category === 'customer-driven' ? 'feature' : 'new-feature',
+          relatedQuarter: item.timeframe.quarter,
+          estimatedEffort: Math.floor(Math.random() * 20) + 5,
+          components: [
+            {
+              id: `comp-${index}-1`,
+              type: 'header',
+              title: 'Navigation Header',
+              description: 'Main navigation with user actions',
+              priority: 'high',
+              dependencies: [],
+              relatedRoadmapItems: [item._id],
+            },
+            {
+              id: `comp-${index}-2`,
+              type: 'content',
+              title: item.title,
+              description: item.description,
+              priority: item.priority === 'critical' ? 'high' : item.priority,
+              dependencies: item.dependencies,
+              relatedRoadmapItems: [item._id],
+            },
+            {
+              id: `comp-${index}-3`,
+              type: 'button',
+              title: 'Action Buttons',
+              description: 'Primary and secondary actions for user interaction',
+              priority: 'medium',
+              dependencies: [],
+              relatedRoadmapItems: [item._id],
+            },
+          ],
+        }));
+
+      setWireframes(mockWireframes);
+    } catch (error) {
+      console.error('Error generating wireframes:', error);
+    } finally {
+      setIsGeneratingWireframes(false);
+    }
+  };
+
+  const getDeviceIcon = (device: string) => {
+    switch (device) {
+      case 'mobile':
+        return DevicePhoneMobileIcon;
+      case 'tablet':
+        return DeviceTabletIcon;
+      case 'desktop':
+        return ComputerDesktopIcon;
+      default:
+        return ComputerDesktopIcon;
+    }
+  };
+
+  const getComponentTypeColor = (type: string) => {
+    switch (type) {
+      case 'header':
+        return 'bg-blue-100 text-blue-800';
+      case 'navigation':
+        return 'bg-indigo-100 text-indigo-800';
+      case 'content':
+        return 'bg-green-100 text-green-800';
+      case 'form':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'button':
+        return 'bg-orange-100 text-orange-800';
+      case 'modal':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
 
   const quarters = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'];
 
@@ -1508,134 +1622,340 @@ const downloadExcel = () => {
       )}
 
       {/* NEW: Insights View */}
-          {viewMode === 'insights' && (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Category Distribution Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                    Category Distribution
-                  </h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={insightsData.categoryDistribution}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                        nameKey="name"
-                        label={({ name, percent }) =>
-                          `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`
-                        }
-                      >
-                        {insightsData.categoryDistribution.map(
-                          (entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={
-                                CHART_COLORS.category[
-                                  entry.name
-                                    .toLowerCase()
-                                    .replace(' ', '-') as keyof typeof CHART_COLORS.category
-                                ]
-                              }
-                            />
-                          )
-                        )}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+      {viewMode === 'insights' && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Insights Mode Toggle */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white rounded-xl shadow-lg p-1 flex border border-blue-100">
+              {[
+                { key: 'analytics', label: 'Analytics', icon: ChartPieIcon },
+                { key: 'wireframes', label: 'Wireframes', icon: ComputerDesktopIcon },
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => setInsightsMode(key as 'analytics' | 'wireframes')}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
+                    insightsMode === key
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                {/* Priority Breakdown Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                    Priority Breakdown
-                  </h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={insightsData.priorityBreakdown}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="count">
-                        {insightsData.priorityBreakdown.map(
-                          (entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={
-                                CHART_COLORS.priority[
-                                  entry.name.toLowerCase() as keyof typeof CHART_COLORS.priority
-                                ]
-                              }
-                            />
-                          )
-                        )}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Status Overview Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                    Status Overview
-                  </h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={insightsData.statusOverview}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                        nameKey="name"
-                        label
-                      >
-                        {insightsData.statusOverview.map((entry, index) => (
+          {/* Analytics View */}
+          {insightsMode === 'analytics' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Category Distribution Chart */}
+              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                  Category Distribution
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={insightsData.categoryDistribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) =>
+                        `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`
+                      }
+                    >
+                      {insightsData.categoryDistribution.map(
+                        (entry, index) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={
-                              CHART_COLORS.status[
+                              CHART_COLORS.category[
                                 entry.name
                                   .toLowerCase()
-                                  .replace(' ', '-') as keyof typeof CHART_COLORS.status
+                                  .replace(' ', '-') as keyof typeof CHART_COLORS.category
                               ]
                             }
                           />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                        )
+                      )}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
 
-                {/* Quarterly Load Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
-                  <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                    Quarterly Load (# of Items)
-                  </h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={insightsData.quarterlyLoad}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#3b82f6" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+              {/* Priority Breakdown Chart */}
+              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                  Priority Breakdown
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={insightsData.priorityBreakdown}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count">
+                      {insightsData.priorityBreakdown.map(
+                        (entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={
+                              CHART_COLORS.priority[
+                                entry.name.toLowerCase() as keyof typeof CHART_COLORS.priority
+                              ]
+                            }
+                          />
+                        )
+                      )}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Status Overview Chart */}
+              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                  Status Overview
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={insightsData.statusOverview}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label
+                    >
+                      {insightsData.statusOverview.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={
+                            CHART_COLORS.status[
+                              entry.name
+                                .toLowerCase()
+                                .replace(' ', '-') as keyof typeof CHART_COLORS.status
+                            ]
+                          }
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Quarterly Load Chart */}
+              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                  Quarterly Load (# of Items)
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={insightsData.quarterlyLoad}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#3b82f6" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           )}
+
+          {/* Wireframes View */}
+          {insightsMode === 'wireframes' && (
+            <div className="space-y-8">
+              {/* Wireframes Header */}
+              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                      UI Wireframes
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Generate wireframes based on roadmap items for visual planning
+                    </p>
+                  </div>
+                  <button
+                    onClick={generateWireframes}
+                    disabled={isGeneratingWireframes || !roadmapDetails}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-700 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <SparklesIcon className="h-4 w-4 mr-2" />
+                    {isGeneratingWireframes ? 'Generating...' : 'Generate Wireframes'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Wireframes List */}
+              {wireframes.length > 0 && (
+                <div className="space-y-6">
+                  {/* Wireframes Overview */}
+                  <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                    <h5 className="text-md font-semibold text-gray-800 mb-4">
+                      Generated Wireframes ({wireframes.length})
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {wireframes.map((wireframe) => {
+                        const DeviceIcon = getDeviceIcon(wireframe.device);
+                        return (
+                          <div
+                            key={wireframe.id}
+                            className={`border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
+                              selectedWireframe === wireframe.id
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25'
+                            }`}
+                            onClick={() => setSelectedWireframe(wireframe.id)}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <DeviceIcon className="h-5 w-5 text-blue-600" />
+                              <span
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  wireframe.category === 'feature'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-purple-100 text-purple-800'
+                                }`}
+                              >
+                                {wireframe.category.replace('-', ' ')}
+                              </span>
+                            </div>
+                            <h6 className="text-sm font-medium text-gray-900 mb-1">
+                              {wireframe.name}
+                            </h6>
+                            <div className="flex items-center justify-between text-xs text-gray-500">
+                              <span>{wireframe.device}</span>
+                              <span>{wireframe.estimatedEffort}h effort</span>
+                            </div>
+                            <div className="mt-2 text-xs text-gray-600">
+                              {wireframe.components.length} components • {wireframe.relatedQuarter}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Selected Wireframe Details */}
+                  {selectedWireframe && (
+                    <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                      {(() => {
+                        const wireframe = wireframes.find(w => w.id === selectedWireframe);
+                        if (!wireframe) return null;
+                        const DeviceIcon = getDeviceIcon(wireframe.device);
+                        
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center space-x-3">
+                                <DeviceIcon className="h-6 w-6 text-blue-600" />
+                                <div>
+                                  <h5 className="text-lg font-semibold text-gray-800">
+                                    {wireframe.name}
+                                  </h5>
+                                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                                    <span className="capitalize">{wireframe.device}</span>
+                                    <span>•</span>
+                                    <span>{wireframe.relatedQuarter}</span>
+                                    <span>•</span>
+                                    <span>{wireframe.estimatedEffort}h estimated effort</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <span
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                  wireframe.category === 'feature'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-purple-100 text-purple-800'
+                                }`}
+                              >
+                                {wireframe.category.replace('-', ' ')}
+                              </span>
+                            </div>
+
+                            <div>
+                              <h6 className="text-md font-semibold text-gray-700 mb-4">
+                                Components ({wireframe.components.length})
+                              </h6>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {wireframe.components.map((component) => (
+                                  <div
+                                    key={component.id}
+                                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                                  >
+                                    <div className="flex items-center justify-between mb-2">
+                                      <h6 className="text-sm font-medium text-gray-900">
+                                        {component.title}
+                                      </h6>
+                                      <span
+                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getComponentTypeColor(
+                                          component.type
+                                        )}`}
+                                      >
+                                        {component.type}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-gray-600 mb-2">
+                                      {component.description}
+                                    </p>
+                                    <div className="flex items-center justify-between">
+                                      <span
+                                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                                          component.priority
+                                        )}`}
+                                      >
+                                        {component.priority} priority
+                                      </span>
+                                      {component.dependencies.length > 0 && (
+                                        <span className="text-xs text-gray-500">
+                                          {component.dependencies.length} dependencies
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Empty State for Wireframes */}
+              {wireframes.length === 0 && (
+                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-12">
+                  <div className="text-center">
+                    <ComputerDesktopIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-4 text-lg font-medium text-gray-900">
+                      No wireframes generated
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Click "Generate Wireframes" to create UI wireframes based on your roadmap items.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        )}
+
     </div>
   );
 };
