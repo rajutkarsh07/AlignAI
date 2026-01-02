@@ -1,11 +1,9 @@
-const { VertexAI } = require('@google-cloud/vertexai');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 const Project = require('../models/Project');
 const Feedback = require('../models/Feedback');
 const Task = require('../models/Task');
 const Roadmap = require('../models/Roadmap');
-
-const { GoogleGenAI } = require('@google/genai');
 class AgentService {
   constructor() {
     this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
@@ -60,8 +58,7 @@ class AgentService {
     }
 
     console.log(
-      `🤖 Agent Service initialized using ${
-        this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'
+      `🤖 Agent Service initialized using ${this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'
       }`
     );
 
@@ -142,21 +139,20 @@ Remember: You are helping product managers make informed, balanced decisions tha
       ) {
         const prompt = `You are an expert product management assistant with access to detailed project information.
 
-${
-  projectContext
-    ? `
+${projectContext
+            ? `
 CURRENT PROJECT CONTEXT:
 ${projectContext}
 
 When the user asks about "this project" or "the project", they are referring to the project above.
 `
-    : `
+            : `
 GLOBAL CONTEXT:
 ${projectContext}
 
 The user hasn't selected a specific project yet.
 `
-}
+          }
 
 CUSTOMER FEEDBACK SUMMARY:
 ${feedbackContext}
@@ -618,11 +614,10 @@ Would you like me to help you with any of these areas?`,
 - "Generate a balanced 6-month plan"
 - "Show me strategic priorities for this year"
 
-${
-  projectId
-    ? ''
-    : '💡 **Tip:** Select a specific project for detailed roadmap generation!'
-}`,
+${projectId
+          ? ''
+          : '💡 **Tip:** Select a specific project for detailed roadmap generation!'
+        }`,
 
       general: `I'm your AI product management assistant! Here's how I can help:
 

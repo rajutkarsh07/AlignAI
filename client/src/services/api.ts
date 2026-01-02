@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const API_BASE_URL =
   process.env.NODE_ENV === 'development'
@@ -13,6 +13,13 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Retry configuration for rate limiting
+const MAX_RETRIES = 3;
+const RETRY_DELAY_BASE = 1000; // 1 second base delay
+
+// Helper function to delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Request interceptor
 api.interceptors.request.use(
@@ -29,12 +36,32 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor with retry logic for rate limiting
 api.interceptors.response.use(
   (response) => {
     return response.data;
   },
-  (error) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as any;
+
+    // Handle rate limiting (429) with retry
+    if (error.response?.status === 429 && originalRequest && !originalRequest._retry) {
+      originalRequest._retryCount = originalRequest._retryCount || 0;
+
+      if (originalRequest._retryCount < MAX_RETRIES) {
+        originalRequest._retryCount++;
+        originalRequest._retry = true;
+
+        // Exponential backoff: 1s, 2s, 4s
+        const retryDelay = RETRY_DELAY_BASE * Math.pow(2, originalRequest._retryCount - 1);
+        console.log(`Rate limited. Retrying in ${retryDelay}ms... (attempt ${originalRequest._retryCount}/${MAX_RETRIES})`);
+
+        await delay(retryDelay);
+        originalRequest._retry = false; // Reset for potential next retry
+        return api(originalRequest);
+      }
+    }
+
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('authToken');

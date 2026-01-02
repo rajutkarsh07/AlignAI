@@ -20,7 +20,6 @@ const roadmapRoutes = require('./routes/roadmapRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
-app.use(cors());
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
@@ -33,10 +32,12 @@ const io = socketIo(server, {
 app.use(helmet());
 app.use(compression());
 
-// Rate limiting
+// Rate limiting (skip in development for easier testing)
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60 * 1000, // 1 minute
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per minute
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 200, // limit each IP to 200 requests per minute
+  skip: () => process.env.NODE_ENV === 'development', // Skip rate limiting in development
+  message: { error: 'Too many requests, please try again later.' },
 });
 app.use('/api/', limiter);
 
@@ -51,7 +52,6 @@ app.use(
 // Body parsing middleware
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.json());
 
 // MongoDB connection
 mongoose

@@ -45,24 +45,26 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Fetch projects
-      const projectsResponse: any = await api.get('/projects?limit=5');
+      // Fetch all data in parallel for better performance
+      const [projectsResponse, feedbackResponse, tasksResponse, roadmapResponse]: any[] = await Promise.all([
+        api.get('/projects?limit=5'),
+        api.get('/feedback?limit=1'),
+        api.get('/tasks?limit=1'),
+        api.get('/roadmap?limit=1'),
+      ]);
+
+      // Update projects
       if (projectsResponse.success) {
         setRecentProjects(projectsResponse.data);
-        setStats((prev) => ({
-          ...prev,
-          totalProjects: projectsResponse.pagination?.total || 0,
-        }));
       }
 
-      // TODO: Fetch real stats from respective endpoints when available
-      // For now, calculating from actual data
-      setStats((prev) => ({
-        ...prev,
-        activeRoadmaps: prev.totalProjects,
-        feedbackItems: prev.totalProjects * 10, // Estimated
-        pendingTasks: prev.totalProjects * 5, // Estimated
-      }));
+      // Update all stats at once
+      setStats({
+        totalProjects: projectsResponse.pagination?.total || projectsResponse.data?.length || 0,
+        feedbackItems: feedbackResponse.pagination?.total || feedbackResponse.data?.length || 0,
+        pendingTasks: tasksResponse.pagination?.total || tasksResponse.data?.length || 0,
+        activeRoadmaps: roadmapResponse.pagination?.total || roadmapResponse.data?.length || 0,
+      });
     } catch (error: any) {
       console.error('Error loading dashboard data:', error);
       setError('Failed to load dashboard data');

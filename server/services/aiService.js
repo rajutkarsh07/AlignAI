@@ -1,9 +1,7 @@
-const { VertexAI } = require('@google-cloud/vertexai');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
-
-const { GoogleGenAI } = require('@google/genai');
 
 class AIService {
   constructor() {
@@ -58,8 +56,7 @@ class AIService {
     }
 
     console.log(
-      `🤖 AI Service initialized using ${
-        this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'
+      `🤖 AI Service initialized using ${this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'
       }`
     );
   }
@@ -81,9 +78,9 @@ class AIService {
     ];
 
     const normalizedPrompt = prompt.toLowerCase();
-    
+
     // Check if any project keywords are present
-    const hasProjectKeywords = projectKeywords.some(keyword => 
+    const hasProjectKeywords = projectKeywords.some(keyword =>
       normalizedPrompt.includes(keyword)
     );
 
@@ -112,7 +109,7 @@ class AIService {
       /novel/i
     ];
 
-    const hasNonProjectPatterns = nonProjectPatterns.some(pattern => 
+    const hasNonProjectPatterns = nonProjectPatterns.some(pattern =>
       pattern.test(normalizedPrompt)
     );
 
@@ -124,7 +121,7 @@ class AIService {
     try {
       // For specific contexts (like formatProjectPlan, analyzeFeedback), skip validation
       const allowedContexts = ['project-plan', 'feedback-analysis', 'task-enhancement', 'document-processing'];
-      
+
       if (!allowedContexts.includes(context) && !this.isProjectRelatedQuery(prompt)) {
         return "I'm sorry, but I can only assist with project-related queries, including feedback analysis, task management, project planning, and development-related questions. Please ask me something related to your project, tasks, or feedback.";
       }

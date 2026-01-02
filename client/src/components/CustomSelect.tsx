@@ -14,7 +14,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   containerClassName = '',
   ...props
 }) => (
-  <div className={`w-64 ${containerClassName}`}>
+  <div className={`w-full ${containerClassName}`}>
     {label && (
       <label className="block mb-2 text-sm font-medium text-gray-700">
         {label}
@@ -22,7 +22,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     )}
     <div className="relative">
       <select
-        className={`block w-64 px-4 py-2.5 pr-10 rounded-lg border border-gray-300 bg-white text-gray-900 
+        className={`block w-full px-4 py-2.5 pr-10 rounded-lg border border-gray-300 bg-white text-gray-900 
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all
           appearance-none shadow-sm hover:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed
           ${className}`}

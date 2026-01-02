@@ -62,12 +62,7 @@ const ProjectList: React.FC = () => {
     };
   }, [searchTerm]);
 
-  // Fetch projects when debounced search term or page changes
-  useEffect(() => {
-    loadProjects();
-  }, [currentPage, debouncedSearchTerm]);
-
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -91,7 +86,12 @@ const ProjectList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearchTerm]);
+
+  // Fetch projects when debounced search term or page changes
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -439,8 +439,8 @@ const ProjectList: React.FC = () => {
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
                         className={`relative inline-flex items-center px-4 py-2 border text-base font-medium rounded-none ${pageNum === currentPage
-                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                           }`}
                       >
                         {pageNum}

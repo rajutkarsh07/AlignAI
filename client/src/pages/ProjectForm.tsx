@@ -34,11 +34,6 @@ const ProjectForm: React.FC = () => {
   const [uploadMode, setUploadMode] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
-  // Log when component mounts
-  useEffect(() => {
-    console.log('🚀 ProjectForm component mounted', { isEditing, id });
-  }, []);
-
   const loadProject = useCallback(async () => {
     try {
       setLoading(true);
@@ -112,11 +107,6 @@ const ProjectForm: React.FC = () => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      console.log('📁 File uploaded:', {
-        name: selectedFile.name,
-        size: `${(selectedFile.size / 1024).toFixed(2)} KB`,
-        type: selectedFile.type,
-      });
     }
   };
 
@@ -125,14 +115,6 @@ const ProjectForm: React.FC = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-
-    console.log('📤 Form submitted:', {
-      mode: uploadMode ? 'Upload Document' : 'Manual Entry',
-      isEditing,
-      projectName: formData.name,
-      hasFile: !!file,
-      goalsCount: formData.goals.length,
-    });
 
     try {
       if (uploadMode && file) {
