@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import CustomSelect from '../components/CustomSelect';
@@ -34,13 +34,12 @@ const ProjectForm: React.FC = () => {
   const [uploadMode, setUploadMode] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
+  // Log when component mounts
   useEffect(() => {
-    if (isEditing && id) {
-      loadProject();
-    }
-  }, [isEditing, id]);
+    console.log('🚀 ProjectForm component mounted', { isEditing, id });
+  }, []);
 
-  const loadProject = async () => {
+  const loadProject = useCallback(async () => {
     try {
       setLoading(true);
       const response: any = await api.get(`/projects/${id}`);
@@ -59,7 +58,13 @@ const ProjectForm: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (isEditing && id) {
+      loadProject();
+    }
+  }, [isEditing, id, loadProject]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -107,6 +112,11 @@ const ProjectForm: React.FC = () => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      console.log('📁 File uploaded:', {
+        name: selectedFile.name,
+        size: `${(selectedFile.size / 1024).toFixed(2)} KB`,
+        type: selectedFile.type,
+      });
     }
   };
 
@@ -115,6 +125,14 @@ const ProjectForm: React.FC = () => {
     setLoading(true);
     setError('');
     setSuccess('');
+
+    console.log('📤 Form submitted:', {
+      mode: uploadMode ? 'Upload Document' : 'Manual Entry',
+      isEditing,
+      projectName: formData.name,
+      hasFile: !!file,
+      goalsCount: formData.goals.length,
+    });
 
     try {
       if (uploadMode && file) {
@@ -202,22 +220,20 @@ const ProjectForm: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setUploadMode(false)}
-                className={`px-4 py-2 rounded-md font-medium ${
-                  !uploadMode
-                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                    : 'bg-gray-100 text-gray-700 border border-gray-300'
-                }`}
+                className={`px-4 py-2 rounded-md font-medium ${!uploadMode
+                  ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                  : 'bg-gray-100 text-gray-700 border border-gray-300'
+                  }`}
               >
                 Manual Entry
               </button>
               <button
                 type="button"
                 onClick={() => setUploadMode(true)}
-                className={`px-4 py-2 rounded-md font-medium ${
-                  uploadMode
-                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                    : 'bg-gray-100 text-gray-700 border border-gray-300'
-                }`}
+                className={`px-4 py-2 rounded-md font-medium ${uploadMode
+                  ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                  : 'bg-gray-100 text-gray-700 border border-gray-300'
+                  }`}
               >
                 Upload Document
               </button>

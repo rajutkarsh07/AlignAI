@@ -6,7 +6,7 @@ const ai = new GoogleGenAI({
   project: 'itd-ai-interns',
   location: 'global'
 });
-const model = 'gemini-2.5-flash';
+const model = 'gemini-1.5-flash';
 
 
 // Set up generation config
