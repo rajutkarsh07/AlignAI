@@ -590,7 +590,7 @@ const FeedbackManagement: React.FC = () => {
 
       {/* Feedback List */}
       <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-primary-100">
-        <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex items-center justify-between">
+        <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex flex-wrap items-center justify-between">
           <div>
             <h3 className="text-xl leading-7 font-semibold text-gray-900">
               Recent Feedback

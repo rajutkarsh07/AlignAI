@@ -12,6 +12,7 @@ import {
   PencilIcon,
   TrashIcon,
   ArrowPathIcon,
+  EllipsisVerticalIcon,
 } from '@heroicons/react/24/outline';
 
 interface Project {
@@ -37,6 +38,7 @@ const ProjectList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalProjects, setTotalProjects] = useState(0);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Debounce search term - wait 300ms after user stops typing
   useEffect(() => {
@@ -251,7 +253,7 @@ const ProjectList: React.FC = () => {
               const goalsSummary = getGoalsSummary(project.goals);
               return (
                 <li key={project._id}>
-                  <div className="px-8 py-6 flex items-center justify-between hover:bg-blue-50/60 transition-colors duration-200 group">
+                  <div className="px-4 py-3 sm:px-8 sm:py-6 flex items-center justify-between hover:bg-blue-50/60 transition-colors duration-200 group">
                     <div className="flex items-center min-w-0 flex-1">
                       <div className="flex-shrink-0">
                         <div className="h-10 w-10 rounded-lg bg-secondary-100 flex items-center justify-center">
@@ -273,30 +275,22 @@ const ProjectList: React.FC = () => {
                           </div>
                         </div>
                         <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
-                          <div className="flex items-center">
+                          <div className="hidden min-[800px]:flex items-center">
                             <CalendarIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
                             Updated{' '}
                             {new Date(project.updatedAt).toLocaleDateString()}
                           </div>
-                          <div className="flex items-center">
+                          <div className="hidden min-[800px]:flex items-center">
                             <UserGroupIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
                             {goalsSummary.completed}/{goalsSummary.total}{' '}
                             goals completed
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            v{project.version}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Link
-                        to={`/projects/${project._id}/chat`}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
-                      >
-                        Chat
-                      </Link>
+                    {/* Desktop Actions */}
+                    <div className="hidden min-[800px]:flex items-center space-x-2">
                       <Link
                         to={`/projects/${project._id}/roadmaps`}
                         className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200"
@@ -326,6 +320,67 @@ const ProjectList: React.FC = () => {
                           <ChevronRightIcon className="h-5 w-5" />
                         </Link>
                       </div>
+                    </div>
+
+                    {/* Mobile Three-Dot Menu */}
+                    <div className="min-[800px]:hidden relative">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === project._id ? null : project._id)}
+                        className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                        aria-label="More options"
+                      >
+                        <EllipsisVerticalIcon className="h-5 w-5" />
+                      </button>
+
+                      {openMenuId === project._id && (
+                        <>
+                          {/* Backdrop to close menu */}
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setOpenMenuId(null)}
+                          />
+
+                          {/* Dropdown Menu */}
+                          <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                            <div className="py-1">
+                              <Link
+                                to={`/projects/${project._id}`}
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                onClick={() => setOpenMenuId(null)}
+                              >
+                                <ChevronRightIcon className="h-4 w-4 mr-3 text-gray-400" />
+                                View Details
+                              </Link>
+                              <Link
+                                to={`/projects/${project._id}/roadmaps`}
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                onClick={() => setOpenMenuId(null)}
+                              >
+                                <FolderIcon className="h-4 w-4 mr-3 text-gray-400" />
+                                Roadmap
+                              </Link>
+                              <Link
+                                to={`/projects/${project._id}/edit`}
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                onClick={() => setOpenMenuId(null)}
+                              >
+                                <PencilIcon className="h-4 w-4 mr-3 text-gray-400" />
+                                Edit
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  handleDeleteProject(project._id);
+                                }}
+                                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                              >
+                                <TrashIcon className="h-4 w-4 mr-3" />
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </li>
@@ -433,6 +488,15 @@ const ProjectList: React.FC = () => {
           </div>
         )
       }
+
+      {/* Floating Action Button for Mobile/Tablet */}
+      <Link
+        to="/projects/new"
+        className="min-[700px]:hidden fixed bottom-6 right-6 z-30 inline-flex items-center justify-center w-14 h-14 rounded-full shadow-lg text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition-all hover:scale-110"
+        aria-label="New Project"
+      >
+        <PlusIcon className="h-6 w-6" />
+      </Link>
     </div >
   );
 };

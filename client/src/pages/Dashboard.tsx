@@ -10,6 +10,8 @@ import {
   PlusIcon,
   EyeIcon,
   ArrowPathIcon,
+  EllipsisVerticalIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
 
 interface DashboardStats {
@@ -37,6 +39,7 @@ const Dashboard: React.FC = () => {
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -146,12 +149,12 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex flex-wrap gap-5">
         {statCards.map((card) => (
           <Link
             key={card.name}
             to={card.href}
-            className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200 relative px-6 py-5 flex items-start"
+            className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200 relative px-6 py-5 flex items-start min-w-[240px] flex-1"
           >
             <div
               className={`rounded-md p-3 ${card.color} shadow-lg flex-shrink-0`}
@@ -172,7 +175,7 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Projects */}
       <div className="bg-white shadow-2xl rounded-2xl border border-blue-100">
-        <div className="px-8 py-8">
+        <div className="px-4 py-4 sm:px-8 sm:py-8">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg leading-6 font-medium text-gray-900">
               Recent Projects
@@ -209,7 +212,7 @@ const Dashboard: React.FC = () => {
               {recentProjects.map((project) => (
                 <div
                   key={project._id}
-                  className="flex items-center justify-between p-5 border border-gray-100 rounded-xl hover:bg-blue-50/60 transition-colors duration-200 group"
+                  className="flex items-center justify-between p-3 sm:p-5 border border-gray-100 rounded-xl hover:bg-blue-50/60 transition-colors duration-200 group"
                 >
                   <div className="flex-1 min-w-0">
                     <Link
@@ -222,25 +225,62 @@ const Dashboard: React.FC = () => {
                       <p className="text-sm text-gray-500 truncate">
                         {project.description}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="hidden min-[800px]:block text-xs text-gray-400 mt-1">
                         Updated{' '}
                         {new Date(project.updatedAt).toLocaleDateString()}
                       </p>
                     </Link>
                   </div>
-                  <div className="ml-4 flex-shrink-0 flex space-x-2">
-                    <Link
-                      to={`/projects/${project._id}/chat`}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
-                    >
-                      Chat
-                    </Link>
+
+                  {/* Desktop - Inline Roadmap Button */}
+                  <div className="hidden min-[800px]:flex ml-4 flex-shrink-0 space-x-2">
                     <Link
                       to={`/projects/${project._id}/roadmaps`}
                       className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200"
                     >
                       Roadmap
                     </Link>
+                  </div>
+
+                  {/* Mobile - Three-Dot Menu */}
+                  <div className="min-[800px]:hidden relative ml-4">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === project._id ? null : project._id)}
+                      className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                      aria-label="More options"
+                    >
+                      <EllipsisVerticalIcon className="h-5 w-5" />
+                    </button>
+
+                    {openMenuId === project._id && (
+                      <>
+                        {/* Backdrop to close menu */}
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setOpenMenuId(null)}
+                        />
+
+                        {/* Dropdown Menu */}
+                        <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                          <div className="py-1">
+                            <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
+                              <div className="flex items-center">
+                                <CalendarIcon className="h-3 w-3 mr-2" />
+                                Updated {new Date(project.updatedAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <Link
+                              to={`/projects/${project._id}/roadmaps`}
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setOpenMenuId(null)}
+                            >
+                              <MapIcon className="h-4 w-4 mr-3 text-gray-400" />
+                              View Roadmap
+                            </Link>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

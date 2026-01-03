@@ -201,8 +201,8 @@ const LayoutInner: React.FC<LayoutInnerProps> = ({
                 )}
               </div>
 
-              {/* Page Actions */}
-              <div className="flex items-center space-x-3 ml-4">
+              {/* Page Actions - Hidden below 700px */}
+              <div className="hidden min-[700px]:flex items-center space-x-3 ml-4">
                 {header.actions}
                 {!header.actions && projectId && (
                   <Link

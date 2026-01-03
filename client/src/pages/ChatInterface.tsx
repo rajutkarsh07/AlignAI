@@ -711,6 +711,15 @@ What would you like to work on today?`;
           </div>
         </div>
       </div>
+
+      {/* Floating Action Button for Mobile/Tablet */}
+      <button
+        onClick={createNewSession}
+        className="min-[700px]:hidden fixed bottom-6 right-6 z-30 inline-flex items-center justify-center w-14 h-14 rounded-full shadow-lg text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition-all hover:scale-110"
+        aria-label="New Chat"
+      >
+        <PlusIcon className="h-6 w-6" />
+      </button>
     </div>
   );
 };
