@@ -16,6 +16,7 @@ import {
   DeviceTabletIcon,
   ChartPieIcon,
   ArrowPathIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import {
   DragDropContext,
@@ -176,6 +177,7 @@ const RoadmapView: React.FC = () => {
   const [wireframes, setWireframes] = useState<WireframeScreen[]>([]);
   const [selectedWireframe, setSelectedWireframe] = useState<string>('');
   const [isGeneratingWireframes, setIsGeneratingWireframes] = useState(false);
+  const [selectedItemDetails, setSelectedItemDetails] = useState<RoadmapItem | null>(null);
 
   // Data fetching useEffects remain unchanged...
   useEffect(() => {
@@ -912,7 +914,7 @@ const RoadmapView: React.FC = () => {
                       In Progress
                     </dt>
                     <dd className="text-2xl font-semibold text-gray-900">
-                      {roadmaps.reduce((sum, r) => 
+                      {roadmaps.reduce((sum, r) =>
                         sum + r.items.filter(i => i.status === 'in-progress').length, 0
                       )}
                     </dd>
@@ -1321,58 +1323,63 @@ const RoadmapView: React.FC = () => {
             <>
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
                 <div className="bg-white shadow-2xl rounded-2xl overflow-hidden border border-primary-100">
+                  {/* Back Button - Top Left */}
+                  <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100">
+                    <button
+                      onClick={() => setSelectedRoadmap('')}
+                      className="inline-flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-gray-600 hover:text-gray-900"
+                      aria-label="Go back"
+                    >
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+                        />
+                      </svg>
+                      <span className="text-sm font-medium">Back</span>
+                    </button>
+                  </div>
+
                   {/* Header Section */}
-                  <div className="px-8 py-6 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                          <span className="bg-primary-100 text-primary-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full">
+                  <div className="px-4 py-4 sm:px-8 sm:py-6 border-b border-gray-100">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 flex flex-wrap items-center gap-2">
+                          <span className="bg-primary-100 text-primary-800 text-xs sm:text-sm font-medium px-2.5 py-0.5 rounded-full">
                             Roadmap
                           </span>
-                          {roadmapDetails.name}
+                          <span className="break-words">{roadmapDetails.name}</span>
                         </h3>
-                        <p className="text-gray-600 mt-2 leading-relaxed">
+                        <p className="text-sm sm:text-base text-gray-600 mt-2 leading-relaxed">
                           {roadmapDetails.description}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-gray-500">
+                      <div className="flex items-center justify-start sm:justify-end flex-shrink-0">
+                        <div className="text-left sm:text-right">
+                          <div className="text-xs sm:text-sm font-medium text-gray-500">
                             Total Items
                           </div>
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-xl sm:text-2xl font-bold text-gray-900">
                             {roadmapDetails.items.length}
                           </div>
                         </div>
-                        <button
-                          onClick={() => setSelectedRoadmap('')}
-                          className="p-2 rounded-full hover:bg-gray-50 transition-colors duration-200 text-gray-400 hover:text-gray-600"
-                          aria-label="Go back"
-                        >
-                          <svg
-                            className="h-6 w-6"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={1.5}
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-                            />
-                          </svg>
-                        </button>
                       </div>
                     </div>
                   </div>
 
                   {/* Allocation Strategy */}
-                  <div className="px-8 py-6 bg-gray-50">
+                  <div className="px-4 py-4 sm:px-8 sm:py-6 bg-gray-50">
                     <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
                       Allocation Strategy
                     </h4>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {/* Strategic */}
                       <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-100 shadow-sm">
                         <div className="flex items-center justify-center space-x-2">
@@ -1439,7 +1446,7 @@ const RoadmapView: React.FC = () => {
                   </div>
 
                   {/* Time Horizon */}
-                  <div className="px-8 py-4 bg-white border-t border-gray-100">
+                  <div className="px-4 py-3 sm:px-8 sm:py-4 bg-white border-t border-gray-100">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-500">
                         Time Horizon
@@ -1453,8 +1460,8 @@ const RoadmapView: React.FC = () => {
               </div>
               {/* UPDATED: View Mode Toggle */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-                <div className="flex justify-center">
-                  <div className="bg-white rounded-xl shadow-lg p-1 flex border border-primary-100">
+                <div className="flex flex-col sm:flex-row sm:justify-center sm:items-center gap-3">
+                  <div className="bg-white rounded-xl shadow-lg p-1 flex border border-primary-100 justify-center">
                     {[
                       { key: 'timeline', label: 'Timeline', icon: CalendarIcon },
                       { key: 'kanban', label: 'Kanban', icon: ChartBarIcon },
@@ -1468,20 +1475,21 @@ const RoadmapView: React.FC = () => {
                             key as 'timeline' | 'kanban' | 'list' | 'insights'
                           )
                         }
-                        className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${viewMode === key
+                        className={`flex items-center justify-center px-2 py-2 sm:px-4 rounded-lg text-sm font-medium ${viewMode === key
                           ? 'bg-primary-100 text-primary-700'
                           : 'text-gray-500 hover:text-gray-700'
                           }`}
+                        title={label}
                       >
-                        <Icon className="h-4 w-4 mr-2" />
-                        {label}
+                        <Icon className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">{label}</span>
                       </button>
                     ))}
                   </div>
                   <button
                     onClick={downloadExcel}
                     disabled={!roadmapDetails}
-                    className="inline-flex items-center ml-3 rounded-xl shadow-lg border px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl shadow-lg px-4 py-2 sm:px-5 border border-transparent text-sm sm:text-base font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                     Download Excel
@@ -1503,7 +1511,7 @@ const RoadmapView: React.FC = () => {
                         key={quarter}
                         className="bg-white shadow-2xl rounded-2xl border border-primary-100"
                       >
-                        <div className="px-8 py-6 border-b border-gray-200">
+                        <div className="px-4 py-4 sm:px-8 sm:py-6 border-b border-gray-200">
                           <h4 className="text-lg font-medium text-gray-900">
                             {quarter}
                           </h4>
@@ -1511,7 +1519,7 @@ const RoadmapView: React.FC = () => {
                             {items.length} items planned
                           </p>
                         </div>
-                        <div className="p-8">
+                        <div className="p-4 sm:p-8">
                           <div className="grid gap-4">
                             {items.map((item) => (
                               <div
@@ -1519,14 +1527,28 @@ const RoadmapView: React.FC = () => {
                                 className="border text-left border-gray-200 rounded-xl p-4 hover:bg-primary-50/60 transition-colors duration-200"
                               >
                                 <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <h5 className="text-sm font-medium text-gray-900">
+                                  <div className="flex-1 min-w-0">
+                                    {/* Mobile - Clickable Title */}
+                                    <button
+                                      onClick={() => setSelectedItemDetails(item)}
+                                      className="sm:hidden text-left w-full"
+                                    >
+                                      <h5 className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors">
+                                        {item.title}
+                                      </h5>
+                                    </button>
+
+                                    {/* Desktop - Regular Title */}
+                                    <h5 className="hidden sm:block text-sm font-medium text-gray-900">
                                       {item.title}
                                     </h5>
-                                    <p className="text-sm text-gray-500 mt-1">
+
+                                    {/* Desktop - Show description */}
+                                    <p className="hidden sm:block text-sm text-gray-500 mt-1">
                                       {item.description}
                                     </p>
-                                    <div className="mt-2 flex items-center space-x-2">
+
+                                    <div className="mt-2 flex flex-wrap items-center gap-2">
                                       <span
                                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
                                           item.category
@@ -1541,19 +1563,23 @@ const RoadmapView: React.FC = () => {
                                       >
                                         {item.priority}
                                       </span>
-                                      <span className="text-xs text-gray-500">
+
+                                      {/* Desktop - Show additional details */}
+                                      <span className="hidden sm:inline text-xs text-gray-500">
                                         {
                                           item.timeframe.estimatedDuration.value
                                         }{' '}
                                         {item.timeframe.estimatedDuration.unit}
                                       </span>
-                                      <span className="text-xs text-gray-500">
+                                      <span className="hidden sm:inline text-xs text-gray-500">
                                         {item.resourceAllocation.teamMembers} team
                                         members
                                       </span>
                                     </div>
+
+                                    {/* Desktop - Success Metrics */}
                                     {item.successMetrics.length > 0 && (
-                                      <div className="mt-2">
+                                      <div className="mt-2 hidden sm:block">
                                         <div className="text-xs font-medium text-gray-700">
                                           Success Metrics:
                                         </div>
@@ -1567,6 +1593,7 @@ const RoadmapView: React.FC = () => {
                                       </div>
                                     )}
                                   </div>
+
                                   <select
                                     value={item.status}
                                     onChange={(e) =>
@@ -1575,7 +1602,7 @@ const RoadmapView: React.FC = () => {
                                         e.target.value as RoadmapItem['status']
                                       )
                                     }
-                                    className={`text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${getStatusColor(
+                                    className={`ml-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${getStatusColor(
                                       item.status
                                     )}`}
                                   >
@@ -1600,7 +1627,7 @@ const RoadmapView: React.FC = () => {
               {viewMode === 'kanban' && (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <DragDropContext onDragEnd={onDragEnd}>
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                       {[
                         'proposed',
                         'approved',
@@ -1625,12 +1652,12 @@ const RoadmapView: React.FC = () => {
                                   : ''
                                   }`}
                               >
-                                <div className="px-6 py-4 border-b border-gray-200">
+                                <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-200">
                                   <h4 className="text-sm font-medium text-gray-900 capitalize">
                                     {status.replace('-', ' ')} ({items.length})
                                   </h4>
                                 </div>
-                                <div className="p-6 space-y-3">
+                                <div className="p-4 sm:p-6 space-y-3">
                                   {items.map((item, idx) => (
                                     <Draggable
                                       key={item._id}
@@ -1650,10 +1677,22 @@ const RoadmapView: React.FC = () => {
                                             : ''
                                             }`}
                                         >
-                                          <h5 className="text-sm font-medium text-gray-900">
+                                          {/* Mobile - Clickable Title */}
+                                          <button
+                                            onClick={() => setSelectedItemDetails(item)}
+                                            className="sm:hidden text-left w-full"
+                                          >
+                                            <h5 className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors">
+                                              {item.title}
+                                            </h5>
+                                          </button>
+
+                                          {/* Desktop - Regular Title */}
+                                          <h5 className="hidden sm:block text-sm font-medium text-gray-900">
                                             {item.title}
                                           </h5>
-                                          <div className="mt-2 flex items-center space-x-2">
+
+                                          <div className="mt-2 flex flex-wrap items-center gap-2">
                                             <span
                                               className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
                                                 item.category
@@ -1669,7 +1708,9 @@ const RoadmapView: React.FC = () => {
                                               {item.priority}
                                             </span>
                                           </div>
-                                          <p className="text-xs text-gray-500 mt-1">
+
+                                          {/* Desktop - Show quarter */}
+                                          <p className="hidden sm:block text-xs text-gray-500 mt-1">
                                             {item.timeframe.quarter}
                                           </p>
                                         </div>
@@ -1696,17 +1737,31 @@ const RoadmapView: React.FC = () => {
                       {roadmapDetails.items.map((item) => (
                         <li
                           key={item._id}
-                          className="px-8 py-6 hover:bg-primary-50/60 transition-colors duration-200"
+                          className="px-4 py-4 sm:px-8 sm:py-6 hover:bg-primary-50/60 transition-colors duration-200"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-gray-900">
+                              {/* Mobile - Clickable Title */}
+                              <button
+                                onClick={() => setSelectedItemDetails(item)}
+                                className="sm:hidden text-left w-full"
+                              >
+                                <h4 className="text-sm font-medium text-gray-900 hover:text-primary-600 transition-colors">
+                                  {item.title}
+                                </h4>
+                              </button>
+
+                              {/* Desktop - Regular Title */}
+                              <h4 className="hidden sm:block text-sm font-medium text-gray-900">
                                 {item.title}
                               </h4>
-                              <p className="text-sm text-gray-500 mt-1">
+
+                              {/* Desktop - Show description */}
+                              <p className="hidden sm:block text-sm text-gray-500 mt-1">
                                 {item.description}
                               </p>
-                              <div className="mt-2 flex items-center space-x-4">
+
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <span
                                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
                                     item.category
@@ -1721,15 +1776,18 @@ const RoadmapView: React.FC = () => {
                                 >
                                   {item.priority}
                                 </span>
-                                <span className="text-xs text-gray-500">
+
+                                {/* Desktop - Show additional details */}
+                                <span className="hidden sm:inline text-xs text-gray-500">
                                   {item.timeframe.quarter}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="hidden sm:inline text-xs text-gray-500">
                                   {item.timeframe.estimatedDuration.value}{' '}
                                   {item.timeframe.estimatedDuration.unit}
                                 </span>
                               </div>
                             </div>
+
                             <select
                               value={item.status}
                               onChange={(e) =>
@@ -1738,7 +1796,7 @@ const RoadmapView: React.FC = () => {
                                   e.target.value as RoadmapItem['status']
                                 )
                               }
-                              className={`text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${getStatusColor(
+                              className={`ml-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${getStatusColor(
                                 item.status
                               )}`}
                             >
@@ -2113,6 +2171,129 @@ const RoadmapView: React.FC = () => {
           </div>
         )
       }
+
+      {/* Roadmap Item Details Modal */}
+      {selectedItemDetails && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+              onClick={() => setSelectedItemDetails(null)}
+            >
+              <div className="absolute inset-0 bg-gray-700 opacity-70"></div>
+            </div>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 border border-primary-100">
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  onClick={() => setSelectedItemDetails(null)}
+                  className="bg-white rounded-full text-gray-400 hover:text-primary-500 focus:outline-none shadow p-1 transition"
+                >
+                  <span className="sr-only">Close</span>
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div>
+                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                  <h3 className="text-lg leading-6 font-semibold text-gray-900 mb-4">
+                    {selectedItemDetails.title}
+                  </h3>
+
+                  {/* Badges */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                        selectedItemDetails.category
+                      )}`}
+                    >
+                      {selectedItemDetails.category.replace('-', ' ')}
+                    </span>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+                        selectedItemDetails.priority
+                      )}`}
+                    >
+                      {selectedItemDetails.priority}
+                    </span>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                        selectedItemDetails.status
+                      )}`}
+                    >
+                      {selectedItemDetails.status.replace('-', ' ')}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
+                    <p className="text-sm text-gray-600">{selectedItemDetails.description}</p>
+                  </div>
+
+                  {/* Timeline & Resources */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Duration</h4>
+                      <p className="text-sm text-gray-600">
+                        {selectedItemDetails.timeframe.estimatedDuration.value}{' '}
+                        {selectedItemDetails.timeframe.estimatedDuration.unit}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Team Members</h4>
+                      <p className="text-sm text-gray-600">
+                        {selectedItemDetails.resourceAllocation.teamMembers}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Quarter</h4>
+                      <p className="text-sm text-gray-600">{selectedItemDetails.timeframe.quarter}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">Budget</h4>
+                      <p className="text-sm text-gray-600">
+                        ${selectedItemDetails.resourceAllocation.estimatedCost.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Success Metrics */}
+                  {selectedItemDetails.successMetrics.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Success Metrics</h4>
+                      <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                        {selectedItemDetails.successMetrics.map((metric, index) => (
+                          <li key={index}>{metric}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Dependencies */}
+                  {selectedItemDetails.dependencies.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Dependencies</h4>
+                      <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                        {selectedItemDetails.dependencies.map((dep, index) => (
+                          <li key={index}>{dep}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 };

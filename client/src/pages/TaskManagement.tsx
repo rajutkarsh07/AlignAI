@@ -16,6 +16,7 @@ import {
   ChevronUpIcon,
   XMarkIcon,
   ArrowPathIcon,
+  EllipsisVerticalIcon,
 } from '@heroicons/react/24/outline';
 import CustomSelect from '../components/CustomSelect';
 
@@ -75,7 +76,7 @@ const TaskManagement: React.FC = () => {
     projectId || ''
   );
   const [showAddForm, setShowAddForm] = useState(false);
-  const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [newTask, setNewTask] = useState({
@@ -95,6 +96,7 @@ const TaskManagement: React.FC = () => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isEnhancingTask, setIsEnhancingTask] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // Fetch projects
   useEffect(() => {
@@ -282,6 +284,21 @@ const TaskManagement: React.FC = () => {
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'todo':
+        return <ClockIcon className="h-4 w-4" />;
+      case 'in-progress':
+        return <ArrowPathIcon className="h-4 w-4" />;
+      case 'done':
+        return <CheckIcon className="h-4 w-4" />;
+      case 'blocked':
+        return <ExclamationTriangleIcon className="h-4 w-4" />;
+      default:
+        return <ClockIcon className="h-4 w-4" />;
     }
   };
 
@@ -546,21 +563,38 @@ const TaskManagement: React.FC = () => {
                   key={task._id}
                   className="hover:bg-blue-50/60 transition-colors duration-200 group"
                 >
-                  <div className="px-6 py-5 sm:px-8 flex flex-col gap-2">
+                  <div className="px-4 py-3 sm:px-8 sm:py-5 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center gap-2 min-[800px]:space-x-3 min-[800px]:gap-0 flex-1 min-w-0">
+                        {/* Desktop - Status Badge with Text */}
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(
+                          className={`hidden min-[800px]:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(
                             task.status
                           )}`}
                         >
                           {task.status.replace('-', ' ')}
                         </span>
-                        <p className="text-base font-medium text-primary-700 truncate">
+
+                        {/* Mobile - Status Icon Only */}
+                        <span
+                          className={`min-[800px]:hidden inline-flex items-center p-1.5 rounded-full shadow-sm flex-shrink-0 ${getStatusColor(
+                            task.status
+                          )}`}
+                          title={task.status.replace('-', ' ')}
+                        >
+                          {getStatusIcon(task.status)}
+                        </span>
+
+                        <button
+                          onClick={() => setSelectedTask(task)}
+                          className="text-base font-medium text-primary-700 hover:text-primary-800 truncate text-left cursor-pointer transition-colors min-w-0"
+                        >
                           {task.title}
-                        </p>
+                        </button>
                       </div>
-                      <div className="flex items-center space-x-2">
+
+                      {/* Desktop - Priority Badge */}
+                      <div className="hidden min-[800px]:flex items-center space-x-2">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
                             task.priority
@@ -568,27 +602,72 @@ const TaskManagement: React.FC = () => {
                         >
                           {task.priority}
                         </span>
+                      </div>
+
+                      {/* Mobile - Three-Dot Menu Button (Top Right) */}
+                      <div className="min-[800px]:hidden relative flex-shrink-0">
                         <button
-                          onClick={() =>
-                            setExpandedTask(
-                              expandedTask === task._id ? null : task._id
-                            )
-                          }
-                          className="text-gray-400 hover:text-blue-500 transition"
-                          aria-label={
-                            expandedTask === task._id ? 'Collapse' : 'Expand'
-                          }
+                          onClick={() => setOpenMenuId(openMenuId === task._id ? null : task._id)}
+                          className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                          aria-label="More options"
                         >
-                          {expandedTask === task._id ? (
-                            <ChevronUpIcon className="h-6 w-6" />
-                          ) : (
-                            <ChevronDownIcon className="h-6 w-6" />
-                          )}
+                          <EllipsisVerticalIcon className="h-5 w-5" />
                         </button>
+
+                        {openMenuId === task._id && (
+                          <>
+                            {/* Backdrop to close menu */}
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setOpenMenuId(null)}
+                            />
+
+                            {/* Dropdown Menu */}
+                            <div className="absolute right-0 mt-2 w-64 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                              <div className="py-2">
+                                <div className="px-4 py-2 text-xs text-gray-500">
+                                  <div className="font-semibold text-gray-700 mb-3">Task Details</div>
+
+                                  {/* Priority */}
+                                  <div className="flex items-center mb-2 pb-2 border-b border-gray-100">
+                                    <span className="font-medium mr-2">Priority:</span>
+                                    <span
+                                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getPriorityColor(
+                                        task.priority
+                                      )}`}
+                                    >
+                                      {task.priority}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center mb-2">
+                                    <UserIcon className="h-3 w-3 mr-2 text-gray-400" />
+                                    <span className="font-medium">Assignee:</span>
+                                    <span className="ml-1">{task.assignee || 'Unassigned'}</span>
+                                  </div>
+                                  {task.dueDate && (
+                                    <div className="flex items-center mb-2">
+                                      <CalendarIcon className="h-3 w-3 mr-2 text-gray-400" />
+                                      <span className="font-medium">Due:</span>
+                                      <span className="ml-1">{new Date(task.dueDate).toLocaleDateString()}</span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center">
+                                    <ClockIcon className="h-3 w-3 mr-2 text-gray-400" />
+                                    <span className="font-medium">Created:</span>
+                                    <span className="ml-1">{new Date(task.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <div className="mt-1 sm:flex sm:justify-between">
-                      <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
+
+                    {/* Desktop - Task Details */}
+                    <div className="mt-1 hidden min-[800px]:flex min-[800px]:justify-between">
+                      <div className="flex space-x-4">
                         <div className="flex items-center text-sm text-gray-500">
                           <UserIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
                           {task.assignee || 'Unassigned'}
@@ -607,131 +686,22 @@ const TaskManagement: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
+                      <div className="flex items-center text-sm text-gray-400">
                         <span>
                           Created{' '}
                           {new Date(task.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedTask === task._id
-                        ? 'max-h-[1000px] opacity-100 mt-4'
-                        : 'max-h-0 opacity-0'
-                        } bg-gray-50 rounded-lg border border-gray-200`}
-                      style={{ willChange: 'max-height, opacity' }}
-                    >
-                      {expandedTask === task._id && (
-                        <div className="p-4 animate-fade-in">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="md:col-span-2">
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                Description
-                              </h4>
-                              <div className="prose prose-sm max-w-none text-gray-600">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {task.description}
-                                </ReactMarkdown>
-                              </div>
 
-                              {task.acceptanceCriteria.length > 0 && (
-                                <div className="mt-4">
-                                  <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                    Acceptance Criteria
-                                  </h4>
-                                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                                    {task.acceptanceCriteria.map(
-                                      (criteria, index) => (
-                                        <li key={index}>{criteria}</li>
-                                      )
-                                    )}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-
-                            <div>
-                              <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                Details
-                              </h4>
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                                    Status
-                                  </label>
-                                  <CustomSelect
-                                    value={task.status}
-                                    onChange={(e) =>
-                                      updateTaskStatus(
-                                        task._id,
-                                        e.target.value as Task['status']
-                                      )
-                                    }
-                                    options={[
-                                      { value: 'todo', label: 'To Do' },
-                                      {
-                                        value: 'in-progress',
-                                        label: 'In Progress',
-                                      },
-                                      { value: 'done', label: 'Done' },
-                                      { value: 'blocked', label: 'Blocked' },
-                                    ]}
-                                    className="w-full"
-                                  />
-                                </div>
-
-                                {task.aiSuggestions && (
-                                  <div>
-                                    <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                      AI Suggestions
-                                    </h4>
-                                    <div className="space-y-3">
-                                      {task.aiSuggestions
-                                        .enhancementRecommendations.length >
-                                        0 && (
-                                          <div>
-                                            <h5 className="text-xs font-medium text-gray-500 mb-1">
-                                              Enhancements
-                                            </h5>
-                                            <ul className="text-xs text-gray-600 space-y-1">
-                                              {task.aiSuggestions.enhancementRecommendations.map(
-                                                (rec, i) => (
-                                                  <li
-                                                    key={i}
-                                                    className="flex items-start"
-                                                  >
-                                                    <span className="mr-1">
-                                                      •
-                                                    </span>
-                                                    <span>{rec}</span>
-                                                  </li>
-                                                )
-                                              )}
-                                            </ul>
-                                          </div>
-                                        )}
-                                      {task.aiSuggestions.riskAssessment && (
-                                        <div>
-                                          <h5 className="text-xs font-medium text-gray-500 mb-1">
-                                            Risks
-                                          </h5>
-                                          <p className="text-xs text-gray-600">
-                                            {
-                                              task.aiSuggestions
-                                                .riskAssessment
-                                            }
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    {/* Mobile - Project Name */}
+                    {showProject && project && (
+                      <div className="mt-1 flex min-[800px]:hidden items-center">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                          {project.name}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </li>
               );
@@ -739,6 +709,195 @@ const TaskManagement: React.FC = () => {
           </ul>
         )}
       </div>
+
+      {/* Task Details Modal */}
+      {selectedTask && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+              onClick={() => setSelectedTask(null)}
+            >
+              <div className="absolute inset-0 bg-gray-700 opacity-75"></div>
+            </div>
+
+            {/* Center modal */}
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+
+            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-8 border border-blue-100">
+              {/* Close button */}
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  onClick={() => setSelectedTask(null)}
+                  className="bg-white rounded-full text-gray-400 hover:text-blue-500 focus:outline-none shadow p-1 transition"
+                >
+                  <span className="sr-only">Close</span>
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Modal content */}
+              <div>
+                <div className="mt-3 sm:mt-0">
+                  {/* Task header */}
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold shadow-sm ${getStatusColor(
+                          selectedTask.status
+                        )}`}
+                      >
+                        {selectedTask.status.replace('-', ' ')}
+                      </span>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold shadow-sm ${getPriorityColor(
+                          selectedTask.priority
+                        )}`}
+                      >
+                        {selectedTask.priority}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl leading-6 font-bold text-gray-900">
+                      {selectedTask.title}
+                    </h3>
+                    <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <UserIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                        {selectedTask.assignee || 'Unassigned'}
+                      </div>
+                      {selectedTask.dueDate && (
+                        <div className="flex items-center">
+                          <CalendarIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                          Due {new Date(selectedTask.dueDate).toLocaleDateString()}
+                        </div>
+                      )}
+                      <div className="flex items-center">
+                        <ClockIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                        Created {new Date(selectedTask.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Task details grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 space-y-6">
+                      {/* Description */}
+                      <div>
+                        <h4 className="text-base font-semibold text-gray-900 mb-3">
+                          Description
+                        </h4>
+                        <div className="prose prose-sm max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {selectedTask.description}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+
+                      {/* Acceptance Criteria */}
+                      {selectedTask.acceptanceCriteria.length > 0 && (
+                        <div>
+                          <h4 className="text-base font-semibold text-gray-900 mb-3">
+                            Acceptance Criteria
+                          </h4>
+                          <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+                            {selectedTask.acceptanceCriteria.map(
+                              (criteria, index) => (
+                                <li key={index}>{criteria}</li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                      {/* Status selector */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                          Status
+                        </label>
+                        <CustomSelect
+                          value={selectedTask.status}
+                          onChange={(e) => {
+                            updateTaskStatus(
+                              selectedTask._id,
+                              e.target.value as Task['status']
+                            );
+                            setSelectedTask({
+                              ...selectedTask,
+                              status: e.target.value as Task['status'],
+                            });
+                          }}
+                          options={[
+                            { value: 'todo', label: 'To Do' },
+                            {
+                              value: 'in-progress',
+                              label: 'In Progress',
+                            },
+                            { value: 'done', label: 'Done' },
+                            { value: 'blocked', label: 'Blocked' },
+                          ]}
+                          className="w-full"
+                        />
+                      </div>
+
+                      {/* AI Suggestions */}
+                      {selectedTask.aiSuggestions && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                            AI Suggestions
+                          </h4>
+                          <div className="space-y-4 bg-blue-50 p-4 rounded-lg">
+                            {selectedTask.aiSuggestions
+                              .enhancementRecommendations.length > 0 && (
+                                <div>
+                                  <h5 className="text-xs font-semibold text-gray-700 mb-2">
+                                    Enhancements
+                                  </h5>
+                                  <ul className="text-xs text-gray-600 space-y-1.5">
+                                    {selectedTask.aiSuggestions.enhancementRecommendations.map(
+                                      (rec, i) => (
+                                        <li
+                                          key={i}
+                                          className="flex items-start"
+                                        >
+                                          <span className="mr-2 text-blue-600">•</span>
+                                          <span>{rec}</span>
+                                        </li>
+                                      )
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                            {selectedTask.aiSuggestions.riskAssessment && (
+                              <div>
+                                <h5 className="text-xs font-semibold text-gray-700 mb-2">
+                                  Risk Assessment
+                                </h5>
+                                <p className="text-xs text-gray-600">
+                                  {selectedTask.aiSuggestions.riskAssessment}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Task Modal */}
       {showAddForm && (

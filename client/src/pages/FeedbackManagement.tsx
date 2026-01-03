@@ -14,6 +14,7 @@ import {
   TrashIcon,
   ArrowPathIcon,
   XMarkIcon,
+  EllipsisVerticalIcon,
 } from '@heroicons/react/24/outline';
 import CustomSelect from '../components/CustomSelect';
 
@@ -74,6 +75,7 @@ const FeedbackManagement: React.FC = () => {
   const [filterSource, setFilterSource] = useState<string>('all');
   const [showAiAnalysis, setShowAiAnalysis] = useState<boolean>(true);
   const [selectedFeedback, setSelectedFeedback] = useState<any>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const loadProjects = async () => {
     try {
@@ -364,11 +366,11 @@ const FeedbackManagement: React.FC = () => {
   const getSentimentIcon = (sentiment: string) => {
     switch (sentiment) {
       case 'positive':
-        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+        return <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 flex-shrink-0" />;
       case 'negative':
-        return <XCircleIcon className="h-5 w-5 text-red-500" />;
+        return <XCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0" />;
       default:
-        return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />;
+        return <ExclamationTriangleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 flex-shrink-0" />;
     }
   };
 
@@ -657,31 +659,85 @@ const FeedbackManagement: React.FC = () => {
                           {item.content.length > 120 ? `${item.content.substring(0, 120)}...` : item.content}
                         </p>
                       </div>
+
                       <div className="flex items-center space-x-2">
+                        {/* Desktop - Priority Badge */}
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
+                          className={`hidden min-[800px]:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
                             item.priority
                           )}`}
                         >
                           {item.priority}
                         </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleIgnore(item._id);
-                          }}
-                          className={`text-xs ${item.isIgnored
-                            ? 'text-green-600 hover:text-green-500'
-                            : 'text-gray-600 hover:text-gray-500'
-                            }`}
-                        >
-                          {item.isIgnored ? 'Unignore' : 'Ignore'}
-                        </button>
+
+                        {/* Mobile - Three-Dot Menu Button (Top Right) */}
+                        <div className="min-[800px]:hidden relative flex-shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === item._id ? null : item._id);
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                            aria-label="More options"
+                          >
+                            <EllipsisVerticalIcon className="h-5 w-5" />
+                          </button>
+
+                          {openMenuId === item._id && (
+                            <>
+                              {/* Backdrop to close menu */}
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
+                                }}
+                              />
+
+                              {/* Dropdown Menu */}
+                              <div className="absolute right-0 mt-2 w-64 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                                <div className="py-2">
+                                  <div className="px-4 py-2 text-xs text-gray-500">
+                                    <div className="font-semibold text-gray-700 mb-3">Feedback Details</div>
+
+                                    {/* Priority */}
+                                    <div className="flex items-center mb-2 pb-2 border-b border-gray-100">
+                                      <span className="font-medium mr-2">Priority:</span>
+                                      <span
+                                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getPriorityColor(
+                                          item.priority
+                                        )}`}
+                                      >
+                                        {item.priority}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center mb-2">
+                                      <span className="font-medium">Source:</span>
+                                      <span className="ml-1">{item.source}</span>
+                                    </div>
+
+                                    <div className="flex items-center mb-2">
+                                      <span className="font-medium">Category:</span>
+                                      <span className="ml-1">{item.category}</span>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                      <span className="font-medium">Created:</span>
+                                      <span className="ml-1">{new Date(item.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="mt-1 sm:flex sm:justify-between">
-                      <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
+                    {/* Desktop - Feedback Details */}
+                    <div className="mt-1 hidden min-[800px]:flex min-[800px]:justify-between">
+                      <div className="flex space-x-4">
                         <div className="flex items-center text-sm text-gray-500">
                           <span>Source: {item.source}</span>
                         </div>
@@ -696,13 +752,22 @@ const FeedbackManagement: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
+                      <div className="flex items-center text-sm text-gray-400">
                         <span>
                           Created{' '}
                           {new Date(item.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
+
+                    {/* Mobile - Project Name */}
+                    {showProject && project && (
+                      <div className="mt-1 flex min-[800px]:hidden items-center">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                          {project.name}
+                        </span>
+                      </div>
+                    )}
 
                     {/* AI Analysis */}
                     {item.aiAnalysis && showAiAnalysis && (
@@ -1196,19 +1261,7 @@ const FeedbackManagement: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      onClick={() => {
-                        toggleIgnore(selectedFeedback._id);
-                        setSelectedFeedback(null);
-                      }}
-                      className={`inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold ${selectedFeedback.isIgnored
-                        ? 'text-white bg-green-600 hover:bg-green-700'
-                        : 'text-white bg-gray-600 hover:bg-gray-700'
-                        } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition`}
-                    >
-                      {selectedFeedback.isIgnored ? 'Unignore' : 'Ignore'}
-                    </button>
+                  <div className="mt-6 flex justify-end">
                     <button
                       onClick={() => setSelectedFeedback(null)}
                       className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition"
