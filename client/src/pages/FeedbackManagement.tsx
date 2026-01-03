@@ -628,7 +628,7 @@ const FeedbackManagement: React.FC = () => {
 
         {loading ? (
           <div className="text-center py-16">
-            <ArrowPathIcon className="mx-auto h-10 w-10 text-primary-400 animate-spin" />
+            <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
             <p className="mt-4 text-base text-gray-500">
               Loading feedback...
             </p>

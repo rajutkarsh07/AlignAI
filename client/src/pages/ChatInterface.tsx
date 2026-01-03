@@ -668,17 +668,7 @@ What would you like to work on today?`;
                     <ComputerDesktopIcon className="h-5 w-5 text-white" />
                   </div>
                   <div className="mx-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"
-                        style={{ animationDelay: '0.1s' }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"
-                        style={{ animationDelay: '0.2s' }}
-                      ></div>
-                    </div>
+                    <ArrowPathIcon className="h-5 w-5 text-blue-400 animate-spin" />
                   </div>
                 </div>
               </div>

@@ -19,6 +19,7 @@ import {
   ComputerDesktopIcon,
   DeviceTabletIcon,
   ChartPieIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import {
   DragDropContext,
@@ -1073,7 +1074,15 @@ const RoadmapView: React.FC = () => {
           )}
 
           {/* Roadmap List */}
-          {!selectedRoadmap && roadmaps.length > 0 && (
+          {!selectedRoadmap && isLoadingRoadmaps && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+              <div className="text-center py-16">
+                <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+                <p className="mt-4 text-base text-gray-500">Loading roadmaps...</p>
+              </div>
+            </div>
+          )}
+          {!selectedRoadmap && !isLoadingRoadmaps && roadmaps.length > 0 && (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
               <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-8">
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">
@@ -1149,7 +1158,15 @@ const RoadmapView: React.FC = () => {
           )}
 
           {/* Roadmap Details */}
-          {selectedRoadmap && roadmapDetails && (
+          {selectedRoadmap && isLoadingRoadmap && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+              <div className="text-center py-16">
+                <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+                <p className="mt-4 text-base text-gray-500">Loading roadmap details...</p>
+              </div>
+            </div>
+          )}
+          {selectedRoadmap && !isLoadingRoadmap && roadmapDetails && (
             <>
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
                 <div className="bg-white shadow-2xl rounded-2xl overflow-hidden border border-primary-100">

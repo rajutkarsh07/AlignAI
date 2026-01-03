@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import CustomSelect from '../components/CustomSelect';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface ProjectFormData {
   name: string;
@@ -164,8 +165,9 @@ const ProjectForm: React.FC = () => {
 
   if (loading && isEditing) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
+      <div className="text-center py-16">
+        <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+        <p className="mt-4 text-base text-gray-500">Loading project...</p>
       </div>
     );
   }
@@ -476,27 +478,8 @@ const ProjectForm: React.FC = () => {
             >
               {loading ? (
                 <span className="flex items-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Processing...
+                  <ArrowPathIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                  {isEditing ? 'Updating...' : 'Creating...'}
                 </span>
               ) : isEditing ? (
                 'Update Project'

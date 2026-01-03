@@ -9,6 +9,7 @@ import {
   ClipboardDocumentListIcon,
   PlusIcon,
   EyeIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 
 interface DashboardStats {
@@ -129,8 +130,9 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+      <div className="text-center py-16">
+        <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+        <p className="mt-4 text-base text-gray-500">Loading dashboard...</p>
       </div>
     );
   }

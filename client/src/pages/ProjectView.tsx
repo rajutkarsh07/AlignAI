@@ -8,7 +8,8 @@ import {
     ChartBarIcon,
     ClipboardDocumentListIcon,
     MapIcon,
-    RectangleStackIcon
+    RectangleStackIcon,
+    ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 interface Project {
@@ -70,18 +71,9 @@ const ProjectView: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-16">
-                <div className="text-center">
-                    <div className="relative">
-                        <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-8 h-8 bg-accent-500 rounded-full animate-pulse"></div>
-                        </div>
-                    </div>
-                    <p className="mt-4 text-lg font-medium text-gray-700">
-                        Loading project...
-                    </p>
-                </div>
+            <div className="text-center py-16">
+                <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+                <p className="mt-4 text-base text-gray-500">Loading project...</p>
             </div>
         );
     }

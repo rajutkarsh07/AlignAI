@@ -11,6 +11,7 @@ import {
   ChevronRightIcon,
   PencilIcon,
   TrashIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 
 interface Project {
@@ -148,8 +149,9 @@ const ProjectList: React.FC = () => {
 
   if (loading && projects.length === 0) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+      <div className="text-center py-16">
+        <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+        <p className="mt-4 text-base text-gray-500">Loading projects...</p>
       </div>
     );
   }
@@ -450,10 +452,8 @@ const ProjectList: React.FC = () => {
       {
         loading && projects.length > 0 && (
           <div className="text-center py-4">
-            <div className="inline-flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
-              Loading...
-            </div>
+            <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+            <p className="mt-4 text-base text-gray-500">Loading more projects...</p>
           </div>
         )
       }
