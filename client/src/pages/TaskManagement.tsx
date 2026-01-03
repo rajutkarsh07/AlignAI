@@ -283,7 +283,7 @@ const TaskManagement: React.FC = () => {
       case 'critical':
         return 'bg-red-100 text-red-800';
       case 'high':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-accent-100 text-accent-800';
       case 'medium':
         return 'bg-yellow-100 text-yellow-800';
       case 'low':
@@ -340,7 +340,7 @@ const TaskManagement: React.FC = () => {
       <button
         onClick={() => setShowAddForm(true)}
         disabled={!selectedProject && projects.length > 0}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <PlusIcon className="h-4 w-4 mr-2" />
         Add Task
@@ -435,7 +435,7 @@ const TaskManagement: React.FC = () => {
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                  <ClockIcon className="h-6 w-6 text-blue-600" />
+                  <ClockIcon className="h-6 w-6 text-primary-600" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dt className="text-sm font-medium text-gray-500 truncate">
@@ -495,7 +495,7 @@ const TaskManagement: React.FC = () => {
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                  <CalendarIcon className="h-6 w-6 text-yellow-600" />
+                  <CalendarIcon className="h-6 w-6 text-secondary-600" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dt className="text-sm font-medium text-gray-500 truncate">
@@ -545,7 +545,7 @@ const TaskManagement: React.FC = () => {
             <div className="mt-8">
               <button
                 onClick={() => setShowAddForm(true)}
-                className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Add Task
@@ -577,7 +577,7 @@ const TaskManagement: React.FC = () => {
                         >
                           {task.status.replace('-', ' ')}
                         </span>
-                        <p className="text-base font-medium text-blue-700 truncate">
+                        <p className="text-base font-medium text-primary-700 truncate">
                           {task.title}
                         </p>
                       </div>

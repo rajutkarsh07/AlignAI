@@ -12,7 +12,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply bg-accent-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
 
   .btn-secondary {
@@ -89,15 +89,19 @@
   0% {
     content: '';
   }
+
   25% {
     content: '.';
   }
+
   50% {
     content: '..';
   }
+
   75% {
     content: '...';
   }
+
   100% {
     content: '';
   }
@@ -110,7 +114,7 @@
 }
 
 .message-bubble.user {
-  @apply bg-primary-600 text-white ml-auto;
+  @apply bg-primary-500 text-white ml-auto;
 }
 
 .message-bubble.assistant {
@@ -140,7 +144,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background-color: rgb(59 130 246);
+  background-color: #0353A4;
   z-index: 1;
 }
 

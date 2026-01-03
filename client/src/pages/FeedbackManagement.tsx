@@ -378,7 +378,7 @@ const FeedbackManagement: React.FC = () => {
       case 'critical':
         return 'bg-red-100 text-red-800';
       case 'high':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-accent-100 text-accent-800';
       case 'medium':
         return 'bg-yellow-100 text-yellow-800';
       case 'low':
@@ -391,7 +391,7 @@ const FeedbackManagement: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'uploading':
-        return 'text-blue-600';
+        return 'text-primary-600';
       case 'processing':
         return 'text-yellow-600';
       case 'enhancing':
@@ -439,14 +439,14 @@ const FeedbackManagement: React.FC = () => {
       )}
       <button
         onClick={() => setShowUploadForm(true)}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
       >
         <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
         Upload
       </button>
       <button
         onClick={() => setShowAddForm(true)}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
       >
         <PlusIcon className="h-4 w-4 mr-2" />
         Add Feedback
@@ -516,8 +516,8 @@ const FeedbackManagement: React.FC = () => {
         <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                <ExclamationTriangleIcon className="h-6 w-6 text-orange-600" />
+              <div className="flex-shrink-0 bg-secondary-100 rounded-md p-3">
+                <ExclamationTriangleIcon className="h-6 w-6 text-secondary-600" />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dt className="text-sm font-medium text-gray-500 truncate">
@@ -538,7 +538,7 @@ const FeedbackManagement: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 sticky top-4 z-10 border border-blue-100">
+      <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 sticky top-4 z-10 border border-primary-100">
         <h3 className="text-sm font-medium text-gray-500 mb-3">Filters</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
@@ -594,7 +594,7 @@ const FeedbackManagement: React.FC = () => {
       </div>
 
       {/* Feedback List */}
-      <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
+      <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-primary-100">
         <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex items-center justify-between">
           <div>
             <h3 className="text-xl leading-7 font-semibold text-gray-900">
@@ -606,7 +606,7 @@ const FeedbackManagement: React.FC = () => {
           </div>
           <button
             onClick={() => setShowAiAnalysis(!showAiAnalysis)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             <SparklesIcon className="h-4 w-4 mr-2" />
             {showAiAnalysis ? 'Hide AI Analysis' : 'Show AI Analysis'}
@@ -615,14 +615,14 @@ const FeedbackManagement: React.FC = () => {
 
         {loading ? (
           <div className="text-center py-16">
-            <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+            <ArrowPathIcon className="mx-auto h-10 w-10 text-primary-400 animate-spin" />
             <p className="mt-4 text-base text-gray-500">
               Loading feedback...
             </p>
           </div>
         ) : filteredFeedback.length === 0 ? (
           <div className="text-center py-16">
-            <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-blue-300" />
+            <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-primary-300" />
             <h3 className="mt-4 text-lg font-semibold text-gray-900">
               No feedback matches your filters
             </h3>
@@ -632,7 +632,7 @@ const FeedbackManagement: React.FC = () => {
             <div className="mt-8">
               <button
                 onClick={() => setShowAddForm(true)}
-                className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Add Feedback
@@ -650,7 +650,7 @@ const FeedbackManagement: React.FC = () => {
               return (
                 <li
                   key={item._id}
-                  className={`hover:bg-blue-50/60 transition-colors duration-200 group cursor-pointer ${item.isIgnored ? 'opacity-70' : ''
+                  className={`hover:bg-primary-50/60 transition-colors duration-200 group cursor-pointer ${item.isIgnored ? 'opacity-70' : ''
                     }`}
                   onClick={() => setSelectedFeedback(item)}
                 >
@@ -658,7 +658,7 @@ const FeedbackManagement: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         {getSentimentIcon(item.sentiment)}
-                        <p className="text-base font-medium text-blue-700 truncate">
+                        <p className="text-base font-medium text-primary-700 truncate">
                           {item.content.length > 120 ? `${item.content.substring(0, 120)}...` : item.content}
                         </p>
                       </div>
@@ -711,22 +711,22 @@ const FeedbackManagement: React.FC = () => {
 
                     {/* AI Analysis */}
                     {item.aiAnalysis && showAiAnalysis && (
-                      <div className="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="mt-4 bg-primary-50 rounded-lg p-4 border border-primary-200">
                         <div className="flex items-center space-x-2 mb-2">
-                          <SparklesIcon className="h-4 w-4 text-blue-600" />
-                          <h4 className="text-sm font-medium text-blue-900">
+                          <SparklesIcon className="h-4 w-4 text-primary-600" />
+                          <h4 className="text-sm font-medium text-primary-900">
                             AI Analysis
                           </h4>
                         </div>
-                        <p className="text-sm text-blue-800 mb-2">
+                        <p className="text-sm text-primary-800 mb-2">
                           {item.aiAnalysis.summary}
                         </p>
                         {item.aiAnalysis.actionableItems.length > 0 && (
                           <div className="mb-2">
-                            <h5 className="text-xs font-medium text-blue-900 mb-1">
+                            <h5 className="text-xs font-medium text-primary-900 mb-1">
                               Actionable Items:
                             </h5>
-                            <ul className="text-xs text-blue-800 space-y-1">
+                            <ul className="text-xs text-primary-800 space-y-1">
                               {item.aiAnalysis.actionableItems.map(
                                 (action, index) => (
                                   <li
@@ -744,7 +744,7 @@ const FeedbackManagement: React.FC = () => {
                         {item.extractedKeywords &&
                           item.extractedKeywords.length > 0 && (
                             <div>
-                              <h5 className="text-xs font-medium text-blue-900 mb-1">
+                              <h5 className="text-xs font-medium text-primary-900 mb-1">
                                 Keywords:
                               </h5>
                               <div className="flex flex-wrap gap-1">
@@ -752,7 +752,7 @@ const FeedbackManagement: React.FC = () => {
                                   (keyword, index) => (
                                     <span
                                       key={index}
-                                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
+                                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-primary-100 text-primary-800"
                                     >
                                       {keyword}
                                     </span>
@@ -787,11 +787,11 @@ const FeedbackManagement: React.FC = () => {
             >
               &#8203;
             </span>
-            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 border border-blue-100">
+            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 border border-primary-100">
               <div className="absolute top-0 right-0 pt-4 pr-4">
                 <button
                   onClick={() => setShowUploadForm(false)}
-                  className="bg-white rounded-full text-gray-400 hover:text-blue-500 focus:outline-none shadow p-1 transition"
+                  className="bg-white rounded-full text-gray-400 hover:text-primary-500 focus:outline-none shadow p-1 transition"
                 >
                   <span className="sr-only">Close</span>
                   <XMarkIcon className="h-6 w-6" />
@@ -826,7 +826,7 @@ const FeedbackManagement: React.FC = () => {
                     <div className="mt-6 space-y-6">
                       <div
                         className={`border-2 border-dashed rounded-lg p-6 text-center ${dragActive
-                          ? 'border-blue-400 bg-blue-50'
+                          ? 'border-primary-400 bg-primary-50'
                           : 'border-gray-300'
                           }`}
                         onDragEnter={handleDrag}
@@ -883,8 +883,8 @@ const FeedbackManagement: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 {file.status === 'uploading' && (
                                   <div className="flex items-center space-x-2">
-                                    <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                                    <span className="text-xs text-blue-600">
+                                    <div className="w-4 h-4 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+                                    <span className="text-xs text-primary-600">
                                       Uploading...
                                     </span>
                                   </div>
@@ -950,7 +950,7 @@ const FeedbackManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowUploadForm(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                 >
                   Close
                 </button>
@@ -976,11 +976,11 @@ const FeedbackManagement: React.FC = () => {
             >
               &#8203;
             </span>
-            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-8 border border-blue-100">
+            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-8 border border-primary-100">
               <div className="absolute top-0 right-0 pt-4 pr-4">
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="bg-white rounded-full text-gray-400 hover:text-blue-500 focus:outline-none shadow p-1 transition"
+                  className="bg-white rounded-full text-gray-400 hover:text-primary-500 focus:outline-none shadow p-1 transition"
                 >
                   <span className="sr-only">Close</span>
                   <XMarkIcon className="h-6 w-6" />
@@ -1023,7 +1023,7 @@ const FeedbackManagement: React.FC = () => {
                         rows={4}
                         value={newFeedback}
                         onChange={(e) => setNewFeedback(e.target.value)}
-                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+                        className="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border border-gray-300 rounded-md"
                         placeholder="Enter the customer feedback..."
                       ></textarea>
                     </div>
@@ -1035,14 +1035,14 @@ const FeedbackManagement: React.FC = () => {
                   type="button"
                   onClick={addFeedback}
                   disabled={!newFeedback.trim()}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
                 >
                   Add Feedback
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                 >
                   Cancel
                 </button>
@@ -1069,11 +1069,11 @@ const FeedbackManagement: React.FC = () => {
             >
               &#8203;
             </span>
-            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 border border-blue-100">
+            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 border border-primary-100">
               <div className="absolute top-0 right-0 pt-4 pr-4">
                 <button
                   onClick={() => setSelectedFeedback(null)}
-                  className="bg-white rounded-full text-gray-400 hover:text-blue-500 focus:outline-none shadow p-1 transition"
+                  className="bg-white rounded-full text-gray-400 hover:text-primary-500 focus:outline-none shadow p-1 transition"
                 >
                   <span className="sr-only">Close</span>
                   <XMarkIcon className="h-6 w-6" />
@@ -1147,22 +1147,22 @@ const FeedbackManagement: React.FC = () => {
 
                     {/* AI Analysis */}
                     {selectedFeedback.aiAnalysis && (
-                      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
                         <div className="flex items-center space-x-2 mb-3">
-                          <SparklesIcon className="h-5 w-5 text-blue-600" />
-                          <h4 className="text-sm font-semibold text-blue-900">
+                          <SparklesIcon className="h-5 w-5 text-primary-600" />
+                          <h4 className="text-sm font-semibold text-primary-900">
                             AI Analysis
                           </h4>
                         </div>
-                        <p className="text-sm text-blue-800 mb-3">
+                        <p className="text-sm text-primary-800 mb-3">
                           {selectedFeedback.aiAnalysis.summary}
                         </p>
                         {selectedFeedback.aiAnalysis.actionableItems?.length > 0 && (
                           <div className="mb-3">
-                            <h5 className="text-xs font-medium text-blue-900 mb-2">
+                            <h5 className="text-xs font-medium text-primary-900 mb-2">
                               Actionable Items:
                             </h5>
-                            <ul className="text-sm text-blue-800 space-y-1">
+                            <ul className="text-sm text-primary-800 space-y-1">
                               {selectedFeedback.aiAnalysis.actionableItems.map(
                                 (action: string, index: number) => (
                                   <li
@@ -1179,7 +1179,7 @@ const FeedbackManagement: React.FC = () => {
                         )}
                         {selectedFeedback.extractedKeywords?.length > 0 && (
                           <div>
-                            <h5 className="text-xs font-medium text-blue-900 mb-2">
+                            <h5 className="text-xs font-medium text-primary-900 mb-2">
                               Keywords:
                             </h5>
                             <div className="flex flex-wrap gap-2">
@@ -1187,7 +1187,7 @@ const FeedbackManagement: React.FC = () => {
                                 (keyword: string, index: number) => (
                                   <span
                                     key={index}
-                                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-blue-100 text-blue-800 font-medium"
+                                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-primary-100 text-primary-800 font-medium"
                                   >
                                     {keyword}
                                   </span>
@@ -1216,7 +1216,7 @@ const FeedbackManagement: React.FC = () => {
                     </button>
                     <button
                       onClick={() => setSelectedFeedback(null)}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition"
                     >
                       Close
                     </button>

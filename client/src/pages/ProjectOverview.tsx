@@ -42,7 +42,7 @@ const ProjectOverview: React.FC = () => {
             case 'completed':
                 return 'bg-green-100 text-green-800 border-green-200';
             case 'in-progress':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
+                return 'bg-primary-100 text-primary-800 border-primary-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
         }
@@ -54,11 +54,11 @@ const ProjectOverview: React.FC = () => {
                 {/* Main Content Area */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Project Description */}
-                    <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+                    <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
                         <div className="flex items-center space-x-3 mb-4">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
                                 <svg
-                                    className="w-5 h-5 text-blue-600"
+                                    className="w-5 h-5 text-primary-600"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -81,7 +81,7 @@ const ProjectOverview: React.FC = () => {
                     </div>
 
                     {/* Project Plan */}
-                    <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+                    <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                                 <svg
@@ -125,14 +125,14 @@ const ProjectOverview: React.FC = () => {
                 {/* Sidebar */}
                 <div className="space-y-6">
                     {/* Project Stats */}
-                    <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+                    <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Project Overview
                         </h3>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-gray-600">Status</span>
-                                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                                <span className="px-3 py-1 bg-primary-100 text-primary-800 text-sm font-medium rounded-full">
                                     Active
                                 </span>
                             </div>
@@ -157,7 +157,7 @@ const ProjectOverview: React.FC = () => {
 
             {/* Goals Section */}
             {project.goals && project.goals.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+                <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
                     <div className="flex items-center space-x-3 mb-6">
                         <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                             <svg
@@ -177,7 +177,7 @@ const ProjectOverview: React.FC = () => {
                         <h2 className="text-xl font-semibold text-gray-900">
                             Project Goals
                         </h2>
-                        <span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full">
+                        <span className="px-3 py-1 bg-primary-100 text-primary-800 text-sm font-medium rounded-full">
                             {project.goals.length} goals
                         </span>
                     </div>
@@ -186,7 +186,7 @@ const ProjectOverview: React.FC = () => {
                         {project.goals.map((goal) => (
                             <div
                                 key={goal._id}
-                                className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-6 hover:shadow-xl transition-shadow duration-200"
+                                className="bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-2xl p-6 hover:shadow-xl transition-shadow duration-200"
                             >
                                 <div className="flex items-start justify-between mb-3">
                                     <h3 className="font-semibold text-gray-900 text-lg leading-tight">

@@ -345,7 +345,7 @@ const RoadmapView: React.FC = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'strategic':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'customer-driven':
         return 'bg-green-100 text-green-800';
       case 'maintenance':
@@ -362,7 +362,7 @@ const RoadmapView: React.FC = () => {
       case 'critical':
         return 'bg-red-100 text-red-800';
       case 'high':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-accent-100 text-accent-800';
       case 'medium':
         return 'bg-yellow-100 text-yellow-800';
       case 'low':
@@ -377,7 +377,7 @@ const RoadmapView: React.FC = () => {
       case 'proposed':
         return 'bg-gray-100 text-gray-800';
       case 'approved':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'in-progress':
         return 'bg-yellow-100 text-yellow-800';
       case 'completed':
@@ -466,7 +466,7 @@ const RoadmapView: React.FC = () => {
   const getComponentTypeColor = (type: string) => {
     switch (type) {
       case 'header':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 text-primary-800';
       case 'navigation':
         return 'bg-indigo-100 text-indigo-800';
       case 'content':
@@ -474,7 +474,7 @@ const RoadmapView: React.FC = () => {
       case 'form':
         return 'bg-yellow-100 text-yellow-800';
       case 'button':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-accent-100 text-accent-800';
       case 'modal':
         return 'bg-purple-100 text-purple-800';
       default:
@@ -557,23 +557,23 @@ const RoadmapView: React.FC = () => {
   // NEW: Colors for charts
   const CHART_COLORS = {
     category: {
-      strategic: '#3b82f6',
-      'customer-driven': '#22c55e',
-      maintenance: '#f59e0b',
-      innovation: '#a855f7',
+      strategic: '#0353A4',
+      'customer-driven': '#C58882',
+      maintenance: '#8E3B46',
+      innovation: '#FB3640',
     },
     priority: {
-      critical: '#ef4444',
-      high: '#f97316',
-      medium: '#eab308',
-      low: '#84cc16',
+      critical: '#FB3640',
+      high: '#8E3B46',
+      medium: '#C58882',
+      low: '#0353A4',
     },
     status: {
       proposed: '#6b7280',
-      approved: '#0ea5e9',
-      'in-progress': '#f59e0b',
-      completed: '#16a34a',
-      cancelled: '#dc2626',
+      approved: '#0353A4',
+      'in-progress': '#C58882',
+      completed: '#8E3B46',
+      cancelled: '#FB3640',
     },
   };
 
@@ -849,7 +849,7 @@ const RoadmapView: React.FC = () => {
       <button
         onClick={() => setShowCreateForm(true)}
         disabled={!selectedProject}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <SparklesIcon className="h-4 w-4 mr-2" />
         Generate Roadmap
@@ -862,7 +862,7 @@ const RoadmapView: React.FC = () => {
     <div className="space-y-8">
       {!selectedProject && (
         <div className="text-center py-16">
-          <MapIcon className="mx-auto h-14 w-14 text-blue-300" />
+          <MapIcon className="mx-auto h-14 w-14 text-primary-300" />
           <h3 className="mt-4 text-lg font-semibold text-gray-900">
             No project selected
           </h3>
@@ -877,7 +877,7 @@ const RoadmapView: React.FC = () => {
           {/* Generate Roadmap Form */}
           {showCreateForm && (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
-              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-8">
+              <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-8">
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">
                   Generate New Roadmap
                 </h3>
@@ -896,7 +896,7 @@ const RoadmapView: React.FC = () => {
                             name: e.target.value,
                           }))
                         }
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="Roadmap name..."
                       />
                     </div>
@@ -912,7 +912,7 @@ const RoadmapView: React.FC = () => {
                             timeHorizon: e.target.value as any,
                           }))
                         }
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                       >
                         <option value="quarter">Quarter</option>
                         <option value="half-year">Half Year</option>
@@ -934,7 +934,7 @@ const RoadmapView: React.FC = () => {
                         }))
                       }
                       rows={2}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                       placeholder="Roadmap description..."
                     />
                   </div>
@@ -966,7 +966,7 @@ const RoadmapView: React.FC = () => {
                                 type: e.target.value as any,
                               }))
                             }
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                           />
                           <label
                             htmlFor={key}
@@ -998,7 +998,7 @@ const RoadmapView: React.FC = () => {
                                 },
                               }))
                             }
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         </div>
                         <div>
@@ -1019,7 +1019,7 @@ const RoadmapView: React.FC = () => {
                                 },
                               }))
                             }
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         </div>
                         <div>
@@ -1040,7 +1040,7 @@ const RoadmapView: React.FC = () => {
                                 },
                               }))
                             }
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                           />
                         </div>
                       </div>
@@ -1060,7 +1060,7 @@ const RoadmapView: React.FC = () => {
                     <button
                       onClick={handleGenerateRoadmap}
                       disabled={!newRoadmap.name.trim() || isGeneratingRoadmap}
-                      className="px-4 py-2 border border-transparent rounded-lg text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 border border-transparent rounded-lg text-white bg-accent-500 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isGeneratingRoadmap
                         ? 'Generating...'
@@ -1075,7 +1075,7 @@ const RoadmapView: React.FC = () => {
           {/* Roadmap List */}
           {!selectedRoadmap && roadmaps.length > 0 && (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
-              <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-8">
+              <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-8">
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">
                   Available Roadmaps
                 </h3>
@@ -1096,12 +1096,12 @@ const RoadmapView: React.FC = () => {
                     return (
                       <div
                         key={roadmap._id}
-                        className="relative bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col group overflow-hidden min-h-[180px]"
+                        className="relative bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col group overflow-hidden min-h-[180px]"
                       >
                         <div className="flex flex-col flex-1 p-5">
                           <div className="flex items-center gap-2 mb-2">
-                            <MapIcon className="h-5 w-5 text-blue-400" />
-                            <span className="text-base font-bold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
+                            <MapIcon className="h-5 w-5 text-primary-400" />
+                            <span className="text-base font-bold text-gray-900 truncate group-hover:text-accent-600 transition-colors">
                               {roadmap.name}
                             </span>
                           </div>
@@ -1123,7 +1123,7 @@ const RoadmapView: React.FC = () => {
                               {roadmap.items.length} items
                             </span>
                             {showProject && project && (
-                              <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 rounded px-2 py-0.5 font-semibold border border-orange-200">
+                              <span className="inline-flex items-center gap-1 bg-secondary-100 text-secondary-700 rounded px-2 py-0.5 font-semibold border border-secondary-200">
                                 <span className="font-bold">Project:</span>{' '}
                                 {project.name}
                               </span>
@@ -1133,7 +1133,7 @@ const RoadmapView: React.FC = () => {
                           <div className="flex justify-end mt-2">
                             <button
                               onClick={() => setSelectedRoadmap(roadmap._id)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-lg text-blue-700 bg-blue-100 hover:bg-blue-200"
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-lg text-primary-700 bg-primary-100 hover:bg-primary-200"
                             >
                               View Details
                               <ArrowRightIcon className="ml-1 h-3 w-3" />
@@ -1152,13 +1152,13 @@ const RoadmapView: React.FC = () => {
           {selectedRoadmap && roadmapDetails && (
             <>
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
-                <div className="bg-white shadow-2xl rounded-2xl overflow-hidden border border-blue-100">
+                <div className="bg-white shadow-2xl rounded-2xl overflow-hidden border border-primary-100">
                   {/* Header Section */}
                   <div className="px-8 py-6 border-b border-gray-100">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 flex items-center">
-                          <span className="bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full">
+                          <span className="bg-primary-100 text-primary-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full">
                             Roadmap
                           </span>
                           {roadmapDetails.name}
@@ -1206,19 +1206,19 @@ const RoadmapView: React.FC = () => {
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
                       {/* Strategic */}
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-100 shadow-sm">
+                      <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-100 shadow-sm">
                         <div className="flex items-center justify-center space-x-2">
-                          <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                          <span className="text-sm font-medium text-blue-800">
+                          <div className="h-3 w-3 rounded-full bg-primary-500"></div>
+                          <span className="text-sm font-medium text-primary-800">
                             Strategic
                           </span>
                         </div>
-                        <div className="text-3xl font-bold text-blue-900 mt-2">
+                        <div className="text-3xl font-bold text-primary-900 mt-2">
                           {roadmapDetails.allocationStrategy.strategic}%
                         </div>
-                        <div className="mt-2 h-2 w-full bg-blue-200 rounded-full overflow-hidden">
+                        <div className="mt-2 h-2 w-full bg-primary-200 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-blue-600 rounded-full"
+                            className="h-full bg-primary-600 rounded-full"
                             style={{
                               width: `${roadmapDetails.allocationStrategy.strategic}%`,
                             }}
@@ -1227,7 +1227,7 @@ const RoadmapView: React.FC = () => {
                       </div>
 
                       {/* Customer-Driven */}
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-100 shadow-sm">
+                      <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 rounded-xl p-4 border border-secondary-100 shadow-sm">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="h-3 w-3 rounded-full bg-green-500"></div>
                           <span className="text-sm font-medium text-green-800">
@@ -1248,7 +1248,7 @@ const RoadmapView: React.FC = () => {
                       </div>
 
                       {/* Maintenance */}
-                      <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-100 shadow-sm">
+                      <div className="bg-gradient-to-br from-accent-50 to-accent-100 rounded-xl p-4 border border-accent-100 shadow-sm">
                         <div className="flex items-center justify-center space-x-2">
                           <div className="h-3 w-3 rounded-full bg-amber-500"></div>
                           <span className="text-sm font-medium text-amber-800">
@@ -1286,7 +1286,7 @@ const RoadmapView: React.FC = () => {
               {/* UPDATED: View Mode Toggle */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
                 <div className="flex justify-center">
-                  <div className="bg-white rounded-xl shadow-lg p-1 flex border border-blue-100">
+                  <div className="bg-white rounded-xl shadow-lg p-1 flex border border-primary-100">
                     {[
                       { key: 'timeline', label: 'Timeline', icon: CalendarIcon },
                       { key: 'kanban', label: 'Kanban', icon: ChartBarIcon },
@@ -1301,7 +1301,7 @@ const RoadmapView: React.FC = () => {
                           )
                         }
                         className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${viewMode === key
-                          ? 'bg-blue-100 text-blue-700'
+                          ? 'bg-primary-100 text-primary-700'
                           : 'text-gray-500 hover:text-gray-700'
                           }`}
                       >
@@ -1313,7 +1313,7 @@ const RoadmapView: React.FC = () => {
                   <button
                     onClick={downloadExcel}
                     disabled={!roadmapDetails}
-                    className="inline-flex items-center ml-3 rounded-xl shadow-lg border px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center ml-3 rounded-xl shadow-lg border px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
                     Download Excel
@@ -1333,7 +1333,7 @@ const RoadmapView: React.FC = () => {
                     return (
                       <div
                         key={quarter}
-                        className="bg-white shadow-2xl rounded-2xl border border-blue-100"
+                        className="bg-white shadow-2xl rounded-2xl border border-primary-100"
                       >
                         <div className="px-8 py-6 border-b border-gray-200">
                           <h4 className="text-lg font-medium text-gray-900">
@@ -1348,7 +1348,7 @@ const RoadmapView: React.FC = () => {
                             {items.map((item) => (
                               <div
                                 key={item._id}
-                                className="border text-left border-gray-200 rounded-xl p-4 hover:bg-blue-50/60 transition-colors duration-200"
+                                className="border text-left border-gray-200 rounded-xl p-4 hover:bg-primary-50/60 transition-colors duration-200"
                               >
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
@@ -1407,7 +1407,7 @@ const RoadmapView: React.FC = () => {
                                         e.target.value as RoadmapItem['status']
                                       )
                                     }
-                                    className={`text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                                    className={`text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${getStatusColor(
                                       item.status
                                     )}`}
                                   >
@@ -1452,8 +1452,8 @@ const RoadmapView: React.FC = () => {
                               <div
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
-                                className={`bg-white shadow-2xl rounded-2xl border border-blue-100 min-h-[120px] transition-all ${snapshot.isDraggingOver
-                                  ? 'ring-2 ring-blue-400'
+                                className={`bg-white shadow-2xl rounded-2xl border border-primary-100 min-h-[120px] transition-all ${snapshot.isDraggingOver
+                                  ? 'ring-2 ring-primary-400'
                                   : ''
                                   }`}
                               >
@@ -1478,7 +1478,7 @@ const RoadmapView: React.FC = () => {
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
                                           className={`border border-gray-200 rounded-xl p-3 bg-white transition-shadow ${snapshot.isDragging
-                                            ? 'shadow-xl ring-2 ring-blue-400'
+                                            ? 'shadow-xl ring-2 ring-primary-400'
                                             : ''
                                             }`}
                                         >
@@ -1523,12 +1523,12 @@ const RoadmapView: React.FC = () => {
               {/* List View */}
               {viewMode === 'list' && (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 overflow-hidden">
+                  <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 overflow-hidden">
                     <ul className="divide-y divide-gray-100">
                       {roadmapDetails.items.map((item) => (
                         <li
                           key={item._id}
-                          className="px-8 py-6 hover:bg-blue-50/60 transition-colors duration-200"
+                          className="px-8 py-6 hover:bg-primary-50/60 transition-colors duration-200"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
@@ -1570,7 +1570,7 @@ const RoadmapView: React.FC = () => {
                                   e.target.value as RoadmapItem['status']
                                 )
                               }
-                              className={`text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(
+                              className={`text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${getStatusColor(
                                 item.status
                               )}`}
                             >
@@ -1599,7 +1599,7 @@ const RoadmapView: React.FC = () => {
             !isLoadingRoadmaps && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center py-16">
-                  <MapIcon className="mx-auto h-14 w-14 text-blue-300" />
+                  <MapIcon className="mx-auto h-14 w-14 text-primary-300" />
                   <h3 className="mt-4 text-lg font-semibold text-gray-900">
                     No roadmaps yet
                   </h3>
@@ -1619,7 +1619,7 @@ const RoadmapView: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Insights Mode Toggle */}
             <div className="flex justify-center mb-8">
-              <div className="bg-white rounded-xl shadow-lg p-1 flex border border-blue-100">
+              <div className="bg-white rounded-xl shadow-lg p-1 flex border border-primary-100">
                 {[
                   { key: 'analytics', label: 'Analytics', icon: ChartPieIcon },
                   { key: 'wireframes', label: 'Wireframes', icon: ComputerDesktopIcon },
@@ -1628,7 +1628,7 @@ const RoadmapView: React.FC = () => {
                     key={key}
                     onClick={() => setInsightsMode(key as 'analytics' | 'wireframes')}
                     className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${insightsMode === key
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-primary-100 text-primary-700'
                       : 'text-gray-500 hover:text-gray-700'
                       }`}
                   >
@@ -1643,7 +1643,7 @@ const RoadmapView: React.FC = () => {
             {insightsMode === 'analytics' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Category Distribution Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-6">
                   <h4 className="text-lg font-semibold text-gray-800 mb-4">
                     Category Distribution
                   </h4>
@@ -1684,7 +1684,7 @@ const RoadmapView: React.FC = () => {
                 </div>
 
                 {/* Priority Breakdown Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-6">
                   <h4 className="text-lg font-semibold text-gray-800 mb-4">
                     Priority Breakdown
                   </h4>
@@ -1713,7 +1713,7 @@ const RoadmapView: React.FC = () => {
                 </div>
 
                 {/* Status Overview Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-6">
                   <h4 className="text-lg font-semibold text-gray-800 mb-4">
                     Status Overview
                   </h4>
@@ -1750,7 +1750,7 @@ const RoadmapView: React.FC = () => {
                 </div>
 
                 {/* Quarterly Load Chart */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-6">
                   <h4 className="text-lg font-semibold text-gray-800 mb-4">
                     Quarterly Load (# of Items)
                   </h4>
@@ -1771,7 +1771,7 @@ const RoadmapView: React.FC = () => {
             {insightsMode === 'wireframes' && (
               <div className="space-y-8">
                 {/* Wireframes Header */}
-                <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-lg font-semibold text-gray-800 mb-2">
@@ -1784,7 +1784,7 @@ const RoadmapView: React.FC = () => {
                     <button
                       onClick={generateWireframes}
                       disabled={isGeneratingWireframes || !roadmapDetails}
-                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-700 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <SparklesIcon className="h-4 w-4 mr-2" />
                       {isGeneratingWireframes ? 'Generating...' : 'Generate Wireframes'}
@@ -1796,7 +1796,7 @@ const RoadmapView: React.FC = () => {
                 {wireframes.length > 0 && (
                   <div className="space-y-6">
                     {/* Wireframes Overview */}
-                    <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                    <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-6">
                       <h5 className="text-md font-semibold text-gray-800 mb-4">
                         Generated Wireframes ({wireframes.length})
                       </h5>
@@ -1807,13 +1807,13 @@ const RoadmapView: React.FC = () => {
                             <div
                               key={wireframe.id}
                               className={`border-2 rounded-xl p-4 cursor-pointer transition-all duration-200 ${selectedWireframe === wireframe.id
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25'
+                                ? 'border-primary-500 bg-primary-50'
+                                : 'border-gray-200 hover:border-primary-300 hover:bg-primary-25'
                                 }`}
                               onClick={() => setSelectedWireframe(wireframe.id)}
                             >
                               <div className="flex items-center justify-between mb-2">
-                                <DeviceIcon className="h-5 w-5 text-blue-600" />
+                                <DeviceIcon className="h-5 w-5 text-primary-600" />
                                 <span
                                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${wireframe.category === 'feature'
                                     ? 'bg-green-100 text-green-800'
@@ -1841,7 +1841,7 @@ const RoadmapView: React.FC = () => {
 
                     {/* Selected Wireframe Details */}
                     {selectedWireframe && (
-                      <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-6">
+                      <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-6">
                         {(() => {
                           const wireframe = wireframes.find(w => w.id === selectedWireframe);
                           if (!wireframe) return null;
@@ -1851,7 +1851,7 @@ const RoadmapView: React.FC = () => {
                             <>
                               <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center space-x-3">
-                                  <DeviceIcon className="h-6 w-6 text-blue-600" />
+                                  <DeviceIcon className="h-6 w-6 text-primary-600" />
                                   <div>
                                     <h5 className="text-lg font-semibold text-gray-800">
                                       {wireframe.name}
@@ -1928,7 +1928,7 @@ const RoadmapView: React.FC = () => {
 
                 {/* Empty State for Wireframes */}
                 {wireframes.length === 0 && (
-                  <div className="bg-white shadow-2xl rounded-2xl border border-blue-100 p-12">
+                  <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-12">
                     <div className="text-center">
                       <ComputerDesktopIcon className="mx-auto h-12 w-12 text-gray-400" />
                       <h3 className="mt-4 text-lg font-medium text-gray-900">

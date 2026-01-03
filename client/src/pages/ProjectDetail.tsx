@@ -33,12 +33,12 @@ const ProjectDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-orange-600 rounded-full animate-pulse"></div>
+              <div className="w-8 h-8 bg-accent-500 rounded-full animate-pulse"></div>
             </div>
           </div>
           <p className="mt-4 text-lg font-medium text-gray-700">
@@ -54,7 +54,7 @@ const ProjectDetail: React.FC = () => {
 
   if (error || !project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-accent-50 to-secondary-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg
@@ -77,7 +77,7 @@ const ProjectDetail: React.FC = () => {
           <p className="text-gray-600 mb-6">{error || 'Project not found'}</p>
           <Link
             to="/projects"
-            className="inline-flex items-center px-6 py-3 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors duration-200"
+            className="inline-flex items-center px-6 py-3 bg-accent-500 text-white font-medium rounded-lg hover:bg-accent-600 transition-colors duration-200"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -115,14 +115,14 @@ const ProjectDetail: React.FC = () => {
       case 'completed':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'in-progress':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-primary-100 text-primary-800 border-primary-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Header Section */}
       <div className="bg-white shadow-lg rounded-b-2xl mb-8">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -130,7 +130,7 @@ const ProjectDetail: React.FC = () => {
             <div className="flex items-center space-x-4">
               <Link
                 to="/projects"
-                className="p-2 text-gray-400 hover:text-blue-600 transition-colors duration-200 rounded-full bg-gray-100 hover:bg-blue-100"
+                className="p-2 text-gray-400 hover:text-primary-600 transition-colors duration-200 rounded-full bg-gray-100 hover:bg-primary-100"
               >
                 <svg
                   className="w-6 h-6"
@@ -154,7 +154,7 @@ const ProjectDetail: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition">
                 <svg
                   className="w-5 h-5 mr-2"
                   fill="none"
@@ -170,7 +170,7 @@ const ProjectDetail: React.FC = () => {
                 </svg>
                 Edit
               </button>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+              <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition">
                 <svg
                   className="w-5 h-5 mr-2"
                   fill="none"
@@ -197,11 +197,11 @@ const ProjectDetail: React.FC = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-8">
             {/* Project Description */}
-            <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+            <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-5 h-5 text-blue-600"
+                    className="w-5 h-5 text-primary-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -224,7 +224,7 @@ const ProjectDetail: React.FC = () => {
             </div>
 
             {/* Project Plan */}
-            <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+            <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <svg
@@ -274,14 +274,14 @@ const ProjectDetail: React.FC = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Project Stats */}
-            <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+            <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Project Overview
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Status</span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                  <span className="px-3 py-1 bg-primary-100 text-primary-800 text-sm font-medium rounded-full">
                     Active
                   </span>
                 </div>
@@ -307,7 +307,7 @@ const ProjectDetail: React.FC = () => {
         {/* Goals Section */}
         {project.goals && project.goals.length > 0 && (
           <div className="mt-8">
-            <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-8">
+            <div className="bg-white rounded-2xl shadow-2xl border border-primary-100 p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                   <svg
@@ -336,7 +336,7 @@ const ProjectDetail: React.FC = () => {
                 {project.goals.map((goal: any) => (
                   <div
                     key={goal._id}
-                    className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-6 hover:shadow-xl transition-shadow duration-200"
+                    className="bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-2xl p-6 hover:shadow-xl transition-shadow duration-200"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-semibold text-gray-900 text-lg leading-tight">
@@ -369,7 +369,7 @@ const ProjectDetail: React.FC = () => {
                           Goal #{goal._id.slice(-4)}
                         </span>
                       </div>
-                      <button className="text-orange-600 hover:text-orange-700 text-sm font-medium transition-colors duration-200">
+                      <button className="text-accent-600 hover:text-accent-700 text-sm font-medium transition-colors duration-200">
                         View Details →
                       </button>
                     </div>

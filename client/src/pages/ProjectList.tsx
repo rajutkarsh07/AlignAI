@@ -139,7 +139,7 @@ const ProjectList: React.FC = () => {
     'Manage your AI-powered product roadmap projects',
     <Link
       to="/projects/new"
-      className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+      className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
     >
       <PlusIcon className="h-4 w-4 mr-2" />
       New Project
@@ -183,12 +183,12 @@ const ProjectList: React.FC = () => {
           {/* Enhanced Search Bar */}
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 group-focus-within:text-orange-500 transition-colors duration-200" />
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 group-focus-within:text-accent-500 transition-colors duration-200" />
             </div>
             <input
               id="search"
               name="search"
-              className="block w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 text-gray-900 transition-all duration-200 ease-in-out focus:outline-none focus:placeholder-gray-300 focus:ring-0 focus:border-orange-400 focus:bg-white hover:border-gray-300 shadow-sm focus:shadow-md"
+              className="block w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 text-gray-900 transition-all duration-200 ease-in-out focus:outline-none focus:placeholder-gray-300 focus:ring-0 focus:border-accent-400 focus:bg-white hover:border-gray-300 shadow-sm focus:shadow-md"
               placeholder="Search projects by name or description..."
               type="search"
               value={searchTerm}
@@ -225,7 +225,7 @@ const ProjectList: React.FC = () => {
             <div className="mt-4 flex items-center justify-between text-sm">
               <div className="flex items-center space-x-2">
                 <span className="text-gray-500">Search results for:</span>
-                <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-md font-medium">
+                <span className="bg-secondary-100 text-secondary-800 px-2 py-1 rounded-md font-medium">
                   "{searchTerm}"
                 </span>
               </div>
@@ -259,7 +259,7 @@ const ProjectList: React.FC = () => {
           <div className="mt-6">
             <Link
               to="/projects/new"
-              className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+              className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
             >
               <PlusIcon className="h-5 w-5 mr-2" />
               New Project
@@ -276,8 +276,8 @@ const ProjectList: React.FC = () => {
                   <div className="px-8 py-6 flex items-center justify-between hover:bg-blue-50/60 transition-colors duration-200 group">
                     <div className="flex items-center min-w-0 flex-1">
                       <div className="flex-shrink-0">
-                        <div className="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                          <FolderIcon className="h-6 w-6 text-orange-600" />
+                        <div className="h-10 w-10 rounded-lg bg-secondary-100 flex items-center justify-center">
+                          <FolderIcon className="h-6 w-6 text-secondary-600" />
                         </div>
                       </div>
                       <div className="min-w-0 flex-1 px-4">
@@ -285,7 +285,7 @@ const ProjectList: React.FC = () => {
                           <div className="min-w-0 flex-1">
                             <Link
                               to={`/projects/${project._id}`}
-                              className="text-base font-medium text-blue-700 truncate hover:text-orange-600"
+                              className="text-base font-medium text-primary-700 truncate hover:text-accent-600"
                             >
                               {project.name}
                             </Link>
@@ -315,7 +315,7 @@ const ProjectList: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Link
                         to={`/projects/${project._id}/chat`}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 hover:bg-orange-200"
+                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
                       >
                         Chat
                       </Link>

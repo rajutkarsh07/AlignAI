@@ -165,7 +165,7 @@ const ProjectForm: React.FC = () => {
   if (loading && isEditing) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
       </div>
     );
   }
@@ -203,7 +203,7 @@ const ProjectForm: React.FC = () => {
                 type="button"
                 onClick={() => setUploadMode(false)}
                 className={`px-4 py-2 rounded-md font-medium ${!uploadMode
-                  ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                  ? 'bg-primary-100 text-primary-700 border border-primary-300'
                   : 'bg-gray-100 text-gray-700 border border-gray-300'
                   }`}
               >
@@ -213,7 +213,7 @@ const ProjectForm: React.FC = () => {
                 type="button"
                 onClick={() => setUploadMode(true)}
                 className={`px-4 py-2 rounded-md font-medium ${uploadMode
-                  ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                  ? 'bg-primary-100 text-primary-700 border border-primary-300'
                   : 'bg-gray-100 text-gray-700 border border-gray-300'
                   }`}
               >
@@ -239,7 +239,7 @@ const ProjectForm: React.FC = () => {
                 required
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Enter project name"
               />
             </div>
@@ -258,7 +258,7 @@ const ProjectForm: React.FC = () => {
                 required
                 value={formData.description}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Brief project description"
               />
             </div>
@@ -290,7 +290,7 @@ const ProjectForm: React.FC = () => {
                   <div className="flex text-sm text-gray-600">
                     <label
                       htmlFor="document"
-                      className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                      className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
                     >
                       <span>Upload a file</span>
                       <input
@@ -330,7 +330,7 @@ const ProjectForm: React.FC = () => {
                 rows={8}
                 value={formData.officialPlan}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Enter your project's official plan, goals, and requirements. Our AI will help format this into a structured roadmap."
               />
             </div>
@@ -345,7 +345,7 @@ const ProjectForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={addGoal}
-                  className="bg-orange-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="bg-accent-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500"
                 >
                   Add Goal
                 </button>
@@ -380,7 +380,7 @@ const ProjectForm: React.FC = () => {
                         onChange={(e) =>
                           handleGoalChange(index, 'title', e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                         placeholder="Goal title"
                       />
                     </div>
@@ -451,7 +451,7 @@ const ProjectForm: React.FC = () => {
                       onChange={(e) =>
                         handleGoalChange(index, 'description', e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                       placeholder="Describe the goal in detail"
                     />
                   </div>
@@ -472,7 +472,7 @@ const ProjectForm: React.FC = () => {
             <button
               type="submit"
               disabled={loading || (uploadMode && !file)}
-              className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-accent-500 text-white rounded-md hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center">

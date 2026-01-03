@@ -79,7 +79,7 @@ const Dashboard: React.FC = () => {
       name: 'Total Projects',
       value: stats.totalProjects,
       icon: FolderIcon,
-      color: 'bg-orange-500',
+      color: 'bg-primary-600',
       href: '/projects',
     },
     {
@@ -93,7 +93,7 @@ const Dashboard: React.FC = () => {
       name: 'Feedback Items',
       value: stats.feedbackItems,
       icon: DocumentTextIcon,
-      color: 'bg-yellow-500',
+      color: 'bg-secondary-500',
       href: '/feedback',
     },
     {
@@ -112,14 +112,14 @@ const Dashboard: React.FC = () => {
     <>
       <Link
         to="/projects"
-        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition"
       >
         <EyeIcon className="h-4 w-4 mr-2" />
         View All Projects
       </Link>
       <Link
         to="/projects/new"
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
       >
         <PlusIcon className="h-4 w-4 mr-2" />
         New Project
@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
             </h3>
             <Link
               to="/projects"
-              className="text-sm font-medium text-orange-600 hover:text-orange-500"
+              className="text-sm font-medium text-accent-600 hover:text-accent-500"
             >
               View all
             </Link>
@@ -195,7 +195,7 @@ const Dashboard: React.FC = () => {
               <div className="mt-6">
                 <Link
                   to="/projects/new"
-                  className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+                  className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
                 >
                   <PlusIcon className="h-5 w-5 mr-2" />
                   New Project
@@ -229,7 +229,7 @@ const Dashboard: React.FC = () => {
                   <div className="ml-4 flex-shrink-0 flex space-x-2">
                     <Link
                       to={`/projects/${project._id}/chat`}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 hover:bg-orange-200"
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800 hover:bg-secondary-200"
                     >
                       Chat
                     </Link>
@@ -256,10 +256,10 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <Link
               to="/projects/new"
-              className="relative group bg-gray-50 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-orange-500 rounded-xl hover:bg-gray-100"
+              className="relative group bg-gray-50 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-accent-500 rounded-xl hover:bg-gray-100"
             >
               <div>
-                <span className="rounded-lg inline-flex p-3 bg-orange-600 text-white">
+                <span className="rounded-lg inline-flex p-3 bg-accent-600 text-white">
                   <PlusIcon className="h-6 w-6" />
                 </span>
               </div>

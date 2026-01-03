@@ -451,7 +451,7 @@ What would you like to work on today?`;
               </pre>
             ),
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-orange-500 pl-3 italic text-gray-700 mb-2">
+              <blockquote className="border-l-4 border-primary-500 pl-3 italic text-gray-700 mb-2">
                 {children}
               </blockquote>
             ),
@@ -475,7 +475,7 @@ What would you like to work on today?`;
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-orange-600 hover:text-orange-800 underline"
+                className="text-accent-600 hover:text-accent-800 underline"
               >
                 {children}
               </a>
@@ -500,7 +500,7 @@ What would you like to work on today?`;
     <>
       <button
         onClick={createNewSession}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
       >
         <PlusIcon className="h-4 w-4 mr-2" />
         New Chat
@@ -512,14 +512,14 @@ What would you like to work on today?`;
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)]">
       {/* Chat Container */}
-      <div className="flex-1 flex flex-col bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
+      <div className="flex-1 flex flex-col bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-primary-100">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
           <div className="space-y-6">
             {messages.length === 0 && (
               <div className="text-center py-12">
-                <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
-                  <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-600" />
+                <div className="mx-auto h-16 w-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
+                  <ChatBubbleLeftRightIcon className="h-8 w-8 text-primary-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Start a conversation
@@ -531,18 +531,18 @@ What would you like to work on today?`;
                     : 'Ask me anything about product roadmaps, feedback analysis, or task planning.'}
                 </p>
                 {currentProject && (
-                  <div className="max-w-lg mx-auto p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                  <div className="max-w-lg mx-auto p-4 bg-primary-50 rounded-xl border border-primary-100">
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0">
-                        <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <div className="h-8 w-8 bg-primary-600 rounded-full flex items-center justify-center">
                           <SparklesIcon className="h-4 w-4 text-white" />
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-blue-900 mb-1">
+                        <p className="text-sm font-medium text-primary-900 mb-1">
                           Project Context Active
                         </p>
-                        <p className="text-xs text-blue-700">
+                        <p className="text-xs text-primary-700">
                           I'll use information about {currentProject.name} to
                           provide more relevant responses.
                           {currentProject.description && (
@@ -562,7 +562,7 @@ What would you like to work on today?`;
                     onClick={() =>
                       setInputMessage('Create a roadmap for this project')
                     }
-                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200"
                   >
                     <div className="text-sm font-medium text-gray-900 mb-1">
                       🗺️ Create Roadmap
@@ -575,7 +575,7 @@ What would you like to work on today?`;
                     onClick={() =>
                       setInputMessage('Analyze recent feedback trends')
                     }
-                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200"
                   >
                     <div className="text-sm font-medium text-gray-900 mb-1">
                       📊 Analyze Feedback
@@ -588,7 +588,7 @@ What would you like to work on today?`;
                     onClick={() =>
                       setInputMessage('Prioritize tasks for this project')
                     }
-                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200"
                   >
                     <div className="text-sm font-medium text-gray-900 mb-1">
                       ⚡ Task Priority
@@ -601,7 +601,7 @@ What would you like to work on today?`;
                     onClick={() =>
                       setInputMessage('What are the main challenges?')
                     }
-                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all duration-200"
                   >
                     <div className="text-sm font-medium text-gray-900 mb-1">
                       🎯 Challenges
@@ -626,18 +626,18 @@ What would you like to work on today?`;
                 >
                   <div className="flex-shrink-0">
                     {message.role === 'user' ? (
-                      <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                      <div className="h-10 w-10 bg-primary-600 rounded-full flex items-center justify-center shadow-sm">
                         <UserCircleIcon className="h-6 w-6 text-white" />
                       </div>
                     ) : (
-                      <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                      <div className="h-10 w-10 bg-secondary-500 rounded-full flex items-center justify-center shadow-sm">
                         <ComputerDesktopIcon className="h-5 w-5 text-white" />
                       </div>
                     )}
                   </div>
                   <div
                     className={`mx-3 px-4 py-3 rounded-2xl shadow-sm ${message.role === 'user'
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                      ? 'bg-primary-600 text-white'
                       : 'bg-white text-gray-900 border border-gray-200'
                       }`}
                   >
@@ -647,7 +647,7 @@ What would you like to work on today?`;
                     />
                     <p
                       className={`text-xs mt-2 ${message.role === 'user'
-                        ? 'text-blue-100'
+                        ? 'text-primary-100'
                         : 'text-gray-400'
                         }`}
                     >
@@ -664,18 +664,18 @@ What would you like to work on today?`;
             {loading && (
               <div className="flex justify-start">
                 <div className="flex">
-                  <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                  <div className="h-10 w-10 bg-secondary-500 rounded-full flex items-center justify-center shadow-sm">
                     <ComputerDesktopIcon className="h-5 w-5 text-white" />
                   </div>
                   <div className="mx-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"></div>
                       <div
-                        className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"
                         style={{ animationDelay: '0.1s' }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-primary-600 rounded-full animate-bounce"
                         style={{ animationDelay: '0.2s' }}
                       ></div>
                     </div>
@@ -700,7 +700,7 @@ What would you like to work on today?`;
                     ? `Ask me about ${currentProject.name} roadmaps, feedback analysis, or task planning...`
                     : 'Ask me about roadmaps, feedback analysis, or task planning...'
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm transition-all duration-200"
                 rows={2}
                 disabled={loading}
               />
@@ -708,7 +708,7 @@ What would you like to work on today?`;
             <button
               onClick={sendMessage}
               disabled={!inputMessage.trim() || loading}
-              className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200"
+              className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-accent-500 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200"
             >
               {loading ? (
                 <ArrowPathIcon className="h-4 w-4 animate-spin" />

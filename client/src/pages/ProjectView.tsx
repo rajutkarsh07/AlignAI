@@ -55,12 +55,12 @@ const ProjectView: React.FC = () => {
         <>
             <button
                 onClick={() => navigate(`/projects/${id}/edit`)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition"
             >
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Edit
             </button>
-            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+            <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition">
                 <ShareIcon className="h-4 w-4 mr-2" />
                 Share
             </button>
@@ -73,9 +73,9 @@ const ProjectView: React.FC = () => {
             <div className="flex items-center justify-center py-16">
                 <div className="text-center">
                     <div className="relative">
-                        <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+                        <div className="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto"></div>
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-8 h-8 bg-orange-600 rounded-full animate-pulse"></div>
+                            <div className="w-8 h-8 bg-accent-500 rounded-full animate-pulse"></div>
                         </div>
                     </div>
                     <p className="mt-4 text-lg font-medium text-gray-700">
@@ -155,7 +155,7 @@ const ProjectView: React.FC = () => {
                                 end={item.end}
                                 className={({ isActive }) =>
                                     `flex items-center px-4 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ${isActive
-                                        ? 'bg-gradient-to-r from-orange-600 to-yellow-500 text-white shadow-md'
+                                        ? 'bg-accent-500 text-white shadow-md'
                                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                                     }`
                                 }
