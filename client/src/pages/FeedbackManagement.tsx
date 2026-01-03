@@ -69,6 +69,7 @@ const FeedbackManagement: React.FC = () => {
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterSource, setFilterSource] = useState<string>('all');
   const [showAiAnalysis, setShowAiAnalysis] = useState<boolean>(true);
+  const [selectedFeedback, setSelectedFeedback] = useState<any>(null);
 
   useEffect(() => {
     loadProjects();
@@ -639,15 +640,16 @@ const FeedbackManagement: React.FC = () => {
               return (
                 <li
                   key={item._id}
-                  className={`hover:bg-blue-50/60 transition-colors duration-200 group ${item.isIgnored ? 'opacity-70' : ''
+                  className={`hover:bg-blue-50/60 transition-colors duration-200 group cursor-pointer ${item.isIgnored ? 'opacity-70' : ''
                     }`}
+                  onClick={() => setSelectedFeedback(item)}
                 >
                   <div className="px-6 py-5 sm:px-8 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
                         {getSentimentIcon(item.sentiment)}
                         <p className="text-base font-medium text-blue-700 truncate">
-                          {item.content}
+                          {item.content.length > 120 ? `${item.content.substring(0, 120)}...` : item.content}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -659,7 +661,10 @@ const FeedbackManagement: React.FC = () => {
                           {item.priority}
                         </span>
                         <button
-                          onClick={() => toggleIgnore(item._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleIgnore(item._id);
+                          }}
                           className={`text-xs ${item.isIgnored
                             ? 'text-green-600 hover:text-green-500'
                             : 'text-gray-600 hover:text-gray-500'
@@ -1031,6 +1036,182 @@ const FeedbackManagement: React.FC = () => {
                 >
                   Cancel
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Detail Modal */}
+      {selectedFeedback && (
+        <div className="fixed z-50 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+              onClick={() => setSelectedFeedback(null)}
+            >
+              <div className="absolute inset-0 bg-gray-700 opacity-70"></div>
+            </div>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-8 border border-blue-100">
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  onClick={() => setSelectedFeedback(null)}
+                  className="bg-white rounded-full text-gray-400 hover:text-blue-500 focus:outline-none shadow p-1 transition"
+                >
+                  <span className="sr-only">Close</span>
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div>
+                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl leading-6 font-semibold text-gray-900">
+                      Feedback Details
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      {getSentimentIcon(selectedFeedback.sentiment)}
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold shadow-sm ${getPriorityColor(
+                          selectedFeedback.priority
+                        )}`}
+                      >
+                        {selectedFeedback.priority}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-4">
+                    {/* Content */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Content</h4>
+                      <p className="text-base text-gray-900 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        {selectedFeedback.content}
+                      </p>
+                    </div>
+
+                    {/* Metadata */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">Source</h4>
+                        <p className="text-sm text-gray-600">{selectedFeedback.source}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">Category</h4>
+                        <p className="text-sm text-gray-600">{selectedFeedback.category}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">Sentiment</h4>
+                        <p className="text-sm text-gray-600 capitalize">{selectedFeedback.sentiment}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">Created</h4>
+                        <p className="text-sm text-gray-600">
+                          {new Date(selectedFeedback.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Project */}
+                    {selectedFeedback.projectId && (
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-1">Project</h4>
+                        <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold bg-purple-100 text-purple-800">
+                          {projects.find(p => p._id === selectedFeedback.projectId)?.name || 'Unknown Project'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* AI Analysis */}
+                    {selectedFeedback.aiAnalysis && (
+                      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <SparklesIcon className="h-5 w-5 text-blue-600" />
+                          <h4 className="text-sm font-semibold text-blue-900">
+                            AI Analysis
+                          </h4>
+                        </div>
+                        <p className="text-sm text-blue-800 mb-3">
+                          {selectedFeedback.aiAnalysis.summary}
+                        </p>
+                        {selectedFeedback.aiAnalysis.actionableItems?.length > 0 && (
+                          <div className="mb-3">
+                            <h5 className="text-xs font-medium text-blue-900 mb-2">
+                              Actionable Items:
+                            </h5>
+                            <ul className="text-sm text-blue-800 space-y-1">
+                              {selectedFeedback.aiAnalysis.actionableItems.map(
+                                (action: string, index: number) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start"
+                                  >
+                                    <span className="mr-2">•</span>
+                                    <span>{action}</span>
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {selectedFeedback.extractedKeywords?.length > 0 && (
+                          <div>
+                            <h5 className="text-xs font-medium text-blue-900 mb-2">
+                              Keywords:
+                            </h5>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedFeedback.extractedKeywords.map(
+                                (keyword: string, index: number) => (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-blue-100 text-blue-800 font-medium"
+                                  >
+                                    {keyword}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-6 flex justify-end space-x-3">
+                    <button
+                      onClick={() => {
+                        toggleIgnore(selectedFeedback._id);
+                        setSelectedFeedback(null);
+                      }}
+                      className={`inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold ${selectedFeedback.isIgnored
+                          ? 'text-white bg-green-600 hover:bg-green-700'
+                          : 'text-white bg-gray-600 hover:bg-gray-700'
+                        } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition`}
+                    >
+                      {selectedFeedback.isIgnored ? 'Unignore' : 'Ignore'}
+                    </button>
+                    <button
+                      onClick={() => setSelectedFeedback(null)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
