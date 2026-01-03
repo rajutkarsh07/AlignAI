@@ -842,16 +842,186 @@ const RoadmapView: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Show all roadmaps when no project is selected */}
       {!selectedProject && (
-        <div className="text-center py-16">
-          <MapIcon className="mx-auto h-14 w-14 text-primary-300" />
-          <h3 className="mt-4 text-lg font-semibold text-gray-900">
-            No project selected
-          </h3>
-          <p className="mt-2 text-base text-gray-500">
-            Select a project to view and manage roadmaps.
-          </p>
-        </div>
+        <>
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-primary-100 rounded-md p-3">
+                    <MapIcon className="h-6 w-6 text-primary-600" />
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Total Roadmaps
+                    </dt>
+                    <dd className="text-2xl font-semibold text-gray-900">
+                      {roadmaps.length}
+                    </dd>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                    <ChartBarIcon className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Total Items
+                    </dt>
+                    <dd className="text-2xl font-semibold text-gray-900">
+                      {roadmaps.reduce((sum, r) => sum + r.items.length, 0)}
+                    </dd>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-accent-100 rounded-md p-3">
+                    <CalendarIcon className="h-6 w-6 text-accent-600" />
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Active Projects
+                    </dt>
+                    <dd className="text-2xl font-semibold text-gray-900">
+                      {new Set(roadmaps.map(r => r.projectId)).size}
+                    </dd>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-purple-100 rounded-md p-3">
+                    <SparklesIcon className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      In Progress
+                    </dt>
+                    <dd className="text-2xl font-semibold text-gray-900">
+                      {roadmaps.reduce((sum, r) => 
+                        sum + r.items.filter(i => i.status === 'in-progress').length, 0
+                      )}
+                    </dd>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Roadmap List */}
+          {isLoadingRoadmaps && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+              <div className="text-center py-16">
+                <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+                <p className="mt-4 text-base text-gray-500">Loading roadmaps...</p>
+              </div>
+            </div>
+          )}
+
+          {!isLoadingRoadmaps && roadmaps.length > 0 && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+              <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                  All Roadmaps
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {roadmaps.map((roadmap) => {
+                    const showProject = !selectedProject;
+                    const project =
+                      showProject && roadmap.projectId
+                        ? projects.find((p) => {
+                          const pid =
+                            typeof roadmap.projectId === 'object' &&
+                              roadmap.projectId !== null
+                              ? (roadmap.projectId as any)._id
+                              : roadmap.projectId;
+                          return p._id === pid;
+                        })
+                        : null;
+                    return (
+                      <div
+                        key={roadmap._id}
+                        className="relative bg-gradient-to-br from-primary-50 to-white border border-primary-100 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200 flex flex-col group overflow-hidden min-h-[180px]"
+                      >
+                        <div className="flex flex-col flex-1 p-5">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapIcon className="h-5 w-5 text-primary-400" />
+                            <span className="text-base font-bold text-gray-900 truncate group-hover:text-accent-600 transition-colors">
+                              {roadmap.name}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 mb-2 line-clamp-2">
+                            {roadmap.description}
+                          </p>
+                          <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold ${getCategoryColor(
+                                roadmap.type
+                              )} border border-opacity-30`}
+                            >
+                              {roadmap.type.replace('-', ' ')}
+                            </span>
+                            <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5">
+                              {roadmap.timeHorizon}
+                            </span>
+                            <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5">
+                              {roadmap.items.length} items
+                            </span>
+                            {showProject && project && (
+                              <span className="inline-flex items-center gap-1 bg-secondary-100 text-secondary-700 rounded px-2 py-0.5 font-semibold border border-secondary-200">
+                                <span className="font-bold">Project:</span>{' '}
+                                {project.name}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1" />
+                          <div className="flex justify-end mt-2">
+                            <button
+                              onClick={() => {
+                                setSelectedProject(project?._id || '');
+                                setSelectedRoadmap(roadmap._id);
+                              }}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-lg text-primary-700 bg-primary-100 hover:bg-primary-200"
+                            >
+                              View Details
+                              <ArrowRightIcon className="ml-1 h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!isLoadingRoadmaps && roadmaps.length === 0 && (
+            <div className="text-center py-16">
+              <MapIcon className="mx-auto h-14 w-14 text-primary-300" />
+              <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                No roadmaps found
+              </h3>
+              <p className="mt-2 text-base text-gray-500">
+                Select a project and generate your first AI-powered roadmap to get started.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       {selectedProject && (
