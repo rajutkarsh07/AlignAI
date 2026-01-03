@@ -186,19 +186,28 @@ const LayoutInner: React.FC<LayoutInnerProps> = ({
 
             <div className="flex-1 flex justify-between items-center lg:ml-0 ml-4">
               {/* Page Title and Subtitle */}
-              <div className="min-w-0 flex-1">
-                {header.title && (
-                  <>
-                    <h1 className="text-xl font-bold text-gray-900 truncate sm:text-2xl">
-                      {header.title}
-                    </h1>
-                    {header.subtitle && (
-                      <p className="mt-0.5 text-sm text-gray-500 truncate hidden sm:block">
-                        {header.subtitle}
-                      </p>
-                    )}
-                  </>
+              <div className="min-w-0 flex-1 flex items-center gap-3">
+                {/* Back Button */}
+                {header.backButton && (
+                  <div className="flex-shrink-0">
+                    {header.backButton}
+                  </div>
                 )}
+
+                <div className="min-w-0 flex-1">
+                  {header.title && (
+                    <>
+                      <h1 className="text-xl font-bold text-gray-900 truncate sm:text-2xl">
+                        {header.title}
+                      </h1>
+                      {header.subtitle && (
+                        <p className="mt-0.5 text-sm text-gray-500 truncate hidden sm:block">
+                          {header.subtitle}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* Page Actions - Hidden below 700px */}

@@ -9,7 +9,8 @@ import {
     ClipboardDocumentListIcon,
     MapIcon,
     RectangleStackIcon,
-    ArrowPathIcon
+    ArrowPathIcon,
+    ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 
 interface Project {
@@ -66,6 +67,13 @@ const ProjectView: React.FC = () => {
                 Share
             </button>
         </>,
+        <button
+            onClick={() => navigate('/projects')}
+            className="bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-shadow duration-200 hover:bg-gray-50"
+            aria-label="Back to projects"
+        >
+            <ArrowLeftIcon className="h-5 w-5 text-gray-700" />
+        </button>,
         [project, id]
     );
 
@@ -137,7 +145,7 @@ const ProjectView: React.FC = () => {
         <div className="space-y-6">
             {/* Navigation Tabs */}
             <div className="bg-white shadow-sm rounded-lg border border-gray-200">
-                <nav className="flex space-x-1 p-2" aria-label="Tabs">
+                <nav className="flex flex-wrap gap-2 p-2 sm:p-3" aria-label="Tabs">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         return (
@@ -146,13 +154,13 @@ const ProjectView: React.FC = () => {
                                 to={item.path}
                                 end={item.end}
                                 className={({ isActive }) =>
-                                    `flex items-center px-4 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ${isActive
+                                    `flex items-center px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium rounded-md transition-all duration-200 ${isActive
                                         ? 'bg-accent-500 text-white shadow-md'
                                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                                     }`
                                 }
                             >
-                                <Icon className="h-5 w-5 mr-2" />
+                                <Icon className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                                 {item.name}
                             </NavLink>
                         );

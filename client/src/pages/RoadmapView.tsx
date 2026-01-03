@@ -799,51 +799,39 @@ const RoadmapView: React.FC = () => {
       ? 'Visualize and manage product roadmaps for this project'
       : 'Visualize and manage product roadmaps',
     <>
-      {/* Only show project selector if NOT in nested project route */}
-      {projects.length > 0 && !isNestedInProject && (
-        <CustomSelect
-          value={selectedProject}
-          onChange={(e) => setSelectedProject(e.target.value)}
-          options={[
-            { value: '', label: 'Select Project' },
-            ...projects.map((project) => ({
-              value: project._id,
-              label: project.name,
-            })),
-          ]}
-          className="w-48"
-          label=""
-        />
-      )}
-      {selectedProject && roadmaps.length > 0 && (
-        <CustomSelect
-          value={selectedRoadmap}
-          onChange={(e) => setSelectedRoadmap(e.target.value)}
-          options={[
-            { value: '', label: 'Select Roadmap' },
-            ...roadmaps.map((roadmap) => ({
-              value: roadmap._id,
-              label: roadmap.name,
-            })),
-          ]}
-          className="w-48"
-          label=""
-        />
-      )}
       <button
         onClick={() => setShowCreateForm(true)}
         disabled={!selectedProject}
-        className="inline-flex items-center whitespace-nowrap px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="hidden sm:inline-flex items-center whitespace-nowrap px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <SparklesIcon className="h-4 w-4 mr-2" />
         Generate Roadmap
       </button>
     </>,
+    undefined,
     [selectedProject, projects, selectedRoadmap, roadmaps, isNestedInProject]
   );
 
   return (
     <div className="space-y-8">
+      {/* Project Selector - Always visible when not in nested project route */}
+      {projects.length > 0 && !isNestedInProject && (
+        <div className="mb-6">
+          <CustomSelect
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            options={[
+              { value: '', label: 'Select Project' },
+              ...projects.map((project) => ({
+                value: project._id,
+                label: project.name,
+              })),
+            ]}
+            className="w-48"
+            label=""
+          />
+        </div>
+      )}
       {/* Show all roadmaps when no project is selected */}
       {!selectedProject && (
         <>
@@ -1028,198 +1016,234 @@ const RoadmapView: React.FC = () => {
 
       {selectedProject && (
         <>
-          {/* Generate Roadmap Form */}
+          {/* Generate Roadmap Modal */}
           {showCreateForm && (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
-              <div className="bg-white shadow-2xl rounded-2xl border border-primary-100 p-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                  Generate New Roadmap
-                </h3>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        value={newRoadmap.name}
-                        onChange={(e) =>
-                          setNewRoadmap((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Roadmap name..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Time Horizon
-                      </label>
-                      <select
-                        value={newRoadmap.timeHorizon}
-                        onChange={(e) =>
-                          setNewRoadmap((prev) => ({
-                            ...prev,
-                            timeHorizon: e.target.value as any,
-                          }))
-                        }
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      >
-                        <option value="quarter">Quarter</option>
-                        <option value="half-year">Half Year</option>
-                        <option value="year">Year</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Description
-                    </label>
-                    <textarea
-                      value={newRoadmap.description}
-                      onChange={(e) =>
-                        setNewRoadmap((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
-                      }
-                      rows={2}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="Roadmap description..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Allocation Strategy
-                    </label>
-                    <div className="space-y-3">
-                      {Object.entries({
-                        balanced:
-                          'Balanced (60% Strategic, 30% Customer, 10% Maintenance)',
-                        'strategic-only':
-                          'Strategic Focus (70% Strategic, 20% Customer, 10% Maintenance)',
-                        'customer-only':
-                          'Customer-Driven (20% Strategic, 70% Customer, 10% Maintenance)',
-                        custom: 'Custom Allocation',
-                      }).map(([key, label]) => (
-                        <div key={key} className="flex items-center">
-                          <input
-                            id={key}
-                            name="roadmap-type"
-                            type="radio"
-                            value={key}
-                            checked={newRoadmap.type === key}
-                            onChange={(e) =>
-                              setNewRoadmap((prev) => ({
-                                ...prev,
-                                type: e.target.value as any,
-                              }))
-                            }
-                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
-                          />
-                          <label
-                            htmlFor={key}
-                            className="ml-3 text-sm text-gray-900"
-                          >
-                            {label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-
-                    {newRoadmap.type === 'custom' && (
-                      <div className="mt-4 grid grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Strategic %
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={newRoadmap.customAllocation.strategic}
-                            onChange={(e) =>
-                              setNewRoadmap((prev) => ({
-                                ...prev,
-                                customAllocation: {
-                                  ...prev.customAllocation,
-                                  strategic: parseInt(e.target.value) || 0,
-                                },
-                              }))
-                            }
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Customer %
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={newRoadmap.customAllocation.customerDriven}
-                            onChange={(e) =>
-                              setNewRoadmap((prev) => ({
-                                ...prev,
-                                customAllocation: {
-                                  ...prev.customAllocation,
-                                  customerDriven: parseInt(e.target.value) || 0,
-                                },
-                              }))
-                            }
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Maintenance %
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={newRoadmap.customAllocation.maintenance}
-                            onChange={(e) =>
-                              setNewRoadmap((prev) => ({
-                                ...prev,
-                                customAllocation: {
-                                  ...prev.customAllocation,
-                                  maintenance: parseInt(e.target.value) || 0,
-                                },
-                              }))
-                            }
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end space-x-3">
+            <div className="fixed z-50 inset-0 overflow-y-auto">
+              <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div
+                  className="fixed inset-0 transition-opacity"
+                  aria-hidden="true"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    resetNewRoadmap();
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gray-700 opacity-70"></div>
+                </div>
+                <span
+                  className="hidden sm:inline-block sm:align-middle sm:h-screen"
+                  aria-hidden="true"
+                >
+                  &#8203;
+                </span>
+                <div className="inline-block align-bottom bg-white rounded-2xl px-6 pt-7 pb-6 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full sm:p-8 border border-primary-100">
+                  <div className="absolute top-0 right-0 pt-4 pr-4">
                     <button
                       onClick={() => {
                         setShowCreateForm(false);
                         resetNewRoadmap();
                       }}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+                      className="bg-white rounded-full text-gray-400 hover:text-primary-500 focus:outline-none shadow p-1 transition"
                     >
-                      Cancel
+                      <span className="sr-only">Close</span>
+                      <XMarkIcon className="h-6 w-6" />
                     </button>
-                    <button
-                      onClick={handleGenerateRoadmap}
-                      disabled={!newRoadmap.name.trim() || isGeneratingRoadmap}
-                      className="px-4 py-2 border border-transparent rounded-lg text-white bg-accent-500 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isGeneratingRoadmap
-                        ? 'Generating...'
-                        : 'Generate Roadmap'}
-                    </button>
+                  </div>
+
+                  <div>
+                    <div className="mt-3 sm:mt-0 text-left">
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6">
+                        Generate New Roadmap
+                      </h3>
+
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Name
+                            </label>
+                            <input
+                              type="text"
+                              value={newRoadmap.name}
+                              onChange={(e) =>
+                                setNewRoadmap((prev) => ({
+                                  ...prev,
+                                  name: e.target.value,
+                                }))
+                              }
+                              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              placeholder="Roadmap name..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Time Horizon
+                            </label>
+                            <select
+                              value={newRoadmap.timeHorizon}
+                              onChange={(e) =>
+                                setNewRoadmap((prev) => ({
+                                  ...prev,
+                                  timeHorizon: e.target.value as any,
+                                }))
+                              }
+                              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            >
+                              <option value="quarter">Quarter</option>
+                              <option value="half-year">Half Year</option>
+                              <option value="year">Year</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">
+                            Description
+                          </label>
+                          <textarea
+                            value={newRoadmap.description}
+                            onChange={(e) =>
+                              setNewRoadmap((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
+                            rows={2}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="Roadmap description..."
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-3">
+                            Allocation Strategy
+                          </label>
+                          <div className="space-y-3">
+                            {Object.entries({
+                              balanced:
+                                'Balanced (60% Strategic, 30% Customer, 10% Maintenance)',
+                              'strategic-only':
+                                'Strategic Focus (70% Strategic, 20% Customer, 10% Maintenance)',
+                              'customer-only':
+                                'Customer-Driven (20% Strategic, 70% Customer, 10% Maintenance)',
+                              custom: 'Custom Allocation',
+                            }).map(([key, label]) => (
+                              <div key={key} className="flex items-center">
+                                <input
+                                  id={key}
+                                  name="roadmap-type"
+                                  type="radio"
+                                  value={key}
+                                  checked={newRoadmap.type === key}
+                                  onChange={(e) =>
+                                    setNewRoadmap((prev) => ({
+                                      ...prev,
+                                      type: e.target.value as any,
+                                    }))
+                                  }
+                                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                                />
+                                <label
+                                  htmlFor={key}
+                                  className="ml-3 text-sm text-gray-900"
+                                >
+                                  {label}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+
+                          {newRoadmap.type === 'custom' && (
+                            <div className="mt-4 grid grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                  Strategic %
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={newRoadmap.customAllocation.strategic}
+                                  onChange={(e) =>
+                                    setNewRoadmap((prev) => ({
+                                      ...prev,
+                                      customAllocation: {
+                                        ...prev.customAllocation,
+                                        strategic: parseInt(e.target.value) || 0,
+                                      },
+                                    }))
+                                  }
+                                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                  Customer %
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={newRoadmap.customAllocation.customerDriven}
+                                  onChange={(e) =>
+                                    setNewRoadmap((prev) => ({
+                                      ...prev,
+                                      customAllocation: {
+                                        ...prev.customAllocation,
+                                        customerDriven: parseInt(e.target.value) || 0,
+                                      },
+                                    }))
+                                  }
+                                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700">
+                                  Maintenance %
+                                </label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={newRoadmap.customAllocation.maintenance}
+                                  onChange={(e) =>
+                                    setNewRoadmap((prev) => ({
+                                      ...prev,
+                                      customAllocation: {
+                                        ...prev.customAllocation,
+                                        maintenance: parseInt(e.target.value) || 0,
+                                      },
+                                    }))
+                                  }
+                                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4">
+                          <button
+                            onClick={() => {
+                              setShowCreateForm(false);
+                              resetNewRoadmap();
+                            }}
+                            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={handleGenerateRoadmap}
+                            disabled={!newRoadmap.name.trim() || isGeneratingRoadmap}
+                            className="w-full sm:w-auto px-4 py-2 border border-transparent rounded-lg text-white bg-accent-500 hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isGeneratingRoadmap
+                              ? 'Generating...'
+                              : 'Generate Roadmap'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2294,7 +2318,18 @@ const RoadmapView: React.FC = () => {
           </div>
         </div>
       )}
-    </div >
+
+      {/* Floating Action Button for Mobile - Generate Roadmap */}
+      {selectedProject && (
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="sm:hidden fixed bottom-6 right-6 bg-accent-500 hover:bg-accent-600 text-white rounded-full p-4 shadow-2xl transition-all duration-200 hover:scale-110 z-40"
+          aria-label="Generate Roadmap"
+        >
+          <SparklesIcon className="h-6 w-6" />
+        </button>
+      )}
+    </div>
   );
 };
 

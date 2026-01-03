@@ -4,6 +4,7 @@ interface PageHeaderState {
     title: string;
     subtitle: string;
     actions: ReactNode;
+    backButton?: ReactNode;
 }
 
 interface PageHeaderContextType {
@@ -16,6 +17,7 @@ const defaultHeader: PageHeaderState = {
     title: '',
     subtitle: '',
     actions: null,
+    backButton: null,
 };
 
 const PageHeaderContext = createContext<PageHeaderContextType | undefined>(undefined);
@@ -51,12 +53,13 @@ export const useSetPageHeader = (
     title: string,
     subtitle: string,
     actions?: ReactNode,
+    backButton?: ReactNode,
     dependencies: any[] = []
 ) => {
     const { setHeader, resetHeader } = usePageHeader();
 
     React.useEffect(() => {
-        setHeader({ title, subtitle, actions });
+        setHeader({ title, subtitle, actions, backButton });
         return () => resetHeader();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [title, subtitle, ...dependencies]);

@@ -342,6 +342,7 @@ const TaskManagement: React.FC = () => {
         Add Task
       </button>
     </>,
+    undefined,
     [selectedProject, projects, isNestedInProject]
   );
 
