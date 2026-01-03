@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import {
   ChartBarIcon,
@@ -14,6 +14,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 import AlignAI from "../../assets/alignai.png"
+import { api } from '../../services/api';
+import { PageHeaderProvider, usePageHeader } from '../../context/PageHeaderContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
@@ -26,37 +28,59 @@ const navigation = [
 
 const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [projectName, setProjectName] = useState<string | null>(null);
   const location = useLocation();
 
   // Get project ID from URL
   const projectMatch = location.pathname.match(/\/projects\/([^\/]+)/);
   const projectId = projectMatch ? projectMatch[1] : null;
 
+  // Fetch project name when projectId changes
+  useEffect(() => {
+    const fetchProjectName = async () => {
+      if (projectId && projectId !== 'new') {
+        try {
+          const response: any = await api.get(`/projects/${projectId}`);
+          if (response.success && response.data) {
+            setProjectName(response.data.name);
+          }
+        } catch (error) {
+          console.error('Error fetching project name:', error);
+          setProjectName(null);
+        }
+      } else {
+        setProjectName(null);
+      }
+    };
+
+    fetchProjectName();
+  }, [projectId]);
+
   // Project-specific navigation
   const projectNavigation = projectId
     ? [
-        { name: 'Overview', href: `/projects/${projectId}`, icon: FolderIcon },
-        {
-          name: 'Feedback',
-          href: `/projects/${projectId}/feedback`,
-          icon: DocumentTextIcon,
-        },
-        {
-          name: 'Tasks',
-          href: `/projects/${projectId}/tasks`,
-          icon: ClipboardDocumentListIcon,
-        },
-        {
-          name: 'Chat Assistant',
-          href: `/projects/${projectId}/chat`,
-          icon: ChatBubbleLeftRightIcon,
-        },
-        {
-          name: 'Roadmap',
-          href: `/projects/${projectId}/roadmap`,
-          icon: MapIcon,
-        },
-      ]
+      { name: 'Overview', href: `/projects/${projectId}`, icon: FolderIcon },
+      {
+        name: 'Feedback',
+        href: `/projects/${projectId}/feedback`,
+        icon: DocumentTextIcon,
+      },
+      {
+        name: 'Tasks',
+        href: `/projects/${projectId}/tasks`,
+        icon: ClipboardDocumentListIcon,
+      },
+      {
+        name: 'Chat Assistant',
+        href: `/projects/${projectId}/chat`,
+        icon: ChatBubbleLeftRightIcon,
+      },
+      {
+        name: 'Roadmap',
+        href: `/projects/${projectId}/roadmap`,
+        icon: MapIcon,
+      },
+    ]
     : [];
 
   const isActiveRoute = (href: string) => {
@@ -66,12 +90,47 @@ const Layout: React.FC = () => {
   };
 
   return (
+    <PageHeaderProvider>
+      <LayoutInner
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        navigation={navigation}
+        projectNavigation={projectNavigation}
+        isActiveRoute={isActiveRoute}
+        projectId={projectId}
+        projectName={projectName}
+      />
+    </PageHeaderProvider>
+  );
+};
+
+interface LayoutInnerProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  navigation: Array<{ name: string; href: string; icon: any }>;
+  projectNavigation: Array<{ name: string; href: string; icon: any }>;
+  isActiveRoute: (href: string) => boolean;
+  projectId: string | null;
+  projectName: string | null;
+}
+
+const LayoutInner: React.FC<LayoutInnerProps> = ({
+  sidebarOpen,
+  setSidebarOpen,
+  navigation,
+  projectNavigation,
+  isActiveRoute,
+  projectId,
+  projectName,
+}) => {
+  const { header } = usePageHeader();
+
+  return (
     <div className="min-h-screen bg-secondary-50">
       {/* Mobile sidebar */}
       <div
-        className={`fixed inset-0 z-40 lg:hidden ${
-          sidebarOpen ? 'block' : 'hidden'
-        }`}
+        className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? 'block' : 'hidden'
+          }`}
       >
         <div
           className="fixed inset-0 bg-secondary-600 bg-opacity-75"
@@ -92,6 +151,7 @@ const Layout: React.FC = () => {
             projectNavigation={projectNavigation}
             isActiveRoute={isActiveRoute}
             projectId={projectId}
+            projectName={projectName}
           />
         </div>
       </div>
@@ -107,33 +167,53 @@ const Layout: React.FC = () => {
             projectNavigation={projectNavigation}
             isActiveRoute={isActiveRoute}
             projectId={projectId}
+            projectName={projectName}
           />
         </div>
       </div>
 
       {/* Main content */}
       <div className="lg:pl-64">
-        {/* Top bar */}
-        <div className="sticky top-0 z-10 flex h-16 items-center bg-white border-b border-secondary-200 px-4 sm:px-6 lg:px-8">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden -ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-secondary-500 hover:text-secondary-900"
-          >
-            <Bars3Icon className="h-6 w-6" />
-          </button>
+        {/* Top bar with page header */}
+        <div className="sticky top-0 z-10 bg-white border-b border-secondary-200 shadow-sm">
+          <div className="flex items-center px-4 sm:px-6 lg:px-8 h-16">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden -ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-secondary-500 hover:text-secondary-900"
+            >
+              <Bars3Icon className="h-6 w-6" />
+            </button>
 
-          <div className="flex-1 flex justify-between items-center lg:ml-0 ml-4">
-            <div>{/* Breadcrumb could go here */}</div>
-            <div className="flex items-center space-x-4">
-              {projectId && (
-                <Link
-                  to={`/projects/${projectId}/chat`}
-                  className="btn-primary inline-flex items-center"
-                >
-                  <PlusIcon className="h-4 w-4 mr-2" />
-                  New Chat
-                </Link>
-              )}
+            <div className="flex-1 flex justify-between items-center lg:ml-0 ml-4">
+              {/* Page Title and Subtitle */}
+              <div className="min-w-0 flex-1">
+                {header.title && (
+                  <>
+                    <h1 className="text-xl font-bold text-gray-900 truncate sm:text-2xl">
+                      {header.title}
+                    </h1>
+                    {header.subtitle && (
+                      <p className="mt-0.5 text-sm text-gray-500 truncate hidden sm:block">
+                        {header.subtitle}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Page Actions */}
+              <div className="flex items-center space-x-3 ml-4">
+                {header.actions}
+                {!header.actions && projectId && (
+                  <Link
+                    to={`/projects/${projectId}/chat`}
+                    className="btn-primary inline-flex items-center"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    New Chat
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -156,6 +236,7 @@ interface SidebarContentProps {
   projectNavigation: Array<{ name: string; href: string; icon: any }>;
   isActiveRoute: (href: string) => boolean;
   projectId: string | null;
+  projectName: string | null;
 }
 
 const SidebarContent: React.FC<SidebarContentProps> = ({
@@ -163,6 +244,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   projectNavigation,
   isActiveRoute,
   projectId,
+  projectName,
 }) => {
   return (
     <div className="flex flex-1 flex-col overflow-y-auto custom-scrollbar">
@@ -177,9 +259,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               <Link
                 key={item.name}
                 to={item.href}
-                className={`sidebar-nav-item ${
-                  isActiveRoute(item.href) ? 'active' : ''
-                }`}
+                className={`sidebar-nav-item ${isActiveRoute(item.href) ? 'active' : ''
+                  }`}
               >
                 <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
                 {item.name}
@@ -206,7 +287,9 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               {projectId && (
                 <div className="mt-2 flex items-center text-sm text-secondary-900 font-medium">
                   <FolderIcon className="h-4 w-4 mr-2 text-primary-600" />
-                  <span className="truncate">Project {projectId}</span>
+                  <span className="truncate" title={projectName || projectId}>
+                    {projectName || 'Loading...'}
+                  </span>
                 </div>
               )}
             </div>
@@ -215,9 +298,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`sidebar-nav-item project-nav-item ${
-                    isActiveRoute(item.href) ? 'active' : ''
-                  }`}
+                  className={`sidebar-nav-item project-nav-item ${isActiveRoute(item.href) ? 'active' : ''
+                    }`}
                 >
                   <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
                   {item.name}

@@ -1,64 +1,112 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { GoogleGenAI } = require('@google/genai');
+const OpenAI = require('openai');
+const Groq = require('groq-sdk');
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
 
 class AIService {
   constructor() {
-    this.useVertexAI = process.env.USE_VERTEX_AI === 'true';
+    // Determine AI provider: 'vertex', 'gemini', or 'openai'
+    this.provider = process.env.AI_PROVIDER || 'gemini';
 
-    if (this.useVertexAI) {
-      this.ai = new GoogleGenAI({
-        vertexai: true,
-        project: 'itd-ai-interns',
-        location: 'global',
-      });
-
-      this.model = 'gemini-2.5-flash';
-
-      this.generationConfig = {
-        maxOutputTokens: 65535,
-        temperature: 1,
-        topP: 1,
-        seed: 0,
-        safetySettings: [
-          {
-            category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'OFF',
-          },
-          {
-            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'OFF',
-          },
-          {
-            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'OFF',
-          },
-          {
-            category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'OFF',
-          },
-        ],
-      };
-
-      console.log('🤖 Agent Service initialized in aiService using Vertex AI');
-    } else {
-      // Initialize Gemini API
-      this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      this.model = this.genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
-        generationConfig: {
-          maxOutputTokens: 8192,
-          temperature: 0.3,
-          topP: 0.95,
-        },
-      });
+    // Legacy support for USE_VERTEX_AI
+    if (process.env.USE_VERTEX_AI === 'true') {
+      this.provider = 'vertex';
     }
 
-    console.log(
-      `🤖 AI Service initialized using ${this.useVertexAI ? 'Vertex AI' : 'Gemini API Key'
-      }`
-    );
+    this.initializeProvider();
+  }
+
+  initializeProvider() {
+    switch (this.provider) {
+      case 'vertex':
+        this.initializeVertexAI();
+        break;
+      case 'openai':
+        this.initializeOpenAI();
+        break;
+      case 'groq':
+        this.initializeGroq();
+        break;
+      case 'gemini':
+      default:
+        this.initializeGemini();
+        break;
+    }
+
+    console.log(`🤖 AI Service initialized using ${this.getProviderName()}`);
+  }
+
+  initializeVertexAI() {
+    this.ai = new GoogleGenAI({
+      vertexai: true,
+      project: process.env.VERTEX_PROJECT || 'itd-ai-interns',
+      location: process.env.VERTEX_LOCATION || 'global',
+    });
+
+    this.modelName = process.env.VERTEX_MODEL || 'gemini-2.5-flash';
+
+    this.generationConfig = {
+      maxOutputTokens: 65535,
+      temperature: 1,
+      topP: 1,
+      seed: 0,
+      safetySettings: [
+        {
+          category: 'HARM_CATEGORY_HATE_SPEECH',
+          threshold: 'OFF',
+        },
+        {
+          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          threshold: 'OFF',
+        },
+        {
+          category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+          threshold: 'OFF',
+        },
+        {
+          category: 'HARM_CATEGORY_HARASSMENT',
+          threshold: 'OFF',
+        },
+      ],
+    };
+  }
+
+  initializeGemini() {
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    this.model = this.genAI.getGenerativeModel({
+      model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+      generationConfig: {
+        maxOutputTokens: 8192,
+        temperature: 0.3,
+        topP: 0.95,
+      },
+    });
+  }
+
+  initializeOpenAI() {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    this.openaiModel = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  }
+
+  initializeGroq() {
+    this.groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+    this.groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+  }
+
+  getProviderName() {
+    const providerNames = {
+      vertex: 'Google Vertex AI',
+      gemini: 'Google Gemini API',
+      openai: 'OpenAI ChatGPT',
+      groq: 'Groq (Llama)',
+    };
+    return providerNames[this.provider] || 'Unknown Provider';
   }
 
   // Validate if the query is project-related
@@ -144,18 +192,60 @@ politely decline and redirect the user to ask project-related questions.
 USER QUERY: ${prompt}
 `;
 
-      if (this.useVertexAI) {
-        const req = {
-          model: this.model,
-          contents: [systemInstruction],
-          config: this.generationConfig,
-        };
+      switch (this.provider) {
+        case 'vertex': {
+          const req = {
+            model: this.modelName,
+            contents: [systemInstruction],
+            config: this.generationConfig,
+          };
+          const response = await this.ai.models.generateContent(req);
+          return response.text;
+        }
 
-        const response = await this.ai.models.generateContent(req);
-        return response.text;
-      } else {
-        const result = await this.model.generateContent(systemInstruction);
-        return result.response.text();
+        case 'openai': {
+          const response = await this.openai.chat.completions.create({
+            model: this.openaiModel,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a specialized AI assistant for project management, task planning, and feedback analysis. You must ONLY respond to queries related to project planning, task management, feedback analysis, software development, and product management.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.3,
+            max_tokens: 4096,
+          });
+          return response.choices[0].message.content;
+        }
+
+        case 'groq': {
+          const response = await this.groq.chat.completions.create({
+            model: this.groqModel,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a specialized AI assistant for project management, task planning, and feedback analysis. You must ONLY respond to queries related to project planning, task management, feedback analysis, software development, and product management.',
+              },
+              {
+                role: 'user',
+                content: prompt,
+              },
+            ],
+            temperature: 0.3,
+            max_tokens: 4096,
+          });
+          return response.choices[0].message.content;
+        }
+
+        case 'gemini':
+        default: {
+          const result = await this.model.generateContent(systemInstruction);
+          return result.response.text();
+        }
       }
     } catch (error) {
       console.error('Error generating content:', error);

@@ -52,7 +52,10 @@ A comprehensive product management tool that helps balance strategic goals with 
 
 ### AI & External Services
 
-- **Vertex AI Gemini 2.5 Flash** for AI processing
+- **Multi-Provider AI Support**:
+  - **Google Gemini API** - Fast, cost-effective option for most use cases
+  - **OpenAI ChatGPT** - GPT-4o, GPT-4o-mini, and other OpenAI models
+  - **Google Vertex AI** - Enterprise-grade option with Gemini 2.5 Flash
 - **Tavily MCP** for external web search (when needed)
 - **LlamaIndex** for advanced document processing
 
@@ -60,8 +63,10 @@ A comprehensive product management tool that helps balance strategic goals with 
 
 - Node.js 18+ and npm
 - MongoDB (local or Atlas)
-- Google Cloud Platform account with Vertex AI enabled
-- Service account key for Vertex AI
+- **At least one AI provider** (choose one):
+  - **Gemini API Key** (recommended) - Free tier available at [aistudio.google.com](https://aistudio.google.com/app/apikey)
+  - **OpenAI API Key** - Get from [platform.openai.com](https://platform.openai.com/api-keys)
+  - **Google Vertex AI** - Requires GCP project with Vertex AI enabled
 
 ## 🚀 Quick Start
 

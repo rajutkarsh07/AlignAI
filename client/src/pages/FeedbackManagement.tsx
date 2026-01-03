@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { useSetPageHeader } from '../context/PageHeaderContext';
 import {
   PlusIcon,
   DocumentTextIcon,
@@ -224,12 +225,12 @@ const FeedbackManagement: React.FC = () => {
           prev.map((f) =>
             f.id === fileId
               ? {
-                  ...f,
-                  status: 'completed',
-                  progress: 100,
-                  feedbackItems: response.data.feedbackItems,
-                  extractedText: response.data.extractedText,
-                }
+                ...f,
+                status: 'completed',
+                progress: 100,
+                feedbackItems: response.data.feedbackItems,
+                extractedText: response.data.extractedText,
+              }
               : f
           )
         );
@@ -243,10 +244,10 @@ const FeedbackManagement: React.FC = () => {
         prev.map((f) =>
           f.id === fileId
             ? {
-                ...f,
-                status: 'error',
-                error: error instanceof Error ? error.message : 'Upload failed',
-              }
+              ...f,
+              status: 'error',
+              error: error instanceof Error ? error.message : 'Upload failed',
+            }
             : f
         )
       );
@@ -273,10 +274,10 @@ const FeedbackManagement: React.FC = () => {
           prev.map((f) =>
             f.id === fileId
               ? {
-                  ...f,
-                  status: 'completed',
-                  feedbackItems: response.data.feedbackItems,
-                }
+                ...f,
+                status: 'completed',
+                feedbackItems: response.data.feedbackItems,
+              }
               : f
           )
         );
@@ -288,11 +289,11 @@ const FeedbackManagement: React.FC = () => {
         prev.map((f) =>
           f.id === fileId
             ? {
-                ...f,
-                status: 'error',
-                error:
-                  error instanceof Error ? error.message : 'Enhancement failed',
-              }
+              ...f,
+              status: 'error',
+              error:
+                error instanceof Error ? error.message : 'Enhancement failed',
+            }
             : f
         )
       );
@@ -407,367 +408,353 @@ const FeedbackManagement: React.FC = () => {
     return true;
   });
 
+  // Set page header
+  useSetPageHeader(
+    'Feedback Management',
+    'Collect and analyze customer feedback with AI-powered insights',
+    <>
+      <CustomSelect
+        value={selectedProject}
+        onChange={(e) => setSelectedProject(e.target.value)}
+        options={[
+          { value: '', label: 'All Projects' },
+          ...projects.map((project) => ({
+            value: project._id,
+            label: project.name,
+          })),
+        ]}
+        className="w-48"
+        label=""
+      />
+      <button
+        onClick={() => setShowUploadForm(true)}
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+      >
+        <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
+        Upload
+      </button>
+      <button
+        onClick={() => setShowAddForm(true)}
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+      >
+        <PlusIcon className="h-4 w-4 mr-2" />
+        Add Feedback
+      </button>
+    </>,
+    [selectedProject, projects]
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white shadow-lg rounded-b-2xl">
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          <div className="md:flex md:items-center md:justify-between">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-3xl font-extrabold leading-8 text-gray-900 sm:text-4xl sm:tracking-tight">
-                Feedback Management
-              </h2>
-              <p className="mt-2 text-base text-gray-500">
-                Collect and analyze customer feedback with AI-powered insights
-              </p>
+    <div className="space-y-8">
+      {/* Stats */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-gray-100 rounded-md p-3">
+                <DocumentTextIcon className="h-6 w-6 text-gray-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Total Feedback
+                </dt>
+                <dd className="text-2xl font-semibold text-gray-900">
+                  {feedback.length}
+                </dd>
+              </div>
             </div>
-            <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
-              <CustomSelect
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                options={[
-                  { value: '', label: 'All Projects' },
-                  ...projects.map((project) => ({
-                    value: project._id,
-                    label: project.name,
-                  })),
-                ]}
-                className="w-64"
-                label=""
-              />
-              <button
-                onClick={() => setShowUploadForm(true)}
-                className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
-              >
-                <DocumentArrowUpIcon className="h-5 w-5 mr-2" />
-                Upload
-              </button>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                <CheckCircleIcon className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Positive
+                </dt>
+                <dd className="text-2xl font-semibold text-gray-900">
+                  {feedback.filter((f) => f.sentiment === 'positive').length}
+                </dd>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
+                <XCircleIcon className="h-6 w-6 text-red-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Negative
+                </dt>
+                <dd className="text-2xl font-semibold text-gray-900">
+                  {feedback.filter((f) => f.sentiment === 'negative').length}
+                </dd>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+                <ExclamationTriangleIcon className="h-6 w-6 text-orange-600" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  High Priority
+                </dt>
+                <dd className="text-2xl font-semibold text-gray-900">
+                  {
+                    feedback.filter(
+                      (f) =>
+                        f.priority === 'critical' || f.priority === 'high'
+                    ).length
+                  }
+                </dd>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 sticky top-4 z-10 border border-blue-100">
+        <h3 className="text-sm font-medium text-gray-500 mb-3">Filters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sentiment
+            </label>
+            <CustomSelect
+              value={filterSentiment}
+              onChange={(e) => setFilterSentiment(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Sentiments' },
+                { value: 'positive', label: 'Positive' },
+                { value: 'negative', label: 'Negative' },
+                { value: 'neutral', label: 'Neutral' },
+              ]}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Priority
+            </label>
+            <CustomSelect
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Priorities' },
+                { value: 'critical', label: 'Critical' },
+                { value: 'high', label: 'High' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'low', label: 'Low' },
+              ]}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Source
+            </label>
+            <CustomSelect
+              value={filterSource}
+              onChange={(e) => setFilterSource(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Sources' },
+                ...Array.from(
+                  new Set(feedback.map((item) => item.source))
+                ).map((source) => ({
+                  value: source,
+                  label: source,
+                })),
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Feedback List */}
+      <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
+        <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h3 className="text-xl leading-7 font-semibold text-gray-900">
+              Recent Feedback
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Showing {filteredFeedback.length} of {feedback.length} items
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAiAnalysis(!showAiAnalysis)}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <SparklesIcon className="h-4 w-4 mr-2" />
+            {showAiAnalysis ? 'Hide AI Analysis' : 'Show AI Analysis'}
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-16">
+            <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+            <p className="mt-4 text-base text-gray-500">
+              Loading feedback...
+            </p>
+          </div>
+        ) : filteredFeedback.length === 0 ? (
+          <div className="text-center py-16">
+            <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-blue-300" />
+            <h3 className="mt-4 text-lg font-semibold text-gray-900">
+              No feedback matches your filters
+            </h3>
+            <p className="mt-2 text-base text-gray-500">
+              Try adjusting your filters or add new feedback.
+            </p>
+            <div className="mt-8">
               <button
                 onClick={() => setShowAddForm(true)}
-                className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+                className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Add Feedback
               </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-gray-100 rounded-md p-3">
-                  <DocumentTextIcon className="h-6 w-6 text-gray-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Total Feedback
-                  </dt>
-                  <dd className="text-2xl font-semibold text-gray-900">
-                    {feedback.length}
-                  </dd>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                  <CheckCircleIcon className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Positive
-                  </dt>
-                  <dd className="text-2xl font-semibold text-gray-900">
-                    {feedback.filter((f) => f.sentiment === 'positive').length}
-                  </dd>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
-                  <XCircleIcon className="h-6 w-6 text-red-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Negative
-                  </dt>
-                  <dd className="text-2xl font-semibold text-gray-900">
-                    {feedback.filter((f) => f.sentiment === 'negative').length}
-                  </dd>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
-                  <ExclamationTriangleIcon className="h-6 w-6 text-orange-600" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    High Priority
-                  </dt>
-                  <dd className="text-2xl font-semibold text-gray-900">
-                    {
-                      feedback.filter(
-                        (f) =>
-                          f.priority === 'critical' || f.priority === 'high'
-                      ).length
-                    }
-                  </dd>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 sticky top-4 z-10 border border-blue-100">
-          <h3 className="text-sm font-medium text-gray-500 mb-3">Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sentiment
-              </label>
-              <CustomSelect
-                value={filterSentiment}
-                onChange={(e) => setFilterSentiment(e.target.value)}
-                options={[
-                  { value: 'all', label: 'All Sentiments' },
-                  { value: 'positive', label: 'Positive' },
-                  { value: 'negative', label: 'Negative' },
-                  { value: 'neutral', label: 'Neutral' },
-                ]}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Priority
-              </label>
-              <CustomSelect
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value)}
-                options={[
-                  { value: 'all', label: 'All Priorities' },
-                  { value: 'critical', label: 'Critical' },
-                  { value: 'high', label: 'High' },
-                  { value: 'medium', label: 'Medium' },
-                  { value: 'low', label: 'Low' },
-                ]}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Source
-              </label>
-              <CustomSelect
-                value={filterSource}
-                onChange={(e) => setFilterSource(e.target.value)}
-                options={[
-                  { value: 'all', label: 'All Sources' },
-                  ...Array.from(
-                    new Set(feedback.map((item) => item.source))
-                  ).map((source) => ({
-                    value: source,
-                    label: source,
-                  })),
-                ]}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Feedback List */}
-        <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
-          <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex items-center justify-between">
-            <div>
-              <h3 className="text-xl leading-7 font-semibold text-gray-900">
-                Recent Feedback
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Showing {filteredFeedback.length} of {feedback.length} items
-              </p>
-            </div>
-            <button
-              onClick={() => setShowAiAnalysis(!showAiAnalysis)}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <SparklesIcon className="h-4 w-4 mr-2" />
-              {showAiAnalysis ? 'Hide AI Analysis' : 'Show AI Analysis'}
-            </button>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-16">
-              <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
-              <p className="mt-4 text-base text-gray-500">
-                Loading feedback...
-              </p>
-            </div>
-          ) : filteredFeedback.length === 0 ? (
-            <div className="text-center py-16">
-              <ChatBubbleLeftRightIcon className="mx-auto h-14 w-14 text-blue-300" />
-              <h3 className="mt-4 text-lg font-semibold text-gray-900">
-                No feedback matches your filters
-              </h3>
-              <p className="mt-2 text-base text-gray-500">
-                Try adjusting your filters or add new feedback.
-              </p>
-              <div className="mt-8">
-                <button
-                  onClick={() => setShowAddForm(true)}
-                  className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
-                >
-                  <PlusIcon className="h-5 w-5 mr-2" />
-                  Add Feedback
-                </button>
-              </div>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-100">
-              {filteredFeedback.map((item) => {
-                const showProject = !selectedProject;
-                const project =
-                  showProject && item.projectId
-                    ? projects.find((p) => p._id === item.projectId)
-                    : null;
-                return (
-                  <li
-                    key={item._id}
-                    className={`hover:bg-blue-50/60 transition-colors duration-200 group ${
-                      item.isIgnored ? 'opacity-70' : ''
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {filteredFeedback.map((item) => {
+              const showProject = !selectedProject;
+              const project =
+                showProject && item.projectId
+                  ? projects.find((p) => p._id === item.projectId)
+                  : null;
+              return (
+                <li
+                  key={item._id}
+                  className={`hover:bg-blue-50/60 transition-colors duration-200 group ${item.isIgnored ? 'opacity-70' : ''
                     }`}
-                  >
-                    <div className="px-6 py-5 sm:px-8 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          {getSentimentIcon(item.sentiment)}
-                          <p className="text-base font-medium text-blue-700 truncate">
-                            {item.content}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
-                              item.priority
-                            )}`}
-                          >
-                            {item.priority}
-                          </span>
-                          <button
-                            onClick={() => toggleIgnore(item._id)}
-                            className={`text-xs ${
-                              item.isIgnored
-                                ? 'text-green-600 hover:text-green-500'
-                                : 'text-gray-600 hover:text-gray-500'
+                >
+                  <div className="px-6 py-5 sm:px-8 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {getSentimentIcon(item.sentiment)}
+                        <p className="text-base font-medium text-blue-700 truncate">
+                          {item.content}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
+                            item.priority
+                          )}`}
+                        >
+                          {item.priority}
+                        </span>
+                        <button
+                          onClick={() => toggleIgnore(item._id)}
+                          className={`text-xs ${item.isIgnored
+                            ? 'text-green-600 hover:text-green-500'
+                            : 'text-gray-600 hover:text-gray-500'
                             }`}
-                          >
-                            {item.isIgnored ? 'Unignore' : 'Ignore'}
-                          </button>
-                        </div>
+                        >
+                          {item.isIgnored ? 'Unignore' : 'Ignore'}
+                        </button>
                       </div>
+                    </div>
 
-                      <div className="mt-1 sm:flex sm:justify-between">
-                        <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
-                          <div className="flex items-center text-sm text-gray-500">
-                            <span>Source: {item.source}</span>
-                          </div>
-                          <div className="flex items-center text-sm text-gray-500">
-                            <span>Category: {item.category}</span>
-                          </div>
-                          {showProject && project && (
-                            <div className="flex items-center text-sm text-gray-500">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
-                                {project.name}
-                              </span>
-                            </div>
-                          )}
+                    <div className="mt-1 sm:flex sm:justify-between">
+                      <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div className="flex items-center text-sm text-gray-500">
+                          <span>Source: {item.source}</span>
                         </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
-                          <span>
-                            Created{' '}
-                            {new Date(item.createdAt).toLocaleDateString()}
-                          </span>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <span>Category: {item.category}</span>
                         </div>
+                        {showProject && project && (
+                          <div className="flex items-center text-sm text-gray-500">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                              {project.name}
+                            </span>
+                          </div>
+                        )}
                       </div>
+                      <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
+                        <span>
+                          Created{' '}
+                          {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
 
-                      {/* AI Analysis */}
-                      {item.aiAnalysis && showAiAnalysis && (
-                        <div className="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <SparklesIcon className="h-4 w-4 text-blue-600" />
-                            <h4 className="text-sm font-medium text-blue-900">
-                              AI Analysis
-                            </h4>
+                    {/* AI Analysis */}
+                    {item.aiAnalysis && showAiAnalysis && (
+                      <div className="mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <SparklesIcon className="h-4 w-4 text-blue-600" />
+                          <h4 className="text-sm font-medium text-blue-900">
+                            AI Analysis
+                          </h4>
+                        </div>
+                        <p className="text-sm text-blue-800 mb-2">
+                          {item.aiAnalysis.summary}
+                        </p>
+                        {item.aiAnalysis.actionableItems.length > 0 && (
+                          <div className="mb-2">
+                            <h5 className="text-xs font-medium text-blue-900 mb-1">
+                              Actionable Items:
+                            </h5>
+                            <ul className="text-xs text-blue-800 space-y-1">
+                              {item.aiAnalysis.actionableItems.map(
+                                (action, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start"
+                                  >
+                                    <span className="mr-1">•</span>
+                                    <span>{action}</span>
+                                  </li>
+                                )
+                              )}
+                            </ul>
                           </div>
-                          <p className="text-sm text-blue-800 mb-2">
-                            {item.aiAnalysis.summary}
-                          </p>
-                          {item.aiAnalysis.actionableItems.length > 0 && (
-                            <div className="mb-2">
+                        )}
+                        {item.extractedKeywords &&
+                          item.extractedKeywords.length > 0 && (
+                            <div>
                               <h5 className="text-xs font-medium text-blue-900 mb-1">
-                                Actionable Items:
+                                Keywords:
                               </h5>
-                              <ul className="text-xs text-blue-800 space-y-1">
-                                {item.aiAnalysis.actionableItems.map(
-                                  (action, index) => (
-                                    <li
+                              <div className="flex flex-wrap gap-1">
+                                {item.extractedKeywords.map(
+                                  (keyword, index) => (
+                                    <span
                                       key={index}
-                                      className="flex items-start"
+                                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
                                     >
-                                      <span className="mr-1">•</span>
-                                      <span>{action}</span>
-                                    </li>
+                                      {keyword}
+                                    </span>
                                   )
                                 )}
-                              </ul>
+                              </div>
                             </div>
                           )}
-                          {item.extractedKeywords &&
-                            item.extractedKeywords.length > 0 && (
-                              <div>
-                                <h5 className="text-xs font-medium text-blue-900 mb-1">
-                                  Keywords:
-                                </h5>
-                                <div className="flex flex-wrap gap-1">
-                                  {item.extractedKeywords.map(
-                                    (keyword, index) => (
-                                      <span
-                                        key={index}
-                                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
-                                      >
-                                        {keyword}
-                                      </span>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </main>
+                      </div>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
 
       {/* Upload Document Modal */}
       {showUploadForm && (
@@ -823,11 +810,10 @@ const FeedbackManagement: React.FC = () => {
                   ) : (
                     <div className="mt-6 space-y-6">
                       <div
-                        className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                          dragActive
-                            ? 'border-blue-400 bg-blue-50'
-                            : 'border-gray-300'
-                        }`}
+                        className={`border-2 border-dashed rounded-lg p-6 text-center ${dragActive
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-gray-300'
+                          }`}
                         onDragEnter={handleDrag}
                         onDragLeave={handleDrag}
                         onDragOver={handleDrag}
@@ -1055,3 +1041,5 @@ const FeedbackManagement: React.FC = () => {
 };
 
 export default FeedbackManagement;
+
+

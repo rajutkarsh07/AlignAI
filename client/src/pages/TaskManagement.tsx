@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { useSetPageHeader } from '../context/PageHeaderContext';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -25,13 +26,13 @@ interface Task {
   status: 'todo' | 'in-progress' | 'done' | 'blocked';
   priority: 'critical' | 'high' | 'medium' | 'low';
   category:
-    | 'feature'
-    | 'bug-fix'
-    | 'improvement'
-    | 'research'
-    | 'maintenance'
-    | 'design'
-    | 'testing';
+  | 'feature'
+  | 'bug-fix'
+  | 'improvement'
+  | 'research'
+  | 'maintenance'
+  | 'design'
+  | 'testing';
   assignee?: string;
   dueDate?: string;
   estimatedEffort?: {
@@ -308,406 +309,394 @@ const TaskManagement: React.FC = () => {
     blocked: tasks.filter((t) => t.status === 'blocked').length,
   };
 
+  // Set page header
+  useSetPageHeader(
+    'Task Management',
+    'Create, track, and manage project tasks',
+    <>
+      <CustomSelect
+        value={selectedProject}
+        onChange={(e) => setSelectedProject(e.target.value)}
+        options={[
+          { value: '', label: 'All Projects' },
+          ...projects.map((project) => ({
+            value: project._id,
+            label: project.name,
+          })),
+        ]}
+        className="w-48"
+        label=""
+      />
+      <button
+        onClick={() => setShowAddForm(true)}
+        disabled={!selectedProject && projects.length > 0}
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <PlusIcon className="h-4 w-4 mr-2" />
+        Add Task
+      </button>
+    </>,
+    [selectedProject, projects]
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white shadow-lg rounded-b-2xl">
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          <div className="md:flex md:items-center md:justify-between">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-3xl font-extrabold leading-8 text-gray-900 sm:text-4xl sm:tracking-tight">
-                Task Management
-              </h2>
-              <p className="mt-2 text-base text-gray-500">
-                Create, track, and manage project tasks
-              </p>
+    <div className="space-y-8">
+      {/* Filters */}
+      <div className="bg-white/90 shadow-lg rounded-xl p-6 sticky top-20 z-10 border border-blue-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <CustomSelect
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Statuses' },
+                { value: 'todo', label: 'To Do' },
+                { value: 'in-progress', label: 'In Progress' },
+                { value: 'done', label: 'Done' },
+                { value: 'blocked', label: 'Blocked' },
+              ]}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Priority
+            </label>
+            <CustomSelect
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              options={[
+                { value: 'all', label: 'All Priorities' },
+                { value: 'critical', label: 'Critical' },
+                { value: 'high', label: 'High' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'low', label: 'Low' },
+              ]}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Project
+            </label>
+            <CustomSelect
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              options={[
+                { value: '', label: 'All Projects' },
+                ...projects.map((project) => ({
+                  value: project._id,
+                  label: project.name,
+                })),
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      {selectedProject && (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 mb-8">
+          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-gray-100 rounded-md p-3">
+                  <UserIcon className="h-6 w-6 text-gray-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Total Tasks
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {taskStats.total}
+                    </div>
+                  </dd>
+                </div>
+              </div>
             </div>
-            <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
-              <CustomSelect
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                options={[
-                  { value: '', label: 'All Projects' },
-                  ...projects.map((project) => ({
-                    value: project._id,
-                    label: project.name,
-                  })),
-                ]}
-                className="w-64"
-                label=""
-              />
+          </div>
+
+          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                  <ClockIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    In Progress
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {taskStats.inProgress}
+                    </div>
+                  </dd>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
+                  <CheckIcon className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Completed
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {taskStats.done}
+                    </div>
+                  </dd>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
+                  <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    Blocked
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {taskStats.blocked}
+                    </div>
+                  </dd>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+                  <CalendarIcon className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dt className="text-sm font-medium text-gray-500 truncate">
+                    To Do
+                  </dt>
+                  <dd className="flex items-baseline">
+                    <div className="text-2xl font-semibold text-gray-900">
+                      {taskStats.todo}
+                    </div>
+                  </dd>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tasks List */}
+      <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
+        <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h3 className="text-xl leading-7 font-semibold text-gray-900">
+              Tasks
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Showing {filteredTasks.length} of {tasks.length} tasks
+            </p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center py-16">
+            <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
+            <p className="mt-4 text-base text-gray-500">Loading tasks...</p>
+          </div>
+        ) : filteredTasks.length === 0 ? (
+          <div className="text-center py-16">
+            <SparklesIcon className="mx-auto h-14 w-14 text-blue-300" />
+            <h3 className="mt-4 text-lg font-semibold text-gray-900">
+              No tasks found
+            </h3>
+            <p className="mt-2 text-base text-gray-500">
+              {tasks.length === 0
+                ? 'Get started by creating your first task!'
+                : 'Try adjusting your filters.'}
+            </p>
+            <div className="mt-8">
               <button
                 onClick={() => setShowAddForm(true)}
-                disabled={!selectedProject && projects.length > 0}
-                className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Add Task
               </button>
             </div>
           </div>
-        </div>
-      </div>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {filteredTasks.map((task) => {
+              const showProject = !selectedProject;
+              const project = showProject
+                ? projects.find(
+                  (p) => p._id === (task.projectId || task.project?._id)
+                )
+                : null;
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Filters */}
-        <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 sticky top-4 z-10 border border-blue-100">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <CustomSelect
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                options={[
-                  { value: 'all', label: 'All Statuses' },
-                  { value: 'todo', label: 'To Do' },
-                  { value: 'in-progress', label: 'In Progress' },
-                  { value: 'done', label: 'Done' },
-                  { value: 'blocked', label: 'Blocked' },
-                ]}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Priority
-              </label>
-              <CustomSelect
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value)}
-                options={[
-                  { value: 'all', label: 'All Priorities' },
-                  { value: 'critical', label: 'Critical' },
-                  { value: 'high', label: 'High' },
-                  { value: 'medium', label: 'Medium' },
-                  { value: 'low', label: 'Low' },
-                ]}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Project
-              </label>
-              <CustomSelect
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                options={[
-                  { value: '', label: 'All Projects' },
-                  ...projects.map((project) => ({
-                    value: project._id,
-                    label: project.name,
-                  })),
-                ]}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        {selectedProject && (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 mb-8">
-            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-gray-100 rounded-md p-3">
-                    <UserIcon className="h-6 w-6 text-gray-600" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Tasks
-                    </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">
-                        {taskStats.total}
-                      </div>
-                    </dd>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                    <ClockIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      In Progress
-                    </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">
-                        {taskStats.inProgress}
-                      </div>
-                    </dd>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-green-100 rounded-md p-3">
-                    <CheckIcon className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Completed
-                    </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">
-                        {taskStats.done}
-                      </div>
-                    </dd>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
-                    <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Blocked
-                    </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">
-                        {taskStats.blocked}
-                      </div>
-                    </dd>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow-lg rounded-xl hover:scale-105 transition-transform duration-200">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
-                    <CalendarIcon className="h-6 w-6 text-yellow-600" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      To Do
-                    </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">
-                        {taskStats.todo}
-                      </div>
-                    </dd>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tasks List */}
-        <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
-          <div className="px-6 py-6 sm:px-8 border-b border-gray-200 flex items-center justify-between">
-            <div>
-              <h3 className="text-xl leading-7 font-semibold text-gray-900">
-                Tasks
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Showing {filteredTasks.length} of {tasks.length} tasks
-              </p>
-            </div>
-          </div>
-
-          {isLoading ? (
-            <div className="text-center py-16">
-              <ArrowPathIcon className="mx-auto h-10 w-10 text-blue-400 animate-spin" />
-              <p className="mt-4 text-base text-gray-500">Loading tasks...</p>
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <div className="text-center py-16">
-              <SparklesIcon className="mx-auto h-14 w-14 text-blue-300" />
-              <h3 className="mt-4 text-lg font-semibold text-gray-900">
-                No tasks found
-              </h3>
-              <p className="mt-2 text-base text-gray-500">
-                {tasks.length === 0
-                  ? 'Get started by creating your first task!'
-                  : 'Try adjusting your filters.'}
-              </p>
-              <div className="mt-8">
-                <button
-                  onClick={() => setShowAddForm(true)}
-                  className="inline-flex items-center px-5 py-2 border border-transparent text-base font-semibold rounded-lg shadow-md text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+              return (
+                <li
+                  key={task._id}
+                  className="hover:bg-blue-50/60 transition-colors duration-200 group"
                 >
-                  <PlusIcon className="h-5 w-5 mr-2" />
-                  Add Task
-                </button>
-              </div>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-100">
-              {filteredTasks.map((task) => {
-                const showProject = !selectedProject;
-                const project = showProject
-                  ? projects.find(
-                      (p) => p._id === (task.projectId || task.project?._id)
-                    )
-                  : null;
-
-                return (
-                  <li
-                    key={task._id}
-                    className="hover:bg-blue-50/60 transition-colors duration-200 group"
-                  >
-                    <div className="px-6 py-5 sm:px-8 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(
-                              task.status
-                            )}`}
-                          >
-                            {task.status.replace('-', ' ')}
-                          </span>
-                          <p className="text-base font-medium text-blue-700 truncate">
-                            {task.title}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
-                              task.priority
-                            )}`}
-                          >
-                            {task.priority}
-                          </span>
-                          <button
-                            onClick={() =>
-                              setExpandedTask(
-                                expandedTask === task._id ? null : task._id
-                              )
-                            }
-                            className="text-gray-400 hover:text-blue-500 transition"
-                            aria-label={
-                              expandedTask === task._id ? 'Collapse' : 'Expand'
-                            }
-                          >
-                            {expandedTask === task._id ? (
-                              <ChevronUpIcon className="h-6 w-6" />
-                            ) : (
-                              <ChevronDownIcon className="h-6 w-6" />
-                            )}
-                          </button>
-                        </div>
+                  <div className="px-6 py-5 sm:px-8 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getStatusColor(
+                            task.status
+                          )}`}
+                        >
+                          {task.status.replace('-', ' ')}
+                        </span>
+                        <p className="text-base font-medium text-blue-700 truncate">
+                          {task.title}
+                        </p>
                       </div>
-                      <div className="mt-1 sm:flex sm:justify-between">
-                        <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm ${getPriorityColor(
+                            task.priority
+                          )}`}
+                        >
+                          {task.priority}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setExpandedTask(
+                              expandedTask === task._id ? null : task._id
+                            )
+                          }
+                          className="text-gray-400 hover:text-blue-500 transition"
+                          aria-label={
+                            expandedTask === task._id ? 'Collapse' : 'Expand'
+                          }
+                        >
+                          {expandedTask === task._id ? (
+                            <ChevronUpIcon className="h-6 w-6" />
+                          ) : (
+                            <ChevronDownIcon className="h-6 w-6" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-1 sm:flex sm:justify-between">
+                      <div className="sm:flex space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div className="flex items-center text-sm text-gray-500">
+                          <UserIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                          {task.assignee || 'Unassigned'}
+                        </div>
+                        {task.dueDate && (
                           <div className="flex items-center text-sm text-gray-500">
-                            <UserIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                            {task.assignee || 'Unassigned'}
+                            <CalendarIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
+                            Due {new Date(task.dueDate).toLocaleDateString()}
                           </div>
-                          {task.dueDate && (
-                            <div className="flex items-center text-sm text-gray-500">
-                              <CalendarIcon className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                              Due {new Date(task.dueDate).toLocaleDateString()}
-                            </div>
-                          )}
-                          {showProject && project && (
-                            <div className="flex items-center text-sm text-gray-500">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
-                                {project.name}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
-                          <span>
-                            Created{' '}
-                            {new Date(task.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
+                        )}
+                        {showProject && project && (
+                          <div className="flex items-center text-sm text-gray-500">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                              {project.name}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div
-                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                          expandedTask === task._id
-                            ? 'max-h-[1000px] opacity-100 mt-4'
-                            : 'max-h-0 opacity-0'
+                      <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
+                        <span>
+                          Created{' '}
+                          {new Date(task.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedTask === task._id
+                        ? 'max-h-[1000px] opacity-100 mt-4'
+                        : 'max-h-0 opacity-0'
                         } bg-gray-50 rounded-lg border border-gray-200`}
-                        style={{ willChange: 'max-height, opacity' }}
-                      >
-                        {expandedTask === task._id && (
-                          <div className="p-4 animate-fade-in">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              <div className="md:col-span-2">
-                                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                  Description
-                                </h4>
-                                <div className="prose prose-sm max-w-none text-gray-600">
-                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {task.description}
-                                  </ReactMarkdown>
-                                </div>
-
-                                {task.acceptanceCriteria.length > 0 && (
-                                  <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                      Acceptance Criteria
-                                    </h4>
-                                    <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-                                      {task.acceptanceCriteria.map(
-                                        (criteria, index) => (
-                                          <li key={index}>{criteria}</li>
-                                        )
-                                      )}
-                                    </ul>
-                                  </div>
-                                )}
+                      style={{ willChange: 'max-height, opacity' }}
+                    >
+                      {expandedTask === task._id && (
+                        <div className="p-4 animate-fade-in">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2">
+                              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                Description
+                              </h4>
+                              <div className="prose prose-sm max-w-none text-gray-600">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {task.description}
+                                </ReactMarkdown>
                               </div>
 
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                  Details
-                                </h4>
-                                <div className="space-y-4">
-                                  <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">
-                                      Status
-                                    </label>
-                                    <CustomSelect
-                                      value={task.status}
-                                      onChange={(e) =>
-                                        updateTaskStatus(
-                                          task._id,
-                                          e.target.value as Task['status']
-                                        )
-                                      }
-                                      options={[
-                                        { value: 'todo', label: 'To Do' },
-                                        {
-                                          value: 'in-progress',
-                                          label: 'In Progress',
-                                        },
-                                        { value: 'done', label: 'Done' },
-                                        { value: 'blocked', label: 'Blocked' },
-                                      ]}
-                                      className="w-full"
-                                    />
-                                  </div>
+                              {task.acceptanceCriteria.length > 0 && (
+                                <div className="mt-4">
+                                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                    Acceptance Criteria
+                                  </h4>
+                                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
+                                    {task.acceptanceCriteria.map(
+                                      (criteria, index) => (
+                                        <li key={index}>{criteria}</li>
+                                      )
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
 
-                                  {task.aiSuggestions && (
-                                    <div>
-                                      <h4 className="text-sm font-medium text-gray-900 mb-2">
-                                        AI Suggestions
-                                      </h4>
-                                      <div className="space-y-3">
-                                        {task.aiSuggestions
-                                          .enhancementRecommendations.length >
-                                          0 && (
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                Details
+                              </h4>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                                    Status
+                                  </label>
+                                  <CustomSelect
+                                    value={task.status}
+                                    onChange={(e) =>
+                                      updateTaskStatus(
+                                        task._id,
+                                        e.target.value as Task['status']
+                                      )
+                                    }
+                                    options={[
+                                      { value: 'todo', label: 'To Do' },
+                                      {
+                                        value: 'in-progress',
+                                        label: 'In Progress',
+                                      },
+                                      { value: 'done', label: 'Done' },
+                                      { value: 'blocked', label: 'Blocked' },
+                                    ]}
+                                    className="w-full"
+                                  />
+                                </div>
+
+                                {task.aiSuggestions && (
+                                  <div>
+                                    <h4 className="text-sm font-medium text-gray-900 mb-2">
+                                      AI Suggestions
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {task.aiSuggestions
+                                        .enhancementRecommendations.length >
+                                        0 && (
                                           <div>
                                             <h5 className="text-xs font-medium text-gray-500 mb-1">
                                               Enhancements
@@ -729,36 +718,35 @@ const TaskManagement: React.FC = () => {
                                             </ul>
                                           </div>
                                         )}
-                                        {task.aiSuggestions.riskAssessment && (
-                                          <div>
-                                            <h5 className="text-xs font-medium text-gray-500 mb-1">
-                                              Risks
-                                            </h5>
-                                            <p className="text-xs text-gray-600">
-                                              {
-                                                task.aiSuggestions
-                                                  .riskAssessment
-                                              }
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
+                                      {task.aiSuggestions.riskAssessment && (
+                                        <div>
+                                          <h5 className="text-xs font-medium text-gray-500 mb-1">
+                                            Risks
+                                          </h5>
+                                          <p className="text-xs text-gray-600">
+                                            {
+                                              task.aiSuggestions
+                                                .riskAssessment
+                                            }
+                                          </p>
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </main>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
 
       {/* Add Task Modal */}
       {showAddForm && (
@@ -1036,3 +1024,4 @@ const TaskManagement: React.FC = () => {
 };
 
 export default TaskManagement;
+

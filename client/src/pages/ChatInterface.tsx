@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { useSetPageHeader } from '../context/PageHeaderContext';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
@@ -167,7 +168,7 @@ const ChatInterface: React.FC = () => {
             // Get the latest assistant message
             const lastMessage =
               response.data.session.messages[
-                response.data.session.messages.length - 1
+              response.data.session.messages.length - 1
               ];
             if (lastMessage && lastMessage.role === 'assistant') {
               aiContent = lastMessage.content;
@@ -204,20 +205,17 @@ const ChatInterface: React.FC = () => {
         (queryLower.includes('what') && queryLower.includes('have'))
       ) {
         if (currentProject) {
-          fallbackContent = `I can help you with information about **${
-            currentProject.name
-          }**. Here's what I know about this project:
+          fallbackContent = `I can help you with information about **${currentProject.name
+            }**. Here's what I know about this project:
 
-${
-  currentProject.description
-    ? `**📝 Description:** ${currentProject.description}`
-    : ''
-}
-${
-  currentProject.goals && currentProject.goals.length > 0
-    ? `**🎯 Goals:** ${currentProject.goals.join(', ')}`
-    : ''
-}
+${currentProject.description
+              ? `**📝 Description:** ${currentProject.description}`
+              : ''
+            }
+${currentProject.goals && currentProject.goals.length > 0
+              ? `**🎯 Goals:** ${currentProject.goals.join(', ')}`
+              : ''
+            }
 
 **📋 What I can help you with for ${currentProject.name}:**
 - Analyze project-specific feedback and trends
@@ -484,271 +482,256 @@ What would you like to work on today?`;
   const currentProjectId = selectedProject || projectId;
   const currentProject = projects.find((p) => p._id === currentProjectId);
 
+  // Set page header
+  useSetPageHeader(
+    'AI Assistant',
+    currentProject
+      ? `Project-specific insights and guidance for ${currentProject.name}`
+      : 'General product management assistant',
+    <>
+      {!projectId && projects.length > 0 && (
+        <CustomSelect
+          value={selectedProject}
+          onChange={(e) => setSelectedProject(e.target.value)}
+          options={[
+            { value: '', label: 'All Projects' },
+            ...projects.map((project) => ({
+              value: project._id,
+              label: project.name,
+            })),
+          ]}
+          className="w-48"
+          label=""
+        />
+      )}
+      <button
+        onClick={createNewSession}
+        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+      >
+        <PlusIcon className="h-4 w-4 mr-2" />
+        New Chat
+      </button>
+    </>,
+    [selectedProject, projects, currentProject]
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <div className="bg-white shadow-lg rounded-b-2xl">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="md:flex md:items-center md:justify-between">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-3xl font-extrabold leading-8 text-gray-900 sm:text-4xl sm:tracking-tight">
-                AI Assistant
-              </h2>
-              <p className="mt-2 text-base text-gray-500">
-                {currentProject
-                  ? `Project-specific insights and guidance for ${currentProject.name}`
-                  : 'General product management assistant'}
-              </p>
-            </div>
-            <div className="mt-4 flex md:ml-4 md:mt-0 space-x-3">
-              {!projectId && projects.length > 0 && (
-                <CustomSelect
-                  value={selectedProject}
-                  onChange={(e) => setSelectedProject(e.target.value)}
-                  options={[
-                    { value: '', label: 'All Projects' },
-                    ...projects.map((project) => ({
-                      value: project._id,
-                      label: project.name,
-                    })),
-                  ]}
-                  className="w-64"
-                  label=""
-                />
-              )}
-              <button
-                onClick={createNewSession}
-                className="inline-flex items-center px-5 py-2 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
+    <div className="space-y-6">
+      {/* Chat Container */}
+      <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
+        {/* Messages */}
+        <div className="h-[400px] overflow-y-auto px-6 py-6 sm:px-8">
+          <div className="space-y-6">
+            {messages.length === 0 && (
+              <div className="text-center py-12">
+                <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
+                  <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Start a conversation
+                  {currentProject && ` about ${currentProject.name}`}
+                </h3>
+                <p className="text-gray-600 max-w-md mx-auto mb-6">
+                  {currentProject
+                    ? `Ask me anything about ${currentProject.name} roadmaps, feedback analysis, or task planning.`
+                    : 'Ask me anything about product roadmaps, feedback analysis, or task planning.'}
+                </p>
+                {currentProject && (
+                  <div className="max-w-lg mx-auto p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
+                          <SparklesIcon className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 mb-1">
+                          Project Context Active
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          I'll use information about {currentProject.name} to
+                          provide more relevant responses.
+                          {currentProject.description && (
+                            <span className="block mt-1 text-gray-600">
+                              {currentProject.description}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Start Suggestions */}
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                  <button
+                    onClick={() =>
+                      setInputMessage('Create a roadmap for this project')
+                    }
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      🗺️ Create Roadmap
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Generate a strategic roadmap
+                    </div>
+                  </button>
+                  <button
+                    onClick={() =>
+                      setInputMessage('Analyze recent feedback trends')
+                    }
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      📊 Analyze Feedback
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Review customer insights
+                    </div>
+                  </button>
+                  <button
+                    onClick={() =>
+                      setInputMessage('Prioritize tasks for this project')
+                    }
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      ⚡ Task Priority
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Help prioritize work items
+                    </div>
+                  </button>
+                  <button
+                    onClick={() =>
+                      setInputMessage('What are the main challenges?')
+                    }
+                    className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+                  >
+                    <div className="text-sm font-medium text-gray-900 mb-1">
+                      🎯 Challenges
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Identify key obstacles
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
               >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                New Chat
-              </button>
+                <div
+                  className={`flex max-w-2xl ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                    }`}
+                >
+                  <div className="flex-shrink-0">
+                    {message.role === 'user' ? (
+                      <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                        <UserCircleIcon className="h-6 w-6 text-white" />
+                      </div>
+                    ) : (
+                      <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                        <ComputerDesktopIcon className="h-5 w-5 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className={`mx-3 px-4 py-3 rounded-2xl shadow-sm ${message.role === 'user'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                      : 'bg-white text-gray-900 border border-gray-200'
+                      }`}
+                  >
+                    <MarkdownMessage
+                      content={message.content}
+                      isUser={message.role === 'user'}
+                    />
+                    <p
+                      className={`text-xs mt-2 ${message.role === 'user'
+                        ? 'text-blue-100'
+                        : 'text-gray-400'
+                        }`}
+                    >
+                      {new Date(message.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex justify-start">
+                <div className="flex">
+                  <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                    <ComputerDesktopIcon className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="mx-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                        style={{ animationDelay: '0.1s' }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                        style={{ animationDelay: '0.2s' }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div className="bg-white border-t border-gray-200 px-6 py-4 sm:px-8">
+          <div className="flex items-end space-x-3">
+            <div className="flex-1">
+              <textarea
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={
+                  currentProject
+                    ? `Ask me about ${currentProject.name} roadmaps, feedback analysis, or task planning...`
+                    : 'Ask me about roadmaps, feedback analysis, or task planning...'
+                }
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200"
+                rows={2}
+                disabled={loading}
+              />
             </div>
+            <button
+              onClick={sendMessage}
+              disabled={!inputMessage.trim() || loading}
+              className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200"
+            >
+              {loading ? (
+                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+              ) : (
+                <PaperAirplaneIcon className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+            <span>Press Enter to send, Shift+Enter for new line</span>
+            <span>{inputMessage.length} characters</span>
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Chat Container */}
-        <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
-          {/* Messages */}
-          <div className="h-[400px] overflow-y-auto px-6 py-6 sm:px-8">
-            <div className="space-y-6">
-              {messages.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
-                    <ChatBubbleLeftRightIcon className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Start a conversation
-                    {currentProject && ` about ${currentProject.name}`}
-                  </h3>
-                  <p className="text-gray-600 max-w-md mx-auto mb-6">
-                    {currentProject
-                      ? `Ask me anything about ${currentProject.name} roadmaps, feedback analysis, or task planning.`
-                      : 'Ask me anything about product roadmaps, feedback analysis, or task planning.'}
-                  </p>
-                  {currentProject && (
-                    <div className="max-w-lg mx-auto p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0">
-                          <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                            <SparklesIcon className="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-blue-900 mb-1">
-                            Project Context Active
-                          </p>
-                          <p className="text-xs text-blue-700">
-                            I'll use information about {currentProject.name} to
-                            provide more relevant responses.
-                            {currentProject.description && (
-                              <span className="block mt-1 text-gray-600">
-                                {currentProject.description}
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quick Start Suggestions */}
-                  <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-                    <button
-                      onClick={() =>
-                        setInputMessage('Create a roadmap for this project')
-                      }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
-                    >
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        🗺️ Create Roadmap
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Generate a strategic roadmap
-                      </div>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setInputMessage('Analyze recent feedback trends')
-                      }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
-                    >
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        📊 Analyze Feedback
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Review customer insights
-                      </div>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setInputMessage('Prioritize tasks for this project')
-                      }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
-                    >
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        ⚡ Task Priority
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Help prioritize work items
-                      </div>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setInputMessage('What are the main challenges?')
-                      }
-                      className="p-3 text-left bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
-                    >
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        🎯 Challenges
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Identify key obstacles
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <div
-                    className={`flex max-w-2xl ${
-                      message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                    }`}
-                  >
-                    <div className="flex-shrink-0">
-                      {message.role === 'user' ? (
-                        <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-                          <UserCircleIcon className="h-6 w-6 text-white" />
-                        </div>
-                      ) : (
-                        <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-                          <ComputerDesktopIcon className="h-5 w-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <div
-                      className={`mx-3 px-4 py-3 rounded-2xl shadow-sm ${
-                        message.role === 'user'
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                          : 'bg-white text-gray-900 border border-gray-200'
-                      }`}
-                    >
-                      <MarkdownMessage
-                        content={message.content}
-                        isUser={message.role === 'user'}
-                      />
-                      <p
-                        className={`text-xs mt-2 ${
-                          message.role === 'user'
-                            ? 'text-blue-100'
-                            : 'text-gray-400'
-                        }`}
-                      >
-                        {new Date(message.timestamp).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="flex">
-                    <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-                      <ComputerDesktopIcon className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="mx-3 px-4 py-3 bg-white rounded-2xl border border-gray-200 shadow-sm">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                        <div
-                          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
-                          style={{ animationDelay: '0.1s' }}
-                        ></div>
-                        <div
-                          className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
-                          style={{ animationDelay: '0.2s' }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {/* Input Area */}
-          <div className="bg-white border-t border-gray-200 px-6 py-4 sm:px-8">
-            <div className="flex items-end space-x-3">
-              <div className="flex-1">
-                <textarea
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={
-                    currentProject
-                      ? `Ask me about ${currentProject.name} roadmaps, feedback analysis, or task planning...`
-                      : 'Ask me about roadmaps, feedback analysis, or task planning...'
-                  }
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all duration-200"
-                  rows={2}
-                  disabled={loading}
-                />
-              </div>
-              <button
-                onClick={sendMessage}
-                disabled={!inputMessage.trim() || loading}
-                className="inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-200"
-              >
-                {loading ? (
-                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                ) : (
-                  <PaperAirplaneIcon className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-              <span>Press Enter to send, Shift+Enter for new line</span>
-              <span>{inputMessage.length} characters</span>
-            </div>
-          </div>
-        </div>
-      </main>
     </div>
   );
 };
 
 export default ChatInterface;
+
