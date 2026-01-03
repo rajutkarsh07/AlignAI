@@ -50,7 +50,7 @@ console.log('\n📦 Installing frontend dependencies...');
 try {
   execSync('npm install', {
     stdio: 'inherit',
-    cwd: path.join(__dirname, '..', 'client'),
+    cwd: path.join(__dirname, '..', '..', 'client'),
   });
   console.log('✅ Frontend dependencies installed');
 } catch (error) {

@@ -59,85 +59,15 @@ A comprehensive product management tool that helps balance strategic goals with 
 - **Tavily MCP** for external web search (when needed)
 - **LlamaIndex** for advanced document processing
 
-## 📋 Prerequisites
+## 🚀 Getting Started
 
-- Node.js 18+ and npm
-- MongoDB (local or Atlas)
-- **At least one AI provider** (choose one):
-  - **Gemini API Key** (recommended) - Free tier available at [aistudio.google.com](https://aistudio.google.com/app/apikey)
-  - **OpenAI API Key** - Get from [platform.openai.com](https://platform.openai.com/api-keys)
-  - **Google Vertex AI** - Requires GCP project with Vertex AI enabled
+ For detailed installation and configuration instructions, please refer to [SETUP.md](./SETUP.md).
 
-## 🚀 Quick Start
-
-### 1. Clone and Setup
-
-```bash
-# Clone the repository
-# (Note: the project is called roadmap-assistant in scripts, but the product is AlignAI)
-git clone <repository-url>
-cd AlignAI
-npm run setup
-```
-
-### 2. Environment Configuration
-
-The setup script creates `.env.example` and `service-account-key.json.example`.
-
-Copy and configure your environment:
-
-```bash
-cp .env.example .env
-```
-
-Update `.env`:
-
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/roadmap-assistant
-
-# Google Cloud Vertex AI Configuration
-GOOGLE_CLOUD_PROJECT_ID=your-project-id
-GOOGLE_CLOUD_LOCATION=us-central1
-GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
-
-# JWT Secret (for future authentication)
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-
-# CORS Configuration
-FRONTEND_URL=http://localhost:3000
-
-# File Upload Configuration
-MAX_FILE_SIZE=10485760
-UPLOAD_PATH=./uploads
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-### 3. Google Cloud Setup
-
-1. Create a Google Cloud Project
-2. Enable Vertex AI API
-3. Create a service account with Vertex AI permissions
-4. Download the service account key as `service-account-key.json`
-5. Place it in the root directory
-
-### 4. Start Development
-
-```bash
-# Start both backend and frontend
-npm run dev-full
-
-# Or start individually
-npm run dev          # Backend only
-npm run client:dev   # Frontend only
-```
+ This guide covers:
+ - Prerequisites
+ - Environment Configuration
+ - Running the Application
+ - Testing
 
 ## 📖 Usage Guide
 
@@ -160,7 +90,6 @@ npm run client:dev   # Frontend only
    - Analyzes sentiment (positive, negative, neutral)
    - Assigns priority levels
    - Extracts keywords and themes
-3. **Review & Manage**: Mark irrelevant feedback as ignored
 
 ### Using the AI Chat Assistant
 
@@ -308,18 +237,7 @@ Description: Implement secure login system"
 - Error handling without data exposure
 - JWT secret present for future authentication (no auth endpoints yet)
 
-## 🧪 Testing
 
-```bash
-# Run backend tests
-npm test
-
-# Run frontend tests
-cd client && npm test
-
-# Run integration tests
-npm run test:integration
-```
 
 ## 📊 Monitoring & Analytics
 
