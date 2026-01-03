@@ -59,6 +59,15 @@ const ChatInterface: React.FC = () => {
     }
   }, [sessionId, projectId]);
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const loadProjects = async () => {
     try {
       const response: any = await api.get('/projects');
@@ -501,11 +510,11 @@ What would you like to work on today?`;
   );
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-[calc(100vh-12rem)]">
       {/* Chat Container */}
-      <div className="bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
+      <div className="flex-1 flex flex-col bg-white/90 shadow-xl overflow-hidden sm:rounded-2xl border border-blue-100">
         {/* Messages */}
-        <div className="h-[400px] overflow-y-auto px-6 py-6 sm:px-8">
+        <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
           <div className="space-y-6">
             {messages.length === 0 && (
               <div className="text-center py-12">
