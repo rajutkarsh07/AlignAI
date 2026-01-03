@@ -277,49 +277,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             ))}
           </div>
         </div>
-
-        {/* Project navigation */}
-        {projectNavigation.length > 0 && (
-          <div className="border-t border-secondary-200 pt-6">
-            <div className="px-3 mb-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-secondary-500 uppercase tracking-wider">
-                  Current Project
-                </h3>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-primary-500 rounded-full mr-2"></div>
-                  <span className="text-xs text-secondary-400 font-medium">
-                    Active
-                  </span>
-                </div>
-              </div>
-              {projectId && (
-                <div className="mt-2 flex items-center text-sm text-secondary-900 font-medium">
-                  <FolderIcon className="h-4 w-4 mr-2 text-primary-600" />
-                  <span className="truncate" title={projectName || projectId}>
-                    {projectName || 'Loading...'}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="space-y-1">
-              {projectNavigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`sidebar-nav-item project-nav-item ${isActiveRoute(item.href) ? 'active' : ''
-                    }`}
-                >
-                  <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                  {item.name}
-                  {isActiveRoute(item.href) && (
-                    <ChevronRightIcon className="ml-auto h-4 w-4 text-primary-600" />
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </nav>
     </div>
   );

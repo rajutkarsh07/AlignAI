@@ -449,6 +449,7 @@ const FeedbackManagement: React.FC = () => {
         Add Feedback
       </button>
     </>,
+    undefined,
     [selectedProject, projects, isNestedInProject]
   );
 
