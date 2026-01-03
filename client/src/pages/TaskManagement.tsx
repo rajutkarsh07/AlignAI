@@ -65,7 +65,12 @@ interface Project {
 }
 
 const TaskManagement: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+  const params = useParams<{ id?: string; projectId?: string }>();
+
+  // Support both nested route (id) and standalone route (projectId)
+  const projectId = params.id || params.projectId;
+  const isNestedInProject = !!params.id; // Check if we're in a nested project route
+
   const [selectedProject, setSelectedProject] = useState<string>(
     projectId || ''
   );
@@ -312,21 +317,26 @@ const TaskManagement: React.FC = () => {
   // Set page header
   useSetPageHeader(
     'Task Management',
-    'Create, track, and manage project tasks',
+    isNestedInProject
+      ? 'Create, track, and manage tasks for this project'
+      : 'Create, track, and manage project tasks',
     <>
-      <CustomSelect
-        value={selectedProject}
-        onChange={(e) => setSelectedProject(e.target.value)}
-        options={[
-          { value: '', label: 'All Projects' },
-          ...projects.map((project) => ({
-            value: project._id,
-            label: project.name,
-          })),
-        ]}
-        className="w-48"
-        label=""
-      />
+      {/* Only show project selector if NOT in nested project route */}
+      {!isNestedInProject && (
+        <CustomSelect
+          value={selectedProject}
+          onChange={(e) => setSelectedProject(e.target.value)}
+          options={[
+            { value: '', label: 'All Projects' },
+            ...projects.map((project) => ({
+              value: project._id,
+              label: project.name,
+            })),
+          ]}
+          className="w-48"
+          label=""
+        />
+      )}
       <button
         onClick={() => setShowAddForm(true)}
         disabled={!selectedProject && projects.length > 0}
@@ -336,14 +346,14 @@ const TaskManagement: React.FC = () => {
         Add Task
       </button>
     </>,
-    [selectedProject, projects]
+    [selectedProject, projects, isNestedInProject]
   );
 
   return (
     <div className="space-y-8">
       {/* Filters */}
       <div className="bg-white/90 shadow-lg rounded-xl p-6 sticky top-20 z-10 border border-blue-100">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={`grid grid-cols-1 ${isNestedInProject ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6`}>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Status
@@ -376,22 +386,25 @@ const TaskManagement: React.FC = () => {
               ]}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Project
-            </label>
-            <CustomSelect
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              options={[
-                { value: '', label: 'All Projects' },
-                ...projects.map((project) => ({
-                  value: project._id,
-                  label: project.name,
-                })),
-              ]}
-            />
-          </div>
+          {/* Only show project filter if NOT in nested project route */}
+          {!isNestedInProject && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Project
+              </label>
+              <CustomSelect
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                options={[
+                  { value: '', label: 'All Projects' },
+                  ...projects.map((project) => ({
+                    value: project._id,
+                    label: project.name,
+                  })),
+                ]}
+              />
+            </div>
+          )}
         </div>
       </div>
 

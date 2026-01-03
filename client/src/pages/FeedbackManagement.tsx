@@ -52,7 +52,12 @@ interface UploadedFile {
 }
 
 const FeedbackManagement: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+  const params = useParams<{ id?: string; projectId?: string }>();
+
+  // Support both nested route (id) and standalone route (projectId)
+  const projectId = params.id || params.projectId;
+  const isNestedInProject = !!params.id; // Check if we're in a nested project route
+
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
@@ -412,21 +417,26 @@ const FeedbackManagement: React.FC = () => {
   // Set page header
   useSetPageHeader(
     'Feedback Management',
-    'Collect and analyze customer feedback with AI-powered insights',
+    isNestedInProject
+      ? 'Collect and analyze customer feedback for this project'
+      : 'Collect and analyze customer feedback with AI-powered insights',
     <>
-      <CustomSelect
-        value={selectedProject}
-        onChange={(e) => setSelectedProject(e.target.value)}
-        options={[
-          { value: '', label: 'All Projects' },
-          ...projects.map((project) => ({
-            value: project._id,
-            label: project.name,
-          })),
-        ]}
-        className="w-48"
-        label=""
-      />
+      {/* Only show project selector if NOT in nested project route */}
+      {!isNestedInProject && (
+        <CustomSelect
+          value={selectedProject}
+          onChange={(e) => setSelectedProject(e.target.value)}
+          options={[
+            { value: '', label: 'All Projects' },
+            ...projects.map((project) => ({
+              value: project._id,
+              label: project.name,
+            })),
+          ]}
+          className="w-48"
+          label=""
+        />
+      )}
       <button
         onClick={() => setShowUploadForm(true)}
         className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
@@ -442,7 +452,7 @@ const FeedbackManagement: React.FC = () => {
         Add Feedback
       </button>
     </>,
-    [selectedProject, projects]
+    [selectedProject, projects, isNestedInProject]
   );
 
   return (
@@ -1198,8 +1208,8 @@ const FeedbackManagement: React.FC = () => {
                         setSelectedFeedback(null);
                       }}
                       className={`inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold ${selectedFeedback.isIgnored
-                          ? 'text-white bg-green-600 hover:bg-green-700'
-                          : 'text-white bg-gray-600 hover:bg-gray-700'
+                        ? 'text-white bg-green-600 hover:bg-green-700'
+                        : 'text-white bg-gray-600 hover:bg-gray-700'
                         } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition`}
                     >
                       {selectedFeedback.isIgnored ? 'Unignore' : 'Ignore'}

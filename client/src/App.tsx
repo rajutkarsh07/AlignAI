@@ -8,7 +8,8 @@ import {
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
 import ProjectList from './pages/ProjectList';
-import ProjectDetail from './pages/ProjectDetail';
+import ProjectView from './pages/ProjectView';
+import ProjectOverview from './pages/ProjectOverview';
 import ProjectForm from './pages/ProjectForm';
 import FeedbackManagement from './pages/FeedbackManagement';
 import TaskManagement from './pages/TaskManagement';
@@ -27,7 +28,19 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="projects" element={<ProjectList />} />
             <Route path="projects/new" element={<ProjectForm />} />
-            <Route path="projects/:id" element={<ProjectDetail />} />
+
+            {/* Nested project routes */}
+            <Route path="projects/:id" element={<ProjectView />}>
+              <Route index element={<ProjectOverview />} />
+              <Route path="feedback" element={<FeedbackManagement />} />
+              <Route path="tasks" element={<TaskManagement />} />
+              <Route path="roadmaps" element={<RoadmapView />} />
+              <Route path="roadmaps/:roadmapId" element={<RoadmapView />} />
+              <Route path="chat" element={<ChatInterface />} />
+              <Route path="chat/:sessionId" element={<ChatInterface />} />
+              <Route path="analytics" element={<Analytics />} />
+            </Route>
+
             <Route path="projects/:id/edit" element={<ProjectForm />} />
 
             {/* Global routes */}
@@ -39,23 +52,6 @@ function App() {
             <Route path="roadmap/:roadmapId" element={<RoadmapView />} />
             <Route path="analytics" element={<Analytics />} />
 
-            {/* Project-specific routes */}
-            <Route
-              path="projects/:id/feedback"
-              element={<FeedbackManagement />}
-            />
-            <Route path="projects/:id/tasks" element={<TaskManagement />} />
-            <Route path="projects/:id/chat" element={<ChatInterface />} />
-            <Route
-              path="projects/:id/chat/:sessionId"
-              element={<ChatInterface />}
-            />
-            <Route path="projects/:id/roadmaps" element={<RoadmapView />} />
-            <Route
-              path="projects/:id/roadmaps/:roadmapId"
-              element={<RoadmapView />}
-            />
-            <Route path="projects/:id/analytics" element={<Analytics />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>

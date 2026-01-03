@@ -126,10 +126,16 @@ interface WireframeScreen {
 }
 
 const RoadmapView: React.FC = () => {
-  const { projectId, roadmapId } = useParams<{
-    projectId: string;
-    roadmapId: string;
+  const params = useParams<{
+    id?: string;
+    projectId?: string;
+    roadmapId?: string;
   }>();
+
+  // Support both nested route (id) and standalone route (projectId)
+  const projectId = params.id || params.projectId;
+  const roadmapId = params.roadmapId;
+
   const [selectedProject, setSelectedProject] = useState<string>(
     projectId || ''
   );
@@ -801,11 +807,16 @@ const RoadmapView: React.FC = () => {
   };
 
   // Set page header
+  const isNestedInProject = !!params.id; // Check if we're in a nested project route
+
   useSetPageHeader(
     'Roadmap View',
-    'Visualize and manage product roadmaps',
+    isNestedInProject
+      ? 'Visualize and manage product roadmaps for this project'
+      : 'Visualize and manage product roadmaps',
     <>
-      {projects.length > 0 && !projectId && (
+      {/* Only show project selector if NOT in nested project route */}
+      {projects.length > 0 && !isNestedInProject && (
         <CustomSelect
           value={selectedProject}
           onChange={(e) => setSelectedProject(e.target.value)}
@@ -819,12 +830,6 @@ const RoadmapView: React.FC = () => {
           className="w-48"
           label=""
         />
-      )}
-      {projectId && selectedProject && (
-        <div className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-700">
-          {projects.find((p) => p._id === selectedProject)?.name ||
-            `Project ${selectedProject}`}
-        </div>
       )}
       {selectedProject && roadmaps.length > 0 && (
         <CustomSelect
@@ -850,7 +855,7 @@ const RoadmapView: React.FC = () => {
         Generate Roadmap
       </button>
     </>,
-    [selectedProject, projects, selectedRoadmap, roadmaps, projectId]
+    [selectedProject, projects, selectedRoadmap, roadmaps, isNestedInProject]
   );
 
   return (
@@ -1938,8 +1943,8 @@ const RoadmapView: React.FC = () => {
               </div>
             )}
           </div>
-  )
-}
+        )
+      }
     </div >
   );
 };

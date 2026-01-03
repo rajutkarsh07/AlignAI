@@ -489,21 +489,6 @@ What would you like to work on today?`;
       ? `Project-specific insights and guidance for ${currentProject.name}`
       : 'General product management assistant',
     <>
-      {!projectId && projects.length > 0 && (
-        <CustomSelect
-          value={selectedProject}
-          onChange={(e) => setSelectedProject(e.target.value)}
-          options={[
-            { value: '', label: 'All Projects' },
-            ...projects.map((project) => ({
-              value: project._id,
-              label: project.name,
-            })),
-          ]}
-          className="w-48"
-          label=""
-        />
-      )}
       <button
         onClick={createNewSession}
         className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition"
