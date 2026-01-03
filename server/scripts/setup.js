@@ -62,30 +62,46 @@ try {
 const envExample = path.join(__dirname, '..', '.env.example');
 if (!fs.existsSync(envExample)) {
   const envContent = `# Server Configuration
-PORT=5000
+PORT=5001
 NODE_ENV=development
 
 # MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/roadmap-assistant
-
-# Google Cloud Vertex AI Configuration
-GOOGLE_CLOUD_PROJECT_ID=your-project-id
-GOOGLE_CLOUD_LOCATION=us-central1
-GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
-
-# JWT Secret (for future authentication)
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+MONGODB_URI=mongodb://localhost:27017/alignai
 
 # CORS Configuration
 FRONTEND_URL=http://localhost:3000
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX_REQUESTS=20
 
 # File Upload Configuration
 MAX_FILE_SIZE=10485760
 UPLOAD_PATH=./uploads
 
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
+# --------------------------------------------
+# AI Service Configuration
+# --------------------------------------------
+# Choose AI provider: 'gemini', 'openai', 'groq', or 'vertex'
+AI_PROVIDER=groq
+
+# Google Gemini Configuration
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+
+# Groq Configuration (FREE - Recommended!)
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
+
+# Google Vertex AI Configuration (Enterprise)
+VERTEX_PROJECT=your_gcp_project_id
+VERTEX_LOCATION=global
+VERTEX_MODEL=gemini-2.5-flash
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
 `;
   fs.writeFileSync(envExample, envContent);
   console.log('📄 Created .env.example');
@@ -139,4 +155,4 @@ console.log(
 );
 console.log('3. Ensure MongoDB is running');
 console.log('4. Run: npm run dev-full');
-console.log('\n📚 See README.md for detailed setup instructions');
+console.log('\n📚 See SETUP.md for detailed setup instructions');
