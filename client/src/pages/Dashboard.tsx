@@ -214,7 +214,7 @@ const Dashboard: React.FC = () => {
                       to={`/projects/${project._id}`}
                       className="block focus:outline-none"
                     >
-                      <p className="text-base font-medium text-blue-700 truncate">
+                      <p className="text-base font-medium text-primary-700 truncate">
                         {project.name}
                       </p>
                       <p className="text-sm text-gray-500 truncate">

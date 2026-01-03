@@ -373,6 +373,19 @@ const FeedbackManagement: React.FC = () => {
     }
   };
 
+  const getSentimentTextColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive':
+        return 'text-green-700';
+      case 'negative':
+        return 'text-red-700';
+      case 'neutral':
+        return 'text-yellow-700';
+      default:
+        return 'text-primary-700';
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'critical':
@@ -439,14 +452,14 @@ const FeedbackManagement: React.FC = () => {
       )}
       <button
         onClick={() => setShowUploadForm(true)}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
+        className="inline-flex items-center whitespace-nowrap px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
       >
         <DocumentArrowUpIcon className="h-4 w-4 mr-2" />
         Upload
       </button>
       <button
         onClick={() => setShowAddForm(true)}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
+        className="inline-flex items-center whitespace-nowrap px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition"
       >
         <PlusIcon className="h-4 w-4 mr-2" />
         Add Feedback
@@ -658,7 +671,7 @@ const FeedbackManagement: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         {getSentimentIcon(item.sentiment)}
-                        <p className="text-base font-medium text-primary-700 truncate">
+                        <p className={`text-base font-medium truncate ${getSentimentTextColor(item.sentiment)}`}>
                           {item.content.length > 120 ? `${item.content.substring(0, 120)}...` : item.content}
                         </p>
                       </div>
