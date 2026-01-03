@@ -831,7 +831,7 @@ const RoadmapView: React.FC = () => {
       <button
         onClick={() => setShowCreateForm(true)}
         disabled={!selectedProject}
-        className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center whitespace-nowrap px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <SparklesIcon className="h-4 w-4 mr-2" />
         Generate Roadmap
