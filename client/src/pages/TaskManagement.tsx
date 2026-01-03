@@ -91,11 +91,9 @@ const TaskManagement: React.FC = () => {
   // State for data fetching
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [taskSummary, setTaskSummary] = useState<any>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
-  const [isUpdatingTask, setIsUpdatingTask] = useState(false);
   const [isEnhancingTask, setIsEnhancingTask] = useState(false);
 
   // Fetch projects
@@ -127,7 +125,6 @@ const TaskManagement: React.FC = () => {
         const response: any = await api.get(endpoint);
         if (response.success) {
           setTasks(response.data.tasks || []);
-          setTaskSummary(response.data.summary || {});
         }
       } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -195,7 +192,6 @@ const TaskManagement: React.FC = () => {
         );
         if (tasksResponse.success) {
           setTasks(tasksResponse.data.tasks || []);
-          setTaskSummary(tasksResponse.data.summary || {});
         }
         setShowAddForm(false);
         resetNewTask();
@@ -237,7 +233,6 @@ const TaskManagement: React.FC = () => {
   };
 
   const updateTaskStatus = async (taskId: string, status: Task['status']) => {
-    setIsUpdatingTask(true);
     try {
       const response: any = await api.put(`/tasks/${taskId}`, { status });
       if (response.success) {
@@ -246,13 +241,10 @@ const TaskManagement: React.FC = () => {
         );
         if (tasksResponse.success) {
           setTasks(tasksResponse.data.tasks || []);
-          setTaskSummary(tasksResponse.data.summary || {});
         }
       }
     } catch (error) {
       console.error('Error updating task:', error);
-    } finally {
-      setIsUpdatingTask(false);
     }
   };
 
@@ -290,19 +282,6 @@ const TaskManagement: React.FC = () => {
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'done':
-        return <CheckIcon className="h-4 w-4" />;
-      case 'in-progress':
-        return <ClockIcon className="h-4 w-4" />;
-      case 'blocked':
-        return <ExclamationTriangleIcon className="h-4 w-4" />;
-      default:
-        return <UserIcon className="h-4 w-4" />;
     }
   };
 

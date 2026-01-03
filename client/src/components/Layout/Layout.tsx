@@ -32,7 +32,7 @@ const Layout: React.FC = () => {
   const location = useLocation();
 
   // Get project ID from URL
-  const projectMatch = location.pathname.match(/\/projects\/([^\/]+)/);
+  const projectMatch = location.pathname.match(/\/projects\/([^/]+)/);
   const projectId = projectMatch ? projectMatch[1] : null;
 
   // Fetch project name when projectId changes

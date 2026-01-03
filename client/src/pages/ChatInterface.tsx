@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useSetPageHeader } from '../context/PageHeaderContext';
@@ -11,12 +11,10 @@ import {
   ComputerDesktopIcon,
   PlusIcon,
   SparklesIcon,
-  StopIcon,
   ArrowPathIcon,
   ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import 'highlight.js/styles/github-dark.css';
-import CustomSelect from '../components/CustomSelect';
 
 interface Message {
   id: string;
@@ -45,24 +43,6 @@ const ChatInterface: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    loadProjects();
-    if (sessionId) {
-      loadSession(sessionId);
-    } else if (projectId) {
-      setSelectedProject(projectId);
-      createNewSession();
-    } else {
-      // Global chat - create a general session
-      createNewSession();
-    }
-  }, [sessionId, projectId]);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -94,7 +74,7 @@ const ChatInterface: React.FC = () => {
     }
   };
 
-  const createNewSession = async () => {
+  const createNewSession = useCallback(async () => {
     try {
       const currentProjectId = selectedProject || projectId;
       const sessionData = {
@@ -121,7 +101,25 @@ const ChatInterface: React.FC = () => {
       };
       setSession(tempSession);
     }
-  };
+  }, [selectedProject, projectId]);
+
+  useEffect(() => {
+    loadProjects();
+    if (sessionId) {
+      loadSession(sessionId);
+    } else if (projectId) {
+      setSelectedProject(projectId);
+      createNewSession();
+    } else {
+      // Global chat - create a general session
+      createNewSession();
+    }
+  }, [sessionId, projectId, createNewSession]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
 
   const sendMessage = async () => {
     if (!inputMessage.trim() || loading) return;

@@ -27,16 +27,6 @@ interface Project {
   version: number;
 }
 
-interface ProjectsResponse {
-  success: boolean;
-  data: Project[];
-  pagination: {
-    current: number;
-    pages: number;
-    total: number;
-  };
-}
-
 const ProjectList: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,20 +102,6 @@ const ProjectList: React.FC = () => {
       console.error('Error deleting project:', error);
       alert('Failed to delete project');
     }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusColors = {
-      planned: 'bg-gray-100 text-gray-800',
-      'in-progress': 'bg-blue-100 text-blue-800',
-      completed: 'bg-green-100 text-green-800',
-      'on-hold': 'bg-yellow-100 text-yellow-800',
-    };
-
-    return (
-      statusColors[status as keyof typeof statusColors] ||
-      'bg-gray-100 text-gray-800'
-    );
   };
 
   const getGoalsSummary = (goals: Project['goals']) => {

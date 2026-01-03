@@ -4,14 +4,10 @@ import { api } from '../services/api';
 import { useSetPageHeader } from '../context/PageHeaderContext';
 import * as XLSX from 'xlsx';
 import {
-  PlusIcon,
   MapIcon,
   ClockIcon,
-  UserGroupIcon,
   ChartBarIcon,
   CalendarIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
   SparklesIcon,
   ArrowRightIcon,
   ArrowDownTrayIcon,
@@ -173,11 +169,9 @@ const RoadmapView: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
   const [roadmapDetails, setRoadmapDetails] = useState<Roadmap | null>(null);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [isLoadingRoadmaps, setIsLoadingRoadmaps] = useState(false);
   const [isLoadingRoadmap, setIsLoadingRoadmap] = useState(false);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
-  const [isUpdatingItem, setIsUpdatingItem] = useState(false);
   const [insightsMode, setInsightsMode] = useState<'analytics' | 'wireframes'>('analytics');
   const [wireframes, setWireframes] = useState<WireframeScreen[]>([]);
   const [selectedWireframe, setSelectedWireframe] = useState<string>('');
@@ -186,14 +180,11 @@ const RoadmapView: React.FC = () => {
   // Data fetching useEffects remain unchanged...
   useEffect(() => {
     const fetchProjects = async () => {
-      setIsLoadingProjects(true);
       try {
         const response: any = await api.get('/projects');
         setProjects(response.success ? response.data : []);
       } catch (error) {
         console.error('Error fetching projects:', error);
-      } finally {
-        setIsLoadingProjects(false);
       }
     };
 
@@ -310,7 +301,6 @@ const RoadmapView: React.FC = () => {
   ) => {
     if (!selectedRoadmap) return;
 
-    setIsUpdatingItem(true);
     try {
       const response: any = await api.put(
         `/roadmap/${selectedRoadmap}/items/${itemId}`,
@@ -326,8 +316,6 @@ const RoadmapView: React.FC = () => {
       }
     } catch (error) {
       console.error('Error updating roadmap item:', error);
-    } finally {
-      setIsUpdatingItem(false);
     }
   };
 
@@ -485,13 +473,6 @@ const RoadmapView: React.FC = () => {
 
 
   const quarters = ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'];
-
-  const allocationStrategies = {
-    'strategic-only': { strategic: 70, customerDriven: 20, maintenance: 10 },
-    'customer-only': { strategic: 20, customerDriven: 70, maintenance: 10 },
-    balanced: { strategic: 60, customerDriven: 30, maintenance: 10 },
-    custom: newRoadmap.customAllocation,
-  };
 
   // NEW: Memoized data for charts
   const insightsData = useMemo(() => {

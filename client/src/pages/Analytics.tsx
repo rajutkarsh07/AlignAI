@@ -1,9 +1,6 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 
 const Analytics: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>();
-
   return (
     <div className="space-y-6">
       <div className="md:flex md:items-center md:justify-between">

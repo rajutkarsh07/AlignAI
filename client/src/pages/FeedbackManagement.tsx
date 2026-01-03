@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { useSetPageHeader } from '../context/PageHeaderContext';
@@ -11,7 +11,6 @@ import {
   XCircleIcon,
   DocumentArrowUpIcon,
   SparklesIcon,
-  EyeIcon,
   TrashIcon,
   ArrowPathIcon,
   XMarkIcon,
@@ -76,15 +75,6 @@ const FeedbackManagement: React.FC = () => {
   const [showAiAnalysis, setShowAiAnalysis] = useState<boolean>(true);
   const [selectedFeedback, setSelectedFeedback] = useState<any>(null);
 
-  useEffect(() => {
-    loadProjects();
-    if (selectedProject) {
-      loadFeedback();
-    } else {
-      loadAllFeedback();
-    }
-  }, [selectedProject]);
-
   const loadProjects = async () => {
     try {
       const response: any = await api.get('/projects');
@@ -96,7 +86,7 @@ const FeedbackManagement: React.FC = () => {
     }
   };
 
-  const loadFeedback = async () => {
+  const loadFeedback = useCallback(async () => {
     if (!selectedProject) return;
 
     try {
@@ -113,7 +103,16 @@ const FeedbackManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedProject]);
+
+  useEffect(() => {
+    loadProjects();
+    if (selectedProject) {
+      loadFeedback();
+    } else {
+      loadAllFeedback();
+    }
+  }, [selectedProject, loadFeedback]);
 
   const loadAllFeedback = async () => {
     try {
@@ -398,23 +397,6 @@ const FeedbackManagement: React.FC = () => {
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'uploading':
-        return 'text-primary-600';
-      case 'processing':
-        return 'text-yellow-600';
-      case 'enhancing':
-        return 'text-purple-600';
-      case 'completed':
-        return 'text-green-600';
-      case 'error':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
     }
   };
 
