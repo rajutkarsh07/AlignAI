@@ -533,7 +533,7 @@ const FeedbackManagement: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 sticky top-4 z-10 border border-primary-100">
+      <div className="bg-white/90 shadow-lg rounded-xl p-6 mb-8 top-4 z-10 border border-primary-100">
         <h3 className="text-sm font-medium text-gray-500 mb-3">Filters</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>

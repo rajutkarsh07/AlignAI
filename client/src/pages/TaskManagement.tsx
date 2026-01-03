@@ -331,7 +331,7 @@ const TaskManagement: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Filters */}
-      <div className="bg-white/90 shadow-lg rounded-xl p-6 sticky top-20 z-10 border border-blue-100">
+      <div className="bg-white/90 shadow-lg rounded-xl p-6 sticky top-16 z-20 border border-blue-100 mb-6">
         <div className={`grid grid-cols-1 ${isNestedInProject ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-6`}>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
