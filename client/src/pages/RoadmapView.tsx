@@ -2225,7 +2225,7 @@ const RoadmapView: React.FC = () => {
               </div>
 
               <div>
-                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                <div className="mt-3 text-left">
                   <h3 className="text-lg leading-6 font-semibold text-gray-900 mb-4">
                     {selectedItemDetails.title}
                   </h3>

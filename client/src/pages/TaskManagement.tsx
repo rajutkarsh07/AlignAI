@@ -87,6 +87,7 @@ const TaskManagement: React.FC = () => {
     assignee: '',
     dueDate: '',
     acceptanceCriteria: [''],
+    projectId: selectedProject || '',
   });
 
   // State for data fetching
@@ -147,6 +148,7 @@ const TaskManagement: React.FC = () => {
       assignee: '',
       dueDate: '',
       acceptanceCriteria: [''],
+      projectId: selectedProject || '',
     });
   };
 
@@ -174,7 +176,7 @@ const TaskManagement: React.FC = () => {
   };
 
   const handleCreateTask = async () => {
-    if (!newTask.title.trim() || !newTask.description.trim()) return;
+    if (!newTask.title.trim() || !newTask.description.trim() || !newTask.projectId) return;
     setIsCreatingTask(true);
     try {
       const taskData = {
@@ -184,7 +186,7 @@ const TaskManagement: React.FC = () => {
           criteria.trim()
         ),
         tags: [],
-        projectId: selectedProject || undefined,
+        projectId: newTask.projectId,
       };
 
       const response: any = await api.post('/tasks', taskData);
@@ -317,26 +319,13 @@ const TaskManagement: React.FC = () => {
       ? 'Create, track, and manage tasks for this project'
       : 'Create, track, and manage project tasks',
     <>
-      {/* Only show project selector if NOT in nested project route */}
-      {!isNestedInProject && (
-        <CustomSelect
-          value={selectedProject}
-          onChange={(e) => setSelectedProject(e.target.value)}
-          options={[
-            { value: '', label: 'All Projects' },
-            ...projects.map((project) => ({
-              value: project._id,
-              label: project.name,
-            })),
-          ]}
-          className="w-48"
-          label=""
-        />
-      )}
       <button
-        onClick={() => setShowAddForm(true)}
-        disabled={!selectedProject && projects.length > 0}
-        className="inline-flex items-center whitespace-nowrap px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => {
+          resetNewTask();
+          setShowAddForm(true);
+        }}
+        disabled={false}
+        className="hidden md:inline-flex items-center whitespace-nowrap px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-accent-500 hover:bg-accent-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <PlusIcon className="h-4 w-4 mr-2" />
         Add Task
@@ -930,11 +919,35 @@ const TaskManagement: React.FC = () => {
                 </button>
               </div>
               <div>
-                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                <div className="mt-3 text-left">
                   <h3 className="text-lg leading-6 font-medium text-gray-900">
                     Create New Task
                   </h3>
                   <div className="mt-6 space-y-6">
+                    <div>
+                      <label
+                        htmlFor="project"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Project <span className="text-red-500">*</span>
+                      </label>
+                      <CustomSelect
+                        value={newTask.projectId}
+                        onChange={(e) =>
+                          setNewTask({ ...newTask, projectId: e.target.value })
+                        }
+                        options={[
+                          { value: '', label: 'Select a Project' },
+                          ...projects.map((project) => ({
+                            value: project._id,
+                            label: project.name,
+                          })),
+                        ]}
+                        className="mt-1 w-full"
+                        disabled={isNestedInProject}
+                      />
+                    </div>
+
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                       <div>
                         <label
@@ -1143,6 +1156,7 @@ const TaskManagement: React.FC = () => {
                   disabled={
                     !newTask.title.trim() ||
                     !newTask.description.trim() ||
+                    !newTask.projectId ||
                     isCreatingTask
                   }
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
@@ -1171,6 +1185,18 @@ const TaskManagement: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Mobile Floating Action Button */}
+      <button
+        onClick={() => {
+          resetNewTask();
+          setShowAddForm(true);
+        }}
+        disabled={false}
+        className="md:hidden fixed bottom-6 right-6 p-4 bg-accent-600 text-white rounded-full shadow-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 z-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+        aria-label="Add Task"
+      >
+        <PlusIcon className="h-6 w-6" />
+      </button>
     </div>
   );
 };

@@ -1142,7 +1142,7 @@ const FeedbackManagement: React.FC = () => {
               </div>
 
               <div>
-                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                <div className="mt-3 text-left">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl leading-6 font-semibold text-gray-900">
                       Feedback Details
